@@ -5,8 +5,9 @@
 # Folder for documentation stored locally
 .context/
 
-# Temp folder for AI artifacts
+# Temp folders for AI artifacts
 .temp/
+.lavish/
 
 # Old files kept around
 .archive/
