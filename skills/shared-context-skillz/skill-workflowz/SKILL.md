@@ -1,5 +1,5 @@
 ---
-name: research-question
+name: skill-workflowz
 description: Only invoked from other skills. Provides context on the different steps in a SKILL.md file.
 ---
 

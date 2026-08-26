@@ -1,5 +1,5 @@
 ---
-name: search-and-fetch-tool-context
+name: search-and-fetch-tool-preferencez
 description: When a search or fetch tool call is required, read this skill before execution for tool guidance.
 ---
 
