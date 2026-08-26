@@ -1,0 +1,15 @@
+# Create New PIP Style
+- Ask the user for a style name and description
+- Map the description to style fields
+  - shape ("circle" | "square" | "rect")
+  - width_fraction (float — how wide the inset is, as a fraction of the output frame)
+  - aspect (W:H — used when shape is rect, e.g. 16:9; circle and square are always 1:1)
+  - anchor ("bottom_right" | "bottom_left" | "top_right" | "top_left" | "bottom_center" | "top_center")
+  - margin_fraction (float — gap from the anchored edges, as a fraction of frame width)
+  - border_px (int — stroke around the inset, 0 = none)
+  - border_color (#RRGGBB)
+  - corner_radius_fraction (float - 0 = sharp, ~0.5 = pill; ignored when shape is circle)
+- Ask clarifying questions if required
+- Save the result to `assets/pip-styles/<name>.json`
+- Use the new style as the `pip_style` input variable
+- Copy the JSON onto `edit/edl.json` as `pip_style` (a segment EDL may merge override individual keys)

@@ -1,0 +1,1189 @@
+<title>Morning Ritual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #F2F7F6;
+    --paper-raised: #FFFFFF;
+    --ink: #193843;
+    --ink-soft: #4B6670;
+    --muted: #93A6AC;
+    --muted-bg: #E7EDEC;
+    --highlight: #70C2AB;
+    --highlight-deep: #2B7560;
+    --highlight-wash: rgba(112, 194, 171, 0.14);
+    --border: rgba(25, 56, 67, 0.14);
+    --border-soft: rgba(25, 56, 67, 0.08);
+    --shadow: 0 1px 2px rgba(25, 56, 67, 0.06), 0 8px 24px rgba(25, 56, 67, 0.05);
+    --warn: #B3651B;
+    --warn-wash: rgba(179, 101, 27, 0.12);
+
+    --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+    --font-body: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+
+    --text-body: 1rem;
+    --text-small: 0.875rem;
+    --text-h3: 1.25rem;
+    --text-h2: 1.5rem;
+    --text-h1: clamp(2.5rem, 7vw, 3.75rem);
+    --leading-body: 1.5;
+    --leading-heading: 1.2;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E2129;
+      --paper-raised: #142F39;
+      --ink: #E3EFEC;
+      --ink-soft: #9FB8BC;
+      --muted: #5C737B;
+      --muted-bg: #1A343D;
+      --highlight: #70C2AB;
+      --highlight-deep: #9BE0C9;
+      --highlight-wash: rgba(112, 194, 171, 0.12);
+      --border: rgba(227, 239, 236, 0.14);
+      --border-soft: rgba(227, 239, 236, 0.08);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+      --warn: #E3A868;
+      --warn-wash: rgba(227, 168, 104, 0.14);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0E2129;
+    --paper-raised: #142F39;
+    --ink: #E3EFEC;
+    --ink-soft: #9FB8BC;
+    --muted: #5C737B;
+    --muted-bg: #1A343D;
+    --highlight: #70C2AB;
+    --highlight-deep: #9BE0C9;
+    --highlight-wash: rgba(112, 194, 171, 0.12);
+    --border: rgba(227, 239, 236, 0.14);
+    --border-soft: rgba(227, 239, 236, 0.08);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+    --warn: #E3A868;
+    --warn-wash: rgba(227, 168, 104, 0.14);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sheet {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 72px 24px 120px;
+  }
+
+  /* ---------- Plan header ---------- */
+
+  .plan-header {
+    margin-bottom: 56px;
+  }
+
+  .eyebrow {
+    margin: 0 0 14px;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--highlight-deep);
+  }
+
+  .plan-description {
+    margin: 0 0 28px;
+    max-width: 62ch;
+    font-size: var(--text-body);
+    color: var(--ink-soft);
+  }
+
+  .plan-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 32px;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .plan-meta > div {
+    min-width: 0;
+  }
+
+  .plan-meta dt {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .plan-meta dd {
+    margin: 2px 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  /* ---------- Clip properties ---------- */
+
+  .clip-groups {
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .clip-group-title {
+    margin: 0 0 8px;
+    font-family: var(--font-mono);
+    font-size: var(--text-h3);
+    font-weight: 600;
+    line-height: var(--leading-heading);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .clip-table-wrap {
+    overflow-x: auto;
+  }
+
+  .clip-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+  }
+
+  .clip-table .col-clip { width: 32%; }
+  .clip-table .col-type { width: 14%; }
+  .clip-table .col-duration { width: 14%; }
+  .clip-table .col-resolution { width: 16%; }
+  .clip-table .col-fps { width: 10%; }
+  .clip-table .col-sync { width: 14%; }
+
+  .clip-table th {
+    text-align: left;
+    padding: 0 12px 6px 0;
+    font-size: var(--text-small);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .clip-table td {
+    padding: 7px 12px 7px 0;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--border-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .clip-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .clip-table td.clip-name {
+    color: var(--ink);
+    font-weight: 600;
+    white-space: normal;
+  }
+
+  .source-tag {
+    margin-left: 8px;
+    font-size: var(--text-small);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--highlight-deep);
+    background: var(--highlight-wash);
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  /* ---------- Potential issues ---------- */
+
+  .issues-section {
+    margin-top: 44px;
+  }
+
+  .issues-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .issue {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: var(--text-body);
+    color: var(--ink-soft);
+  }
+
+  .issue-tag {
+    flex: none;
+    box-sizing: border-box;
+    min-width: 8.5rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--warn);
+    background: var(--warn-wash);
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  /* ---------- Section heading ---------- */
+
+  .plan-title,
+  .section-heading {
+    margin: 0 0 22px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--text-h1);
+    line-height: 0.96;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .section-heading {
+    margin-top: 44px;
+  }
+
+  /* ---------- Grading ---------- */
+
+  .grading-section {
+    margin-top: 44px;
+  }
+
+  .grading-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    max-width: 640px;
+  }
+
+  .grade-option {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .grade-option img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--muted-bg);
+  }
+
+  .grade-option figcaption {
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Picture-in-picture ---------- */
+
+  .captions-section {
+    margin-top: 44px;
+  }
+
+  .captions-preview {
+    margin: 0;
+    max-width: 640px;
+    min-width: 0;
+  }
+
+  .captions-preview img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--muted-bg);
+  }
+
+  .pip-section {
+    margin-top: 44px;
+    container-type: inline-size;
+    container-name: pip;
+  }
+
+  .pip-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem 0.75rem;
+  }
+
+  .pip-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .pip-row img {
+    width: 9rem;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--muted-bg);
+  }
+
+  .pip-meta {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .pip-segment {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .pip-clip {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  /* 4×9rem thumbs + 3×0.75rem gaps; drop a column only when that no longer fits */
+  @container pip (max-width: 38.25rem) {
+    .pip-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @container pip (max-width: 28.5rem) {
+    .pip-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @container pip (max-width: 18.75rem) {
+    .pip-list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* ---------- Scene ---------- */
+
+  .scene {
+    margin-top: 40px;
+    container-type: inline-size;
+    container-name: plan;
+  }
+
+  .scene-heading {
+    margin: 0 0 6px;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    column-gap: 14px;
+    row-gap: 2px;
+  }
+
+  .scene-number {
+    font-family: var(--font-mono);
+    font-size: var(--text-h3);
+    font-weight: 600;
+    color: var(--highlight-deep);
+    letter-spacing: 0.02em;
+  }
+
+  .scene-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--text-h2);
+    line-height: var(--leading-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+
+  .timeline-rule {
+    height: 2px;
+    margin: 12px 0 18px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--ink) 0px,
+      var(--ink) 2px,
+      transparent 2px,
+      transparent 7px
+    );
+    opacity: 0.28;
+  }
+
+  /* ---------- Beats ---------- */
+
+  .beats-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(132px, 176px) max-content;
+    column-gap: 16px;
+    row-gap: 9px;
+    align-items: stretch;
+  }
+
+  .beats {
+    display: contents;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .beat {
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  .beat-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .beat-number {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--paper);
+    background: var(--ink);
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.03em;
+    flex: none;
+  }
+
+  .beat-tc {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--muted-bg);
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    flex: none;
+  }
+
+  /* ---------- Graphics + PIP tracks ---------- */
+
+  .graphic {
+    grid-column: 2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px 10px 14px;
+    border-left: 4px solid var(--highlight);
+    background: var(--highlight-wash);
+    border-radius: 0 4px 4px 0;
+  }
+
+  .pip-card {
+    grid-column: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 8px;
+    border-left: 4px solid var(--highlight);
+    background: var(--highlight-wash);
+    border-radius: 0 4px 4px 0;
+    writing-mode: vertical-rl;
+    text-orientation: sideways;
+  }
+
+  .pip-label {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--highlight-deep);
+    white-space: nowrap;
+  }
+
+  .graphic-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .graphic-kind {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--highlight-deep);
+  }
+
+  .graphic-tc {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--muted-bg);
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    flex: none;
+  }
+
+  .graphic-copy {
+    margin: 0;
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  .graphic-label {
+    display: none;
+  }
+
+  @container plan (max-width: 46rem) {
+    .beats-layout {
+      grid-template-columns: minmax(0, 1fr) max-content max-content;
+    }
+
+    .graphic {
+      writing-mode: vertical-rl;
+      text-orientation: sideways;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 8px;
+      gap: 0;
+    }
+
+    .graphic-label {
+      display: block;
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: var(--text-small);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--highlight-deep);
+      white-space: nowrap;
+    }
+
+    .graphic-head,
+    .graphic-copy {
+      display: none;
+    }
+  }
+
+  /* ---------- Takes ---------- */
+
+  .takes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .take {
+    display: grid;
+    grid-template-columns: auto minmax(0, max-content) minmax(0, 1fr);
+    grid-template-areas: "id source transcript";
+    column-gap: 12px;
+    align-items: start;
+    align-content: start;
+    min-width: 0;
+    overflow: hidden;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+  }
+
+  .take-id {
+    grid-area: id;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: var(--text-small);
+    color: var(--ink-soft);
+  }
+
+  .take-source {
+    grid-area: source;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    width: max-content;
+    max-width: 100%;
+  }
+
+  .take-tc {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.5rem;
+    row-gap: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--ink-soft);
+  }
+
+  .take-range {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .take-transcript {
+    grid-area: transcript;
+    margin: 0;
+    min-width: 0;
+    font-size: var(--text-body);
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  .take-note {
+    margin: 0;
+    min-width: 0;
+    font-size: var(--text-small);
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+
+  .take-clip {
+    color: var(--highlight-deep);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Cut takes: muted, quiet */
+  .take.cut {
+    opacity: 0.62;
+  }
+  .take.cut .take-id { text-decoration: line-through; text-decoration-color: var(--muted); }
+
+  /* Kept take: the one that survives the edit */
+  .take.kept {
+    background: var(--highlight-wash);
+    border-color: var(--highlight);
+    box-shadow: var(--shadow);
+  }
+  .take.kept .take-id { color: var(--highlight-deep); }
+
+  .cut-takes {
+    margin-top: 2px;
+  }
+
+  .cut-takes > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    cursor: pointer;
+    list-style: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: var(--muted-bg);
+  }
+
+  .cut-takes > summary::-webkit-details-marker,
+  .cut-takes > summary::marker {
+    display: none;
+    content: "";
+  }
+
+  .cut-takes > summary::before {
+    content: "▸";
+    font-size: 1.125rem;
+    line-height: 1;
+    color: var(--ink-soft);
+  }
+
+  .cut-takes[open] > summary::before {
+    content: "▾";
+  }
+
+  .cut-takes .takes {
+    margin-top: 2px;
+  }
+
+  @media (max-width: 520px) {
+    .take {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        "id source"
+        ". transcript";
+    }
+    .plan-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>
+
+<div class="sheet">
+
+  <header class="plan-header">
+    <p class="eyebrow">Editing Plan</p>
+    <h1 class="plan-title">Summary</h1>
+    <p class="plan-description">A 90-second morning routine piece, cut between a kitchen wake-up beat and the walk out the door — built as a worked example of why AI cutting tools need personal context to make good keep/cut calls.</p>
+    <dl class="plan-meta">
+      <div><dt>Runtime</dt><dd>00:01:32</dd></div>
+      <div><dt>Format</dt><dd>16:9 · 4K</dd></div>
+      <div><dt>Type</dt><dd>talking-head</dd></div>
+      <div><dt>Caption Style</dt><dd>chriselderxyz</dd></div>
+      <div><dt>PIP Style</dt><dd>bottom-right-circle</dd></div>
+      <div><dt>SRT Style</dt><dd>default</dd></div>
+    </dl>
+
+    <div class="clip-groups">
+      <div class="clip-group">
+        <h3 class="clip-group-title">Segment 1</h3>
+        <div class="clip-table-wrap">
+          <table class="clip-table">
+            <colgroup>
+              <col class="col-clip">
+              <col class="col-type">
+              <col class="col-duration">
+              <col class="col-resolution">
+              <col class="col-fps">
+              <col class="col-sync">
+            </colgroup>
+            <thead>
+              <tr><th>Clip</th><th>Type</th><th>Duration</th><th>Resolution</th><th>FPS</th><th>Sync Offset</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="clip-name">1-head<span class="source-tag">Audio Reference</span></td><td>Head</td><td>00:01:38</td><td>3840×2160</td><td>29.97</td><td>—</td></tr>
+              <tr><td class="clip-name">1-screen</td><td>Screen</td><td>00:01:41</td><td>1920×1080</td><td>30</td><td>+0.12s</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="clip-group">
+        <h3 class="clip-group-title">Segment 2</h3>
+        <div class="clip-table-wrap">
+          <table class="clip-table">
+            <colgroup>
+              <col class="col-clip">
+              <col class="col-type">
+              <col class="col-duration">
+              <col class="col-resolution">
+              <col class="col-fps">
+              <col class="col-sync">
+            </colgroup>
+            <thead>
+              <tr><th>Clip</th><th>Type</th><th>Duration</th><th>Resolution</th><th>FPS</th><th>Sync Offset</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="clip-name">2-head<span class="source-tag">Audio Reference</span></td><td>Head</td><td>00:00:52</td><td>3840×2160</td><td>29.97</td><td>—</td></tr>
+              <tr><td class="clip-name">2-audio</td><td>Audio-only</td><td>00:00:54</td><td>—</td><td>—</td><td>+0.03s</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="issues-section">
+    <h1 class="section-heading">Potential Issues</h1>
+    <ul class="issues-list">
+      <li class="issue"><span class="issue-tag">Mismatch</span>Frame rate mismatch between 1-head (29.97fps) and 1-screen (30fps).</li>
+      <li class="issue"><span class="issue-tag">Video Type</span>1-screen renders at 1920×1080; the talking-head video-type preset expects 3840×2160.</li>
+      <li class="issue"><span class="issue-tag">Numbering</span>Segment 3 is referenced in the shot log but has no matching clips.</li>
+      <li class="issue"><span class="issue-tag">Silent Audio</span>No waveform detected on 2-audio between 00:00:12–00:00:54.</li>
+    </ul>
+  </section>
+
+  <section class="grading-section">
+    <h1 class="section-heading">Grading</h1>
+    <div class="grading-grid">
+      <figure class="grade-option">
+        <img alt="Original ungraded still from 1-head">
+        <figcaption>Original</figcaption>
+      </figure>
+      <figure class="grade-option">
+        <img alt="First grade style preview">
+        <figcaption>Subtle</figcaption>
+      </figure>
+      <figure class="grade-option">
+        <img alt="Second grade style preview">
+        <figcaption>Neutral Punch</figcaption>
+      </figure>
+      <figure class="grade-option">
+        <img alt="Third grade style preview">
+        <figcaption>Warm Cinematic</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="pip-section">
+    <h1 class="section-heading">Picture-in-Picture</h1>
+    <ul class="pip-list">
+      <li class="pip-row">
+        <div class="pip-meta">
+          <span class="pip-segment">Segment 1</span>
+          <span class="pip-clip">1-head</span>
+        </div>
+        <img alt="PIP crop preview for 1-head">
+      </li>
+      <li class="pip-row">
+        <div class="pip-meta">
+          <span class="pip-segment">Segment 2</span>
+          <span class="pip-clip">2-head</span>
+        </div>
+        <img alt="PIP crop preview for 2-head">
+      </li>
+      <li class="pip-row">
+        <div class="pip-meta">
+          <span class="pip-segment">Segment 3</span>
+          <span class="pip-clip">3-head</span>
+        </div>
+        <img alt="PIP crop preview for 3-head">
+      </li>
+      <li class="pip-row">
+        <div class="pip-meta">
+          <span class="pip-segment">Segment 4</span>
+          <span class="pip-clip">4-head</span>
+        </div>
+        <img alt="PIP crop preview for 4-head">
+      </li>
+      <li class="pip-row">
+        <div class="pip-meta">
+          <span class="pip-segment">Segment 5</span>
+          <span class="pip-clip">5-head</span>
+        </div>
+        <img alt="PIP crop preview for 5-head">
+      </li>
+      <li class="pip-row">
+        <div class="pip-meta">
+          <span class="pip-segment">Segment 6</span>
+          <span class="pip-clip">6-head</span>
+        </div>
+        <img alt="PIP crop preview for 6-head">
+      </li>
+      <li class="pip-row">
+        <div class="pip-meta">
+          <span class="pip-segment">Segment 7</span>
+          <span class="pip-clip">7-head</span>
+        </div>
+        <img alt="PIP crop preview for 7-head">
+      </li>
+      <li class="pip-row">
+        <div class="pip-meta">
+          <span class="pip-segment">Segment 8</span>
+          <span class="pip-clip">8-head</span>
+        </div>
+        <img alt="PIP crop preview for 8-head">
+      </li>
+    </ul>
+  </section>
+
+  <section class="captions-section">
+    <h1 class="section-heading">Captions</h1>
+    <figure class="captions-preview">
+      <img alt="Captions over video preview">
+    </figure>
+  </section>
+
+  <h1 class="section-heading">Plan</h1>
+
+  <!-- Scene 1 -->
+  <section class="scene">
+    <h2 class="scene-heading">
+      <span class="scene-number">Scene 01</span>
+      <span class="scene-name">PROBLEM: AI is bad at video editing.</span>
+    </h2>
+    <div class="timeline-rule"></div>
+
+    <div class="beats-layout">
+      <ol class="beats">
+        <li class="beat">
+          <div class="beat-head">
+            <span class="beat-number">Beat 1</span>
+            <span class="beat-tc">00:00:00–00:00:04</span>
+          </div>
+          <ul class="takes">
+            <li class="take kept">
+              <span class="take-id">C</span>
+              <div class="take-source">
+                <span class="take-tc"><span class="take-clip">1-screen</span><span class="take-range">00:00:48–00:00:52</span></span>
+              </div>
+              <p class="take-transcript">Every morning starts the same way.</p>
+            </li>
+          </ul>
+          <details class="cut-takes">
+            <summary>3 cut takes</summary>
+            <ul class="takes">
+              <li class="take cut">
+                <span class="take-id">A</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">00:00:41–00:00:44</span></span>
+                  <p class="take-note">Reach is rushed, arrives too early</p>
+                </div>
+                <p class="take-transcript">Ev— every morning starts the same way.</p>
+              </li>
+              <li class="take cut">
+                <span class="take-id">B</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">00:00:44–00:00:48</span></span>
+                  <p class="take-note">Mic bump on table knock</p>
+                </div>
+                <p class="take-transcript">Every morning starts the same way.</p>
+              </li>
+              <li class="take cut">
+                <span class="take-id">D</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">00:00:52–00:00:55</span></span>
+                  <p class="take-note">Focus drifts soft on the handle</p>
+                </div>
+                <p class="take-transcript">Every morning starts the same— way.</p>
+              </li>
+            </ul>
+          </details>
+        </li>
+
+        <li class="beat">
+          <div class="beat-head">
+            <span class="beat-number">Beat 2</span>
+            <span class="beat-tc">00:00:04–00:00:09</span>
+          </div>
+          <ul class="takes">
+            <li class="take kept">
+              <span class="take-id">B</span>
+              <div class="take-source">
+                <span class="take-tc"><span class="take-clip">1-screen</span><span class="take-range">00:01:07–00:01:12</span></span>
+              </div>
+              <p class="take-transcript">Coffee first. Everything else after.</p>
+            </li>
+          </ul>
+          <details class="cut-takes">
+            <summary>2 cut takes</summary>
+            <ul class="takes">
+              <li class="take cut">
+                <span class="take-id">A</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">00:01:03–00:01:07</span></span>
+                  <p class="take-note">Backlight blows out the highlight</p>
+                </div>
+                <p class="take-transcript">Coffee first. Every— everything else after.</p>
+              </li>
+              <li class="take cut">
+                <span class="take-id">C</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">00:01:12–00:01:15</span></span>
+                  <p class="take-note">Duplicate angle, no new info</p>
+                </div>
+                <p class="take-transcript">Coffee first, everything... else after.</p>
+              </li>
+            </ul>
+          </details>
+        </li>
+
+        <li class="beat">
+          <div class="beat-head">
+            <span class="beat-number">Beat 3</span>
+            <span class="beat-tc">00:00:09–00:00:14</span>
+          </div>
+          <ul class="takes">
+            <li class="take kept">
+              <span class="take-id">B</span>
+              <div class="take-source">
+                <span class="take-tc"><span class="take-clip">2-screen</span><span class="take-range">00:01:22–00:01:27</span></span>
+              </div>
+              <p class="take-transcript">Then I get out the door.</p>
+            </li>
+          </ul>
+          <details class="cut-takes">
+            <summary>2 cut takes</summary>
+            <ul class="takes">
+              <li class="take cut">
+                <span class="take-id">A</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">2-head</span><span class="take-range">00:01:18–00:01:22</span></span>
+                  <p class="take-note">Mug clips the frame edge</p>
+                </div>
+                <p class="take-transcript">Then I get out the door.</p>
+              </li>
+              <li class="take cut">
+                <span class="take-id">C</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">2-head</span><span class="take-range">00:01:27–00:01:31</span></span>
+                  <p class="take-note">False start, repeats Beat 2 energy</p>
+                </div>
+                <p class="take-transcript">Then I— I get out the door.</p>
+              </li>
+            </ul>
+          </details>
+        </li>
+      </ol>
+
+      <!-- grid-row is this scene's beat index; the end line is exclusive (1 / 2 is beat 1, 2 / 4 is beats 2–3) -->
+      <aside class="graphic" style="grid-row: 2 / 4">
+        <p class="graphic-label">GRAPHIC</p>
+        <div class="graphic-head">
+          <span class="graphic-kind">Graphic</span>
+          <span class="graphic-tc">00:00:04–00:00:14</span>
+        </div>
+        <p class="graphic-copy">Kinetic type: COFFEE FIRST, steam particles. Lands on “everything else after,” then holds through the walk-out.</p>
+      </aside>
+
+      <aside class="pip-card" style="grid-row: 1 / 3">
+        <p class="pip-label">PIP - 1-head</p>
+      </aside>
+
+      <aside class="pip-card" style="grid-row: 3 / 4">
+        <p class="pip-label">PIP - 2-head</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Scene 2 -->
+  <section class="scene">
+    <h2 class="scene-heading">
+      <span class="scene-number">Scene 02</span>
+      <span class="scene-name">SOLUTION: AI Editing Requires Personal Context</span>
+    </h2>
+    <div class="timeline-rule"></div>
+
+    <div class="beats-layout">
+      <ol class="beats">
+        <li class="beat">
+          <div class="beat-head">
+            <span class="beat-number">Beat 1</span>
+            <span class="beat-tc">00:00:14–00:00:18</span>
+          </div>
+          <ul class="takes">
+            <li class="take kept">
+              <span class="take-id">B</span>
+              <div class="take-source">
+                <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:20–00:00:24</span></span>
+              </div>
+              <p class="take-transcript">Some days, I actually make it out on time.</p>
+            </li>
+          </ul>
+          <details class="cut-takes">
+            <summary>2 cut takes</summary>
+            <ul class="takes">
+              <li class="take cut">
+                <span class="take-id">A</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:16–00:00:20</span></span>
+                  <p class="take-note">Lock catches, breaks the rhythm</p>
+                </div>
+                <p class="take-transcript">Some days, I— I actually make it out on time.</p>
+              </li>
+              <li class="take cut">
+                <span class="take-id">C</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:24–00:00:27</span></span>
+                  <p class="take-note">Passerby walks through frame</p>
+                </div>
+                <p class="take-transcript">Some days, I actually make it— out on time.</p>
+              </li>
+            </ul>
+          </details>
+        </li>
+
+        <li class="beat">
+          <div class="beat-head">
+            <span class="beat-number">Beat 2</span>
+            <span class="beat-tc">00:00:18–00:00:24</span>
+          </div>
+          <ul class="takes">
+            <li class="take kept">
+              <span class="take-id">A</span>
+              <div class="take-source">
+                <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:28–00:00:34</span></span>
+              </div>
+              <p class="take-transcript">The cut only works if it knows what I actually meant.</p>
+            </li>
+          </ul>
+          <details class="cut-takes">
+            <summary>2 cut takes</summary>
+            <ul class="takes">
+              <li class="take cut">
+                <span class="take-id">B</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:34–00:00:39</span></span>
+                  <p class="take-note">Restart mid-line</p>
+                </div>
+                <p class="take-transcript">The cut only works if it knows what I— what I actually meant.</p>
+              </li>
+              <li class="take cut">
+                <span class="take-id">C</span>
+                <div class="take-source">
+                  <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:39–00:00:44</span></span>
+                  <p class="take-note">Wind hits the lav</p>
+                </div>
+                <p class="take-transcript">The cut only works if it knows what I actually meant.</p>
+              </li>
+            </ul>
+          </details>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+</div>

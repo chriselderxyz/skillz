@@ -1,0 +1,507 @@
+#============================================================
+# Personal Conventions
+#============================================================
+
+# Folder for documentation stored locally
+.context/
+
+# Temp folder for AI artifacts
+.temp/
+
+# Old files kept around
+.archive/
+
+#============================================================
+# AI
+#============================================================
+
+# Enable as you see fit
+.agents
+.claude
+.cursor
+
+#============================================================
+# General
+#============================================================
+
+#------------------------------
+# Monorepos
+#------------------------------
+# Turborepo
+.turbo/
+
+#------------------------------
+# Global Logs
+#------------------------------
+logs/
+*.log
+
+#===========================================================
+# Security
+#===========================================================
+
+#------------------------------
+# Key Stores
+#------------------------------
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+#===========================================================
+# IDEs
+#===========================================================
+
+#------------------------------
+# VSCode
+#------------------------------
+.vscode/*
+*.code-workspace
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
+# !.vscode/extensions.json
+
+#------------------------------
+# JetBrains
+#------------------------------
+.idea/
+*.iml
+*.iws
+out/
+
+#------------------------------
+# Vim
+#------------------------------
+*.swp
+*.swo
+*~
+Session.vim
+.netrwhist
+
+#------------------------------
+# Emacs
+#------------------------------
+*~
+\#*\#
+.\#*
+
+#------------------------------
+# XCode
+#------------------------------
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
+xcuserdata/
+DerivedData/
+*.hmap
+*.ipa
+*.xcarchive
+
+#------------------------------
+# Android Studio
+#------------------------------
+*.iml
+.gradle/
+local.properties
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+#===========================================================
+# OS
+#===========================================================
+
+#------------------------------
+# MacOS
+#------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+#------------------------------
+# Windows
+#------------------------------
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+#------------------------------
+# Linux
+#------------------------------
+.directory
+.Trash-*/
+
+#===========================================================
+# Environments
+#===========================================================
+.env
+.env.*
+.envrc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+/.venv/
+.env.ios
+.env.android
+!.env.example
+!.env.template
+!.env.sample
+
+#============================================================
+# Frameworks
+#============================================================
+
+#------------------------------
+# React
+#------------------------------
+dist/
+build/
+
+#------------------------------
+# Vite
+#------------------------------
+.vite/
+
+#------------------------------
+# Next
+#------------------------------
+.next/
+out/
+# next-env.d.ts
+
+#------------------------------
+# Nuxt
+#------------------------------
+.nuxt/
+.output/
+.nitro/
+.cache/
+.data/
+dist/
+
+#------------------------------
+# Tanstack Start
+#------------------------------
+dist/
+
+#------------------------------
+# Svelte
+#------------------------------
+.svelte-kit/
+
+#------------------------------
+# SolidStart
+#------------------------------
+.vinxi/
+.output/
+.solid/
+.mf/
+
+#------------------------------
+# React Native
+#------------------------------
+
+# Tooling
+.metro-health-check*
+metro.config.local.js
+
+# Xcode / iOS
+ios/Pods/
+ios/build/
+ios/*.xcworkspace
+!ios/*.xcworkspace/contents.xcworkspacedata
+ios/DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Android
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/*.keystore
+!android/debug.keystore
+android/app/src/main/assets/index.android.bundle
+android/app/src/main/res/drawable-*
+android/app/src/main/res/raw
+
+#------------------------------
+# Expo
+#------------------------------
+.expo/
+.expo-shared/
+dist/
+web-build/
+*.jsbundle
+*.hbc
+
+#============================================================
+# TS/JS
+#============================================================
+
+#------------------------------
+# Builds
+#------------------------------
+dist/
+build/
+out/
+*.tsbuildinfo
+
+#------------------------------
+# Testing
+#------------------------------
+coverage/
+junit.xml
+
+#------------------------------
+# Tooling
+#------------------------------
+
+# Package Management
+.npm/
+npm-debug.log*
+node_modules
+.pnpm-store/
+.pnpm/
+pnpm-debug.log*
+.bun/
+bun-debug-*.log
+.yarn/
+.pnp.*
+yarn-debug.log*
+yarn-error.log*
+
+
+# Linting
+.eslintcache
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+.last-run.json
+
+#============================================================
+# Go
+#============================================================
+
+#------------------------------
+# Builds
+#------------------------------
+bin/
+build/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+#------------------------------
+# Testing
+#------------------------------
+*.test
+*.out
+coverage.*
+*.prof
+*.pprof
+
+#------------------------------
+# Workspace
+#------------------------------
+go.work
+go.work.sum
+
+#============================================================
+# Python
+#============================================================
+
+#------------------------------
+# Builds
+#------------------------------
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+
+#------------------------------
+# Tooling
+#------------------------------
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# Ruff
+.ruff_cache/
+
+# Coverage.py
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Jupyter
+.ipynb_checkpoints/
+
+#============================================================
+# Infra
+#============================================================
+
+#------------------------------
+# Docker
+#------------------------------
+docker-volumes/
+docker-compose.override.yml
+.env.docker
+
+#------------------------------
+# Terraform
+#------------------------------
+
+# Config
+.terraformrc
+terraform.rc
+.tofurc
+tofu.rc
+
+# Variables
+*.auto.tfvars
+*.auto.tfvars.json
+terraform.tfvars
+terraform.tfvars.json
+
+# Local Generated Files
+.terraform/
+*.tfplan
+*.tfstate
+*.tfstate.*
+crash.log
+*.tofuplan
+
+# Override Files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+#------------------------------
+# K8s
+#------------------------------
+kubeconfig
+kubeconfig.yaml
+*.kubeconfig
+.kube/
+
+#------------------------------
+# Helm
+#------------------------------
+# General
+charts/*.tgz
+charts/**/charts/
+
+# Secrets
+secrets.yaml
+secrets.yml
+*-secret.local.yaml
+
+#------------------------------
+# Serverless Framework
+#------------------------------
+.serverless/
+
+#------------------------------
+# SST
+#------------------------------
+.sst/
+
+#============================================================
+# Cloud
+#============================================================
+
+#------------------------------
+# Vercel
+#------------------------------
+.vercel/
+
+#------------------------------
+# Netlify
+#------------------------------
+.netlify/
+netlify/
+
+#------------------------------
+# Fly.io
+#------------------------------
+.fly/
+
+#------------------------------
+# Cloudflare
+#------------------------------
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+#------------------------------
+# AWS
+#------------------------------
+.aws-sam/
+cdk.out/
+
+#============================================================
+# Databases
+#============================================================
+
+#------------------------------
+# Dumps/Backups
+#------------------------------
+*.dump
+*.sql.gz
+backup/
+backups/
+
+#------------------------------
+# SQLite
+#------------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+#------------------------------
+# MongoDB
+#------------------------------
+*.mongorc.js
+data/db/
+
+#============================================================
+# Plugins and Extensions
+#============================================================
+
+#------------------------------
+# Coda/Superhuman Docs
+#------------------------------
+.coda-pack.json
+.coda.json

@@ -1,0 +1,15 @@
+{
+  "eq": {
+    "contrast": 1.06,
+    "brightness": 0.0,
+    "saturation": 1.0
+  },
+  "curves": {
+    "master": [
+      { "input": 0.0, "output": 0.0 },
+      { "input": 0.25, "output": 0.23 },
+      { "input": 0.75, "output": 0.77 },
+      { "input": 1.0, "output": 1.0 }
+    ]
+  }
+}

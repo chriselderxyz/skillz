@@ -1,0 +1,11 @@
+# Create New Graphics Style Guide
+- This is the process used to make a .md style guide that will be read by an agent when generating graphics with Hyperframes
+- Ask the user to give
+    - A name for the style
+    - A general description of the style they want for their graphics
+    - A description of the palette that should be used
+    - A description of the type/font to use
+- The style should have at most two accent colors
+- Using those inputs, create `assets/graphics-style-guides/<name>.md`
+    - The file should have both Palette and Type/Font sections, but other than that the shape is up to you and the user
+- Use the new file as the `graphics_style_guide` for the remainder of this session

@@ -1,0 +1,9 @@
+{
+  "orientation": "portrait",
+  "resolution": "HD",
+  "fps": 30,
+  "target_lufs": -14,
+  "cut_padding_ms": 100,
+  "silence_cut_threshold_ms": 400,
+  "beat_gap_ms": 300
+}

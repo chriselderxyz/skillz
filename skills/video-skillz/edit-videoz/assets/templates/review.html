@@ -1,0 +1,348 @@
+<title>Morning Ritual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #F2F7F6;
+    --paper-raised: #FFFFFF;
+    --ink: #193843;
+    --ink-soft: #4B6670;
+    --muted: #93A6AC;
+    --muted-bg: #E7EDEC;
+    --highlight: #70C2AB;
+    --highlight-deep: #2B7560;
+    --highlight-wash: rgba(112, 194, 171, 0.14);
+    --border: rgba(25, 56, 67, 0.14);
+    --border-soft: rgba(25, 56, 67, 0.08);
+    --shadow: 0 1px 2px rgba(25, 56, 67, 0.06), 0 8px 24px rgba(25, 56, 67, 0.05);
+
+    --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+    --font-body: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+
+    --text-body: 1rem;
+    --text-small: 0.875rem;
+    --text-h3: 1.25rem;
+    --text-h2: 1.5rem;
+    --text-h1: clamp(2.5rem, 7vw, 3.75rem);
+    --leading-body: 1.5;
+    --leading-heading: 1.2;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E2129;
+      --paper-raised: #142F39;
+      --ink: #E3EFEC;
+      --ink-soft: #9FB8BC;
+      --muted: #5C737B;
+      --muted-bg: #1A343D;
+      --highlight: #70C2AB;
+      --highlight-deep: #9BE0C9;
+      --highlight-wash: rgba(112, 194, 171, 0.12);
+      --border: rgba(227, 239, 236, 0.14);
+      --border-soft: rgba(227, 239, 236, 0.08);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0E2129;
+    --paper-raised: #142F39;
+    --ink: #E3EFEC;
+    --ink-soft: #9FB8BC;
+    --muted: #5C737B;
+    --muted-bg: #1A343D;
+    --highlight: #70C2AB;
+    --highlight-deep: #9BE0C9;
+    --highlight-wash: rgba(112, 194, 171, 0.12);
+    --border: rgba(227, 239, 236, 0.14);
+    --border-soft: rgba(227, 239, 236, 0.08);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sheet {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 72px 24px 120px;
+  }
+
+  /* ---------- Plan header ---------- */
+
+  .plan-header {
+    margin-bottom: 56px;
+  }
+
+  .eyebrow {
+    margin: 0 0 14px;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--highlight-deep);
+  }
+
+  .plan-description {
+    margin: 0 0 28px;
+    max-width: 62ch;
+    font-size: var(--text-body);
+    color: var(--ink-soft);
+  }
+
+  .plan-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 32px;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .plan-meta > div {
+    min-width: 0;
+  }
+
+  .plan-meta dt {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .plan-meta dd {
+    margin: 2px 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  /* ---------- Section heading ---------- */
+
+  .plan-title,
+  .section-heading {
+    margin: 0 0 22px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--text-h1);
+    line-height: 0.96;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .section-heading {
+    margin-top: 44px;
+  }
+
+  /* ---------- Transcript ---------- */
+
+  .scene {
+    margin-top: 40px;
+  }
+
+  .timeline-rule {
+    height: 2px;
+    margin: 12px 0 18px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--ink) 0px,
+      var(--ink) 2px,
+      transparent 2px,
+      transparent 7px
+    );
+    opacity: 0.28;
+  }
+
+  .beats-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content max-content;
+    column-gap: 16px;
+    row-gap: 9px;
+    align-items: stretch;
+  }
+
+  .beats {
+    display: contents;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .beat {
+    grid-column: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: baseline;
+    padding: 8px 12px;
+    border-radius: 4px;
+  }
+
+  .beat-range {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--muted-bg);
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    flex: none;
+  }
+
+  .beat-clip {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--highlight-deep);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .beat-transcript {
+    margin: 0;
+    min-width: 0;
+    font-size: var(--text-body);
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  /* ---------- Graphics + PIP tracks ---------- */
+
+  .graphic,
+  .pip-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 8px;
+    border-left: 4px solid var(--highlight);
+    background: var(--highlight-wash);
+    border-radius: 0 4px 4px 0;
+    writing-mode: vertical-rl;
+    text-orientation: sideways;
+  }
+
+  .graphic {
+    grid-column: 2;
+  }
+
+  .pip-card {
+    grid-column: 3;
+  }
+
+  .graphic-label,
+  .pip-label {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--highlight-deep);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 520px) {
+    .beat {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        "range clip"
+        ". transcript";
+    }
+    .beat-range { grid-area: range; }
+    .beat-clip { grid-area: clip; }
+    .beat-transcript { grid-area: transcript; }
+    .plan-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>
+
+<div class="sheet">
+
+  <header class="plan-header">
+    <p class="eyebrow">Editing Plan</p>
+    <h1 class="plan-title">Summary</h1>
+    <p class="plan-description">A 90-second morning routine piece, cut between a kitchen wake-up beat and the walk out the door — built as a worked example of why AI cutting tools need personal context to make good keep/cut calls.</p>
+    <dl class="plan-meta">
+      <div><dt>Runtime</dt><dd>00:01:32</dd></div>
+      <div><dt>Format</dt><dd>16:9 · 4K</dd></div>
+      <div><dt>Type</dt><dd>talking-head</dd></div>
+      <div><dt>Caption Style</dt><dd>chriselderxyz</dd></div>
+      <div><dt>PIP Style</dt><dd>bottom-right-circle</dd></div>
+      <div><dt>SRT Style</dt><dd>default</dd></div>
+    </dl>
+  </header>
+
+  <h1 class="section-heading">Transcript</h1>
+
+  <section class="scene">
+    <div class="timeline-rule"></div>
+
+    <div class="beats-layout">
+      <ol class="beats">
+        <li class="beat">
+          <span class="beat-range">00:00:00–00:00:04</span>
+          <span class="beat-clip">1-screen</span>
+          <p class="beat-transcript">Every morning starts the same way.</p>
+        </li>
+
+        <li class="beat">
+          <span class="beat-range">00:00:04–00:00:09</span>
+          <span class="beat-clip">1-screen</span>
+          <p class="beat-transcript">Coffee first. Everything else after.</p>
+        </li>
+
+        <li class="beat">
+          <span class="beat-range">00:00:09–00:00:14</span>
+          <span class="beat-clip">2-screen</span>
+          <p class="beat-transcript">Then I get out the door.</p>
+        </li>
+
+        <li class="beat">
+          <span class="beat-range">00:00:14–00:00:18</span>
+          <span class="beat-clip">3-head</span>
+          <p class="beat-transcript">Some days, I actually make it out on time.</p>
+        </li>
+
+        <li class="beat">
+          <span class="beat-range">00:00:18–00:00:24</span>
+          <span class="beat-clip">3-head</span>
+          <p class="beat-transcript">The cut only works if it knows what I actually meant.</p>
+        </li>
+      </ol>
+
+      <!-- grid-row is this transcript's beat index; the end line is exclusive (1 / 2 is beat 1, 2 / 4 is beats 2–3) -->
+      <aside class="graphic" style="grid-row: 2 / 4">
+        <p class="graphic-label">GRAPHIC - coffee-first</p>
+      </aside>
+
+      <aside class="pip-card" style="grid-row: 1 / 3">
+        <p class="pip-label">PIP - 1-head</p>
+      </aside>
+
+      <aside class="pip-card" style="grid-row: 3 / 4">
+        <p class="pip-label">PIP - 2-head</p>
+      </aside>
+    </div>
+  </section>
+
+</div>

@@ -1,0 +1,21 @@
+{
+  "case": "upper",
+  "chars_per_line": 20,
+  "num_lines": 1,
+  "font_name": "Impact",
+  "font_size": 18,
+  "bold": true,
+  "italic": false,
+  "underline": false,
+  "strike_out": false,
+  "spacing": 0,
+  "angle": 0,
+  "primary_color": "193843",
+  "outline_color": "5CD6B4",
+  "back_color": "193843",
+  "border_style": 1,
+  "outline": 2,
+  "shadow": 0,
+  "alignment": 2,
+  "margin_v": 90
+}
