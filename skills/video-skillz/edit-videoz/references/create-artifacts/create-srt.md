@@ -1,8 +1,8 @@
 # Create The `.srt`
-- Run `scripts/production/build_srt.py` against the top-level cut list + transcripts to create the sidecar `.srt`
+- Run `scripts/production/build_srt.py` against the top-level **EDL** + transcripts to create the sidecar `.srt`
 
 ```bash
-uv run --no-project <skill_dir>/scripts/production/build_srt.py -o edit/edit.srt
+uv run --no-project scripts/production/build_srt.py -o edit/edit.srt
 ```
 
 # Verify

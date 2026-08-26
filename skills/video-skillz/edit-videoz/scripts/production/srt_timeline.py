@@ -3,11 +3,8 @@
 Used by `build_srt.py` (sidecar `.srt` from `edl.srt_style` wrap settings) and
 `render.py` (burn-in cues from caption-style wrap / case settings).
 
-Each range's words come from its audio clip: `range.audio`, else that
-segment's `edit/<n>/sync.json` `audio_reference_clip`, else `range.source`.
-Word times are on that clip. When the audio clip is not the audio
-reference clip, range start/end (segment clock) are shifted by that clip's
-offset in `sync.json`.
+Each range's words come from `range.audio_source`. Range start/end are
+already on that clip, so word times are used as-is.
 """
 
 from __future__ import annotations
@@ -49,10 +46,12 @@ def build_timeline_srt(
     entries: list[tuple[float, float, str]] = []
     seg_offset = 0.0
     capitalize_next = True
-    sync_cache: dict[int, dict] = {}
 
     for i, r in enumerate(edl["ranges"]):
-        src_name = r["source"]
+        audio_name = r.get("audio_source")
+        if not audio_name:
+            sys.exit(f"range[{i}] audio_source is required")
+        audio_name = Path(str(audio_name)).stem
         seg_start = float(r["start"])
         seg_end = float(r["end"])
         seg_duration = seg_end - seg_start
@@ -61,51 +60,8 @@ def build_timeline_srt(
             seg_offset += seg_duration
             continue
 
-        prefix = str(src_name).split("-", 1)[0]
-        n = int(prefix) if prefix.isdigit() else None
-        if n is not None and n not in sync_cache:
-            sync_path = edit_dir / str(n) / "sync.json"
-            if sync_path.is_file():
-                try:
-                    sync_data = json.loads(sync_path.read_text())
-                except json.JSONDecodeError as e:
-                    sys.exit(f"invalid JSON in {sync_path}: {e}")
-                if not isinstance(sync_data, dict):
-                    sys.exit(f"{sync_path} must be a JSON object")
-            else:
-                sync_data = {}
-            audio_reference_from_sync = sync_data.get("audio_reference_clip")
-            if audio_reference_from_sync is not None and audio_reference_from_sync != "":
-                audio_reference_from_sync = Path(str(audio_reference_from_sync)).stem
-            else:
-                audio_reference_from_sync = None
-            offsets = {
-                k: float(v)
-                for k, v in sync_data.items()
-                if k != "audio_reference_clip" and isinstance(v, (int, float))
-            }
-            sync_cache[n] = {
-                "audio_reference_clip": audio_reference_from_sync,
-                "offsets": offsets,
-            }
-
-        packed = sync_cache.get(n, {"audio_reference_clip": None, "offsets": {}})
-        audio_reference_clip = packed.get("audio_reference_clip")
-        offsets = packed.get("offsets") if isinstance(packed.get("offsets"), dict) else {}
-
-        audio_name = r.get("audio")
-        if audio_name:
-            audio_name = Path(str(audio_name)).stem
-        elif audio_reference_clip:
-            audio_name = audio_reference_clip
-        else:
-            audio_name = Path(str(src_name)).stem
-
-        offset = 0.0
-        if audio_reference_clip and audio_name != audio_reference_clip:
-            offset = float(offsets.get(audio_name, 0.0))
-        src_start = seg_start + offset
-        src_end = seg_end + offset
+        src_start = seg_start
+        src_end = seg_end
 
         tr_path = transcripts_dir / f"{audio_name}.json"
         if not tr_path.exists():

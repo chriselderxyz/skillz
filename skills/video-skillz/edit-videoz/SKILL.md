@@ -6,17 +6,23 @@ disable-model-invocation: true
 
 # Context
 
-Use the /load-contextz skill to get
-- skills workflow
-
 Read `references/shared-context/concepts.md`
+
+## Subagent Use
+
+Tell any subagent you spin up the following
+- All raw **clips** are in `<src>/*`, do not modify them
+- `references/`, `assets/` and `scripts/` resolve from the skill directory - `<skill_dir>`
+
+## Context Skills
+Run the /skill-workflowz skill
 
 ## EDL (Edit Decision List)
 - Editing decisions and information
-- Ordered list of which source to play, from which timestamp to which
-- The top-level `edit/edl.json` is the cut list for the whole video
-- Each segment has `edit/<n>/edl.json` for optional `caption_style` / `grading_style` / `pip_style` overrides (these merge with the top level settings)
-- Every path written into an EDL is relative to the working directory (or absolute)
+- Ordered list of which **audio source** and **active clip** to play, from which timestamp to which
+- The top-level `edit/edl.json` is the **EDL** for the whole video
+- Each **segment** has `edit/<n>/edl.json` for optional `caption_style` / `grading_style` / `pip_style` overrides (these merge with the top level settings)
+- Every path written into an **EDL** is relative to the working directory (or absolute)
 
 # Phase 1 - Prep
 
@@ -58,19 +64,17 @@ Prompt the user for each input if it wasn't already provided
 Create New Options
 - For any variable the user selects "create new" for, follow the steps in the corresponding .md file in `references/create-assets/*`
 
-Subagent Use
-- Tell any subagents you use the following: "All raw clips are in `<src>/*`, do not modify them"
 
 # Phase 2 — Plan
 ## 1. Setup
 - Create `edit/`
 - Create `edit/edl.json`
 - Create `edit/plan.html` (modeled after `assets/templates/plan.html`)
-- Create `edit/<n>/` for each segment
-- Create an empty EDL at `edit/<n>/edl.json` for each segment
+- Create `edit/<n>/` for each **segment**
+- Create `edit/<n>/edl.json` for each **segment**
 
 ## 2. EDL Writes
-- Add an entry to the `sources` object for each clip, where the key is the clip name (ex. "1-head"), and the value is the path to each clip
+- Add an entry to the `sources` object for each **clip**, where the key is the **clip** name (ex. "1-head"), and the value is the path to each **clip**
 - Read `assets/video-types/<video_type>.json`, and write the JSON to `edit/edl.json` under the `video_type` key
 - If the following input variables are not "none", write the JSON from the corresponding file into `edit/edl.json` under the same key as the input variable
     - `caption_style`
@@ -80,40 +84,43 @@ Subagent Use
 - If `grading_style` is "auto", skip that property
 
 ## 3. Scan Clips
-- `ffprobe` every clip
-- Record duration, resolution, and fps for each clip in `edit/plan.html`, grouped by segment
+- `ffprobe` every **clip**
+- Record duration, resolution, and fps for each **clip** in `edit/plan.html`, grouped by **segment**
 - Check for issues
-    - Value mismatches between clips
-    - Value mismatches against `video_type`
-    - Gaps in the numbering (missing segments)
-    - Silent audio tracks
-    - Other issues you think are relevant
-- Flag issues for each clip in `edit/plan.html`
+    - Examples
+        - Value mismatches between **clips**
+        - Value mismatches against `video_type`
+        - Gaps in the numbering (missing **segments**)
+        - Silent audio tracks
+        - Other issues you think are relevant
+- Flag issues for each **clip** in `edit/plan.html`
+    - Do not duplicate the same issue (one root cause = one issue)
+    - Edit decisions are not issues, do not consider them here
+    - Skill override's from the user are not issues
+    - A **clip** with no or little transcript is not an issue, it is likely just a bad take
 
-## 4. Sync
-- If any segments have more than 1 clip, give a subagent the following prompt
+## 4. Select Audio Reference Clips and Sync
+- If any **segments** have more than 1 **clip**, give a subagent the following prompt
 ```md
-You are calling a script to determine audio offsets for syncing multiple sets of video/audio files on audio
+You are using a script to determine audio offsets for syncing multiple sets of video/audio files on audio
 
-Read `<skill_dir>/references/subagents/plan-clip-sync.md` and follow the steps
-
-Respond with the name of the audio reference clip for each source
+Execute `references/subagents/plan-clip-sync.md`
 ```
 
-Wait for the subagent to complete, then add an Audio Reference label to each audio reference clip in `edit/plan.html` summary
+Wait for the subagent to complete, then add an "Audio Reference" label to each **audio reference clip** in `edit/plan.html` summary
 
 ## 5. Transcribe
-- Transcribe one clip per segment into `edit/clip_transcriptions/<clip-name>.json`
-- If the segment has only one clip, use that, otherwise use the audio reference clip from the Sync step
+- Transcribe one **clip** per **segment** into `edit/clip_transcriptions/<clip-name>.json`
+- If the **segment** has only one **clip**, use that, otherwise use the **audio reference clip** from the Sync step
 
 ```bash
-uv run --no-project --with 'requests>=2,<3' <skill_dir>/scripts/transcription/transcribe_batch.py <src>
+uv run --no-project --with 'requests>=2,<3' scripts/transcription/transcribe_batch.py <src>
 ```
 
 ## 6. Pack Transcriptions
-- Turn transcriptions into a readable cut-picking view
+- Turn transcriptions into the **packed transcript**, a readable cut-picking view
 ```bash
-uv run --no-project <skill_dir>/scripts/transcription/pack_transcripts.py
+uv run --no-project scripts/transcription/pack_transcripts.py
 ```
 
 ## 7. Subagent Tasks
@@ -123,89 +130,105 @@ uv run --no-project <skill_dir>/scripts/transcription/pack_transcripts.py
 
 ### Cut Subagent
 - Run a subagent to make cut decisions with the following prompt
-- Give it the absolute path to files in the prompt
 ```
 You are editing a <video_type> video, described as:
 <description>
 
-Read `<skill_dir>/references/subagents/plan-cuts.md` and follow the guidelines and steps within
-```
-- If `<src>/script.md` exists, then add this to the prompt
-```
-The script used to film the video is located at `<src>/script.md`
+Execute `references/subagents/plan-cuts.md`
+
+If `<src>/script.md` exists, use it as a skeleton for video structure
 ```
 
 ### Picture-in-Picture (PIP) Crop Subagent
 
-- If `<pip_style>` is not "none" then run a subagent to plan PIP crop values for each segment using the following prompt
+- If `<pip_style>` is not "none" then run a subagent to plan PIP crop values for each **segment** using the following prompt
 ```
-You are planning a picture-in-picture (PIP) crop for different video clips
+You are planning a picture-in-picture (PIP) crop for different video **clips**
 
-All clips live in `<src>/*`
-Each clip name starts with the number of the segment it belongs to
+All **clips** live in `<src>/*`
+You are only planning PIP crops for `head` **clip types**
 
-The clip types are <explain each clip type>
-You are only planning PIP crops for `head` clips
-
-Results for each segment will be written into a segment specific folder at `edit/<n>/*`
-
-Read `<skill_dir>/references/subagents/plan-pip-crops.md` and follow the guidelines and steps within
+Execute `references/subagents/plan-pip-crops.md`
 ```
 
 ### Color Grade Subagent
 - If `<grading_style>` is "none", skip this step
 - If `<grading_style>` is a preset filename, read `references/create-artifacts/create-grade-preview.md` and create a preview for the grading
 - If `<grading_style>` is "auto", run a subagent with the following prompt
-```
-You are creating color grading options for a video using a single reference clip (`<src>/<clip_name>`)
+- Use the first `head` **clip** in `src/` for `clip_name`
 
-Read `<skill_dir>/references/subagents/plan-auto-grading.md` and follow the guidelines and steps within
 ```
-- Use the first `head` clip in `src/` for `clip_name`
+You are creating color grading options for a video using a SINGLE reference **clip** (`<src>/<clip_name>`)
+
+Read `references/subagents/plan-auto-grading.md` and follow the guidelines and steps within
+```
 
 ## 8. Caption Preview
-- If `<caption_style>` is not "none", and a preview wasn't already created when creating a new style, read `references/create-assets/create-caption-preview` and run the steps
+- If `<caption_style>` is not "none", and a preview wasn't already created when creating a new style, read `references/create-artifacts/create-caption-preview.md` and run the steps
 
 ## 9. Compile Results
 - Add any grading, PIP, or caption previews into `edit/plan.html`
 
-## 10. Graphics Suggestions
+## 10. Plan Graphics and Active Clips
 
-- If `use_graphics` is false, skip this step
+For each **beat**, a single **active clip** will be used
 
 ### Read Plan
 - Read the PLAN section of `edit/plan.html` written by the cut subagent
 
-### Create Graphics Plans
-- Based on the planned cuts, suggest graphics to go along with the clips
+### Active Clip Guidelines
+- Generally, **A-Roll** **clip types** should be used as the **active clip** for each **beat**
+    - If the beat is explaining something on screen, the `screen` **clip** should be used if one is available
+    - If the beat is explaining something in a provided `graphic`, the `graphic` **clip** should be used
+    - Otherwise, prefer a `head` **clip**, especially for conclusions of a point, punchlines, or transitions to a new point (when the subject is likely talking to the camera)
+    - Avoid quick flashes between clip -> `head` -> clip, it's disorientating
+- **B-Roll** **clip types** should be used as the **active clip** to enhance cuts or add visual interest
+- If `use_graphics` is true, then you can suggest graphics to use as the **active clip** for any **beat**
+    - Graphics should be treated as **A-Roll**, a primary communication mechanism
+- **Active clips** can span more than one beat if they work with the audio from the kept takes
 
 ### Graphics Guidelines
+- When adding graphics, consider what other **A-Roll** and **B-Roll** is available, and if a graphic would be better
 - Graphics will be generated post-approval using Hyperframes
-- Line up the start time of each graphic with a word from the transcript of the overlapping audio source clip
-    - Without this sync, the graphic reads as disconnected from the narration
 - The graphic must be readable at 1x
 - Graphics should be at least 3s long, 5-7s for a simple card, 8-14 for a denser diagram, longer if it makes sense
     - Beat-synced accents are the exception
     - In a fast montage, 0.5–2s is fine
-    - the bar is *recognizable* at 1x, not *fully readable*, because the graphic is a visual accent rather than information
+    - For faster graphics, the bar is *recognizable* at 1x, not *fully readable*, because the graphic is a visual accent rather than information
 - With a voiceover, the total duration should be at least the narration length + 1s
 
+### Determine Source Segment Clock Range
+
+When using a source **clip** as the **active clip**, the renderer needs to know which source **clip** to use, and the **segment clock** range within that clip to render out
+
+The **segment clock** duration must match the **edit clock** duration
+
+For each beat:
+- If the **active clip** is the same **clip** as the kept take
+    - Use its **segment clock** time range
+- If the **active clip** has no audio, is **B-Roll**, or is from a separate segment than the kept take **clip**
+    - Start the **segment clock** range from 0
+- If the **active clip** is from the same segment
+    - Use the **segment clock** range of the kept take as a baseline
+    - Look up the sync offset for the clip produced by the Sync step (`edit/<n>/sync.json`)
+    - Apply the sync offset
+
 ### Write Output
-- Write graphics suggestions into `edit/plan.html`
+- Write the planned **active clips** into `edit/plan.html`
+- For graphics, include a description
 
-## 11. Cut-Aways
-- For each beat, you need to select the segments source clip that will be used for A-Roll
-TODO
-
-## 12. PIP Planning
+## 11. PIP Planning
 - Based on the PLAN section of `edit/plan.html`, decide where PIP should go
-- Record each window on the edit clock (timecode in the assembled cut list)
+- Record each window on the **edit clock** as `HH:MM:SS.ss` (timecode in the assembled **EDL**)
+- Make sure the **segment clock** duration matches the **edit clock** duration for the beat
 - Guidelines
-    - Do not apply PIP if there is only one clip in a segment and no graphics suggestion
-    - Any graphic should always have a PIP on top if a `head` clip is available
-    - If there is a `screen` clip along with a `head` clip in a segment, it is a candidate for PIP
-    - Do not apply PIP for the entire duration of a `screen` clip unless it makes sense to do so
-    - Apply PIP strategically using the KEPT transcript
+    - Do not apply PIP if
+        - The **active clip** is a `head` clip (head is the PIP)
+        - The **active clip** is the same as the **clip** for the kept take
+        - The **active clip** is a **B-Roll** **clip type**
+    - Always apply PIP if `head` is available when
+        - The **active clip** is a suggested graphic
+        - The **active clip** is a `screen` or `graphic` clip
 - Update `edit/plan.html` with the planned PIP locations
     
 ## Gate
@@ -216,7 +239,7 @@ TODO
     - Ask the user if they want to save the selection to `assets/grading-styles`, and if yes, write the new JSON file
     - Record the grading option choice in `edit/plan.html`
 - Feedback Loop
-    - Wait for approval to continue to Phase 2 or for comments on the plan
+    - Wait for approval to continue to Phase 3 or for comments on the plan
     - Address comments and wait again
 
 # Phase 3 — Produce
@@ -226,19 +249,19 @@ This phase follows the finalized plan in `edit/plan.html`
 ## 1. Generate Graphics
 - If `use_graphics` is true, spin up a single subagent to generate all planned graphics using the following prompt
 ```md
-You are responsible for generating graphics for a video using the /hyperframes skill
+You are generating graphics for a video
 
 The video is <description>
 
-Generate the following:
-- `edit/graphics/<n>-<graphic-name>.mp4`
-    - <start>–<end> on the edit clock
+Graphics style guide: `assets/graphics-style-guides/<graphics_style_guide>.md`
+
+Generate the following, one at a time, in this order:
+- `edit/graphics/<n>-graphic-<graphic-name>.mp4`
+    - <start>–<end> on the **edit clock**
     - <description>
 - <Give the full list of graphics in the order from plan.html>
 
-Read `<skill_dir>/assets/graphics-style-guides/<graphics_style_guide>.md` for styling guidelines for the graphics
-
-Read `<skill_dir>/references/subagents/create-graphics.md` and follow the guidance and instructions when generating graphics
+Execute `references/subagents/create-graphics.md`
 ```
 
 Wait for the subagent to complete before continuing
@@ -247,16 +270,19 @@ Wait for the subagent to complete before continuing
 
 Write the following values to the `edit/edl.json` file
 
+Parse `HH:MM:SS.ss` from `plan.html` into float seconds (`00:00:09.41` → `9.41`). Do not round.
+
 ### graphics
 - Add each graphic generated in the last step
-- `start` / `end` are when the graphic appears in `edit.mp4` (edit clock)
+- Add each graphic to `sources` as well, keyed by the file stem, so a range can use it as `active_clip`
+- `start` / `end` are when the graphic appears in `edit.mp4` (**edit clock**)
 
 ```json
 {
     "graphics": [
         {
             // The path to the graphic file
-            "file": "edit/graphics/<n>-<graphic-name>.mp4",
+            "file": "edit/graphics/<n>-graphic-<graphic-name>.mp4",
 
             // Start second on the edit clock
             "start": 0.0,
@@ -269,18 +295,23 @@ Write the following values to the `edit/edl.json` file
 ```
 
 ### ranges
-- This is the cut list for the whole video, in play order
-- `start` / `end` are on the segment clock
-- Sound defaults to that segment's `audio_reference_clip` in `edit/<n>/sync.json`
-- Set `audio` only when this beat uses a different clip's sound
-- Captions and the sidecar subtitle file follow that same audio clip
+- This is the **EDL** for the whole video, in play order
+- `start` / `end` are the kept take on the **segment clock**
+- `audio_source` is that take's **clip** (from takes_packed / the **audio reference clip**)
+- `active_clip` is the A-roll picture for this **beat**
+    - Always set, even when it matches `audio_source`
+    - The renderer maps `start` onto `active_clip` using that **clip**'s offset in `edit/<n>/sync.json`
+- Captions and the sidecar subtitle file follow `audio_source`
 
 ```json
 {
     "ranges": [
         {
-            // Source file name from takes_packed
-            "source": "1-screen",
+            // Kept take / audio clip from takes_packed
+            "audio_source": "1-head",
+
+            // A-roll picture for this beat (always set)
+            "active_clip": "1-screen",
 
             // Start second on the segment clock
             "start": 2.42,
@@ -296,7 +327,7 @@ Write the following values to the `edit/edl.json` file
 - If `<pip_style>` is "none", skip
 - Crop comes from `edit/<n>/pip-crop.json`
 - `start` / `end` come from the planned PIP windows in `plan.html`
-- `start` / `end` are when PIP appears in `edit.mp4` (edit clock)
+- `start` / `end` are when PIP appears in `edit.mp4` (**edit clock**)
 - Write the array onto `edit/edl.json`
 
 ```json
@@ -325,11 +356,11 @@ Write the following values to the `edit/edl.json` file
 
 ### grading_style
 - If `grading_style` is already set, leave it
-- If `grading_style` was "auto", populate the property with the settings for the user's selected grading option from Phase 1
+- If `grading_style` was "auto", populate the property with the settings for the user's selected grading option
 
 ## 3. Do the Cut
 ```bash
-uv run --no-project <skill_dir>/scripts/production/render.py \
+uv run --no-project scripts/production/render.py \
   -o edit/edit.mp4 --draft
 ```
 
@@ -338,7 +369,7 @@ uv run --no-project <skill_dir>/scripts/production/render.py \
 - Run the loops in this step, sequentially
 - The loops follow these steps
     - Check for issues
-    - Fix EDL
+    - Fix **EDL**
     - Rerender
     - Check again
     - Cap at 3 passes
@@ -346,7 +377,7 @@ uv run --no-project <skill_dir>/scripts/production/render.py \
     - Flag any remaining issues to the user at the Gate
 
 ### Transcript
-- Use the clip level transcripts and the EDL ranges to create `edit/transcript.edit.md`
+- Use the **clip** level transcripts and the **EDL** ranges to create `edit/transcript.edit.md`
 - Do not retranscribe in this step, use the existing transcriptions
 - Read the transcript
 - Look for issues
@@ -356,7 +387,7 @@ uv run --no-project <skill_dir>/scripts/production/render.py \
     - etc.
 
 ### Visual Jumps
-- Run `<skill_dir>/scripts/inspect/timeline_view.py` on `edit/edit.mp4` — not on the sources — across ±1.5s of every cut boundary, writing into `edit/verify/`
+- Run `scripts/inspect/timeline_view.py` on `edit/edit.mp4` — not on the sources — across ±1.5s of every cut boundary, writing into `edit/verify/`
 - Check each image for issues
     - A visual jump or flash at the cut
     - A waveform spike at the join
@@ -373,7 +404,7 @@ uv run --no-project <skill_dir>/scripts/production/render.py \
 
 ## 1. Render
 ```bash
-uv run --no-project <skill_dir>/scripts/production/render.py \
+uv run --no-project scripts/production/render.py \
   -o edit/edit.mp4
 ```
 
@@ -381,7 +412,7 @@ uv run --no-project <skill_dir>/scripts/production/render.py \
 - Skip when `<video_type>.target_lufs` not set
 - loudnorm the `edit.mp4` file
 ```bash
-uv run --no-project <skill_dir>/scripts/production/normalize_audio.py edit/edit.mp4 \
+uv run --no-project scripts/production/normalize_audio.py edit/edit.mp4 \
   -o edit/normalized-edit.mp4 --target-lufs <video_type>.target_lufs
 ```
 

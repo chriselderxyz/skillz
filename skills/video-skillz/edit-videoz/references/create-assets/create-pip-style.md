@@ -12,4 +12,4 @@
 - Ask clarifying questions if required
 - Save the result to `assets/pip-styles/<name>.json`
 - Use the new style as the `pip_style` input variable
-- Copy the JSON onto `edit/edl.json` as `pip_style` (a segment EDL may merge override individual keys)
+- Copy the JSON onto `edit/edl.json` as `pip_style` (a **segment** **EDL** may merge override individual keys)

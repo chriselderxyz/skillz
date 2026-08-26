@@ -13,7 +13,7 @@ By default captions will NOT be burned into the video.
 You can turn on burned captions using
 
 ## Caption Styles
-Built-in caption styles live at `assets/caption-styles/`. Copy the chosen style JSON into `edl.caption_style`; `render.py` reads it from the EDL (not the asset file) when burning.
+Built-in caption styles live at `assets/caption-styles/`. Copy the chosen style JSON into `edl.caption_style`; `render.py` reads it from the **EDL** (not the asset file) when burning.
 
 
 # -------- Subtitle Style (bold-overlay, Proven at 1920×1080 and 1080×1920) --

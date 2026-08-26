@@ -23,7 +23,7 @@
 - Ask clarifying questions if required
 - Save the result to `assets/caption-styles/<name>.json`
 - Use the new style as the `caption_style` input variable
-- Copy the JSON onto `edit/edl.json` as `caption_style` (a segment EDL may override individual keys)
+- Copy the JSON onto `edit/edl.json` as `caption_style` (a **segment** **EDL** may override individual keys)
 
 # Verification Loop
 - Create a caption preview using steps in `references/create-artifacts/create-caption-preview.md`

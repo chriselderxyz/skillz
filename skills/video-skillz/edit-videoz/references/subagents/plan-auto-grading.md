@@ -1,4 +1,9 @@
-# Context 
+# Context
+
+Read `references/shared-context/concepts.md`
+
+## Clip Types
+- Only apply color grading to `head` **clips**
 
 ## `grading_style` JSON Shape
 - All keys optional
@@ -40,7 +45,7 @@
 # Workflow
 
 ## Get Clip Context
-- `ffprobe` the source clip (resolution, `color_transfer` / range if present) and use that context when planning color grading
+- `ffprobe` the source **clip** (resolution, `color_transfer` / range if present) and use that context when planning color grading
 
 ## Create Grading Options
 - Produce 3 graded looks you invent from what the footage needs
@@ -48,7 +53,7 @@
 - Labels are yours; keep them short and stable for filenames
 
 ## Create Grading Preview
-- Read `<skill_dir>/references/create-artifacts/create-grade-preview.md`
+- Read `references/create-artifacts/create-grade-preview.md`
 - Follow the steps within to create grading previews for each look
 
 ## Iterate

@@ -468,11 +468,12 @@
     opacity: 0.28;
   }
 
-  /* ---------- Beats ---------- */
+  /* ---------- Column 1: Beats ---------- */
 
   .beats-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(132px, 176px) max-content;
+    /* 1 Beats | 2 Active Clips | 3 PIP */
+    grid-template-columns: minmax(0, 1fr) max-content max-content;
     column-gap: 16px;
     row-gap: 9px;
     align-items: stretch;
@@ -522,26 +523,16 @@
     flex: none;
   }
 
-  /* ---------- Graphics + PIP tracks ---------- */
+  /* ---------- Column 2: Active Clips + Column 3: PIP ---------- */
 
-  .graphic {
-    grid-column: 2;
-    min-width: 0;
+  .active-clip,
+  .pip-card {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 10px 12px 10px 14px;
-    border-left: 4px solid var(--highlight);
-    background: var(--highlight-wash);
-    border-radius: 0 4px 4px 0;
-  }
-
-  .pip-card {
-    grid-column: 3;
-    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 8px;
+    cursor: pointer;
+    padding: 0;
     border-left: 4px solid var(--highlight);
     background: var(--highlight-wash);
     border-radius: 0 4px 4px 0;
@@ -549,7 +540,46 @@
     text-orientation: sideways;
   }
 
-  .pip-label {
+  .active-clip {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .pip-card {
+    grid-column: 3;
+  }
+
+  .active-clip > summary,
+  .pip-card > summary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .active-clip > summary::-webkit-details-marker,
+  .active-clip > summary::marker,
+  .pip-card > summary::-webkit-details-marker,
+  .pip-card > summary::marker {
+    display: none;
+    content: "";
+  }
+
+  .active-clip > summary:focus-visible,
+  .pip-card > summary:focus-visible {
+    outline: 2px solid var(--highlight-deep);
+    outline-offset: 2px;
+  }
+
+  .pip-label,
+  .active-clip-label {
     margin: 0;
     font-family: var(--font-mono);
     font-size: var(--text-small);
@@ -559,23 +589,9 @@
     white-space: nowrap;
   }
 
-  .graphic-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 8px;
-  }
-
-  .graphic-kind {
-    font-family: var(--font-mono);
-    font-size: var(--text-small);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--highlight-deep);
-  }
-
-  .graphic-tc {
+  .pip-tc,
+  .active-clip-tc {
+    margin: 0;
     font-family: var(--font-mono);
     font-size: var(--text-small);
     font-weight: 600;
@@ -585,48 +601,56 @@
     border-radius: 3px;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
-    flex: none;
   }
 
-  .graphic-copy {
+  .active-clip:not([open]) .active-clip-tc,
+  .active-clip:not([open]) .active-clip-copy,
+  .pip-card:not([open]) .pip-tc {
+    display: none;
+  }
+
+  .active-clip[open],
+  .pip-card[open] {
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 228px;
+    max-width: 228px;
+  }
+
+  .active-clip[open] > summary,
+  .pip-card[open] > summary {
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    height: auto;
+    min-width: 0;
+    padding: 10px 12px 10px 14px;
+  }
+
+  .active-clip-copy {
     margin: 0;
+    width: 100%;
+    max-width: 100%;
     font-size: var(--text-body);
     line-height: var(--leading-body);
     color: var(--ink);
     overflow-wrap: anywhere;
+    white-space: normal;
   }
 
-  .graphic-label {
-    display: none;
+  .active-clip[open] .active-clip-copy {
+    margin-top: 8px;
   }
 
-  @container plan (max-width: 46rem) {
+  @container plan (max-width: 40rem) {
     .beats-layout {
-      grid-template-columns: minmax(0, 1fr) max-content max-content;
+      grid-template-columns: minmax(0, 1fr);
     }
 
-    .graphic {
-      writing-mode: vertical-rl;
-      text-orientation: sideways;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 8px;
-      gap: 0;
-    }
-
-    .graphic-label {
-      display: block;
-      margin: 0;
-      font-family: var(--font-mono);
-      font-size: var(--text-small);
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      color: var(--highlight-deep);
-      white-space: nowrap;
-    }
-
-    .graphic-head,
-    .graphic-copy {
+    .active-clip,
+    .pip-card {
       display: none;
     }
   }
@@ -691,12 +715,34 @@
   }
 
   .take-transcript {
-    grid-area: transcript;
     margin: 0;
     min-width: 0;
     font-size: var(--text-body);
     color: var(--ink);
     overflow-wrap: anywhere;
+  }
+
+  .take > .take-transcript {
+    grid-area: transcript;
+  }
+
+  .take-segments {
+    grid-area: transcript;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .take-segment {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: start;
+    min-width: 0;
   }
 
   .take-note {
@@ -787,9 +833,9 @@
   <header class="plan-header">
     <p class="eyebrow">Editing Plan</p>
     <h1 class="plan-title">Summary</h1>
-    <p class="plan-description">A 90-second morning routine piece, cut between a kitchen wake-up beat and the walk out the door — built as a worked example of why AI cutting tools need personal context to make good keep/cut calls.</p>
+    <p class="plan-description">A 25-second morning routine piece, cut between a kitchen wake-up beat and the walk out the door — built as a worked example of why AI cutting tools need personal context to make good keep/cut calls.</p>
     <dl class="plan-meta">
-      <div><dt>Runtime</dt><dd>00:01:32</dd></div>
+      <div><dt>Runtime</dt><dd>00:00:24.55</dd></div>
       <div><dt>Format</dt><dd>16:9 · 4K</dd></div>
       <div><dt>Type</dt><dd>talking-head</dd></div>
       <div><dt>Caption Style</dt><dd>chriselderxyz</dd></div>
@@ -814,8 +860,8 @@
               <tr><th>Clip</th><th>Type</th><th>Duration</th><th>Resolution</th><th>FPS</th><th>Sync Offset</th></tr>
             </thead>
             <tbody>
-              <tr><td class="clip-name">1-head<span class="source-tag">Audio Reference</span></td><td>Head</td><td>00:01:38</td><td>3840×2160</td><td>29.97</td><td>—</td></tr>
-              <tr><td class="clip-name">1-screen</td><td>Screen</td><td>00:01:41</td><td>1920×1080</td><td>30</td><td>+0.12s</td></tr>
+              <tr><td class="clip-name">1-head<span class="source-tag">Audio Reference</span></td><td>Head</td><td>00:01:38.24</td><td>3840×2160</td><td>29.97</td><td>—</td></tr>
+              <tr><td class="clip-name">1-screen</td><td>Screen</td><td>00:01:41.08</td><td>1920×1080</td><td>30</td><td>+0.12s</td></tr>
             </tbody>
           </table>
         </div>
@@ -837,8 +883,8 @@
               <tr><th>Clip</th><th>Type</th><th>Duration</th><th>Resolution</th><th>FPS</th><th>Sync Offset</th></tr>
             </thead>
             <tbody>
-              <tr><td class="clip-name">2-head<span class="source-tag">Audio Reference</span></td><td>Head</td><td>00:00:52</td><td>3840×2160</td><td>29.97</td><td>—</td></tr>
-              <tr><td class="clip-name">2-audio</td><td>Audio-only</td><td>00:00:54</td><td>—</td><td>—</td><td>+0.03s</td></tr>
+              <tr><td class="clip-name">2-head<span class="source-tag">Audio Reference</span></td><td>Head</td><td>00:00:52.17</td><td>3840×2160</td><td>29.97</td><td>—</td></tr>
+              <tr><td class="clip-name">2-audio</td><td>Audio-only</td><td>00:00:54.03</td><td>—</td><td>—</td><td>+0.03s</td></tr>
             </tbody>
           </table>
         </div>
@@ -852,7 +898,7 @@
       <li class="issue"><span class="issue-tag">Mismatch</span>Frame rate mismatch between 1-head (29.97fps) and 1-screen (30fps).</li>
       <li class="issue"><span class="issue-tag">Video Type</span>1-screen renders at 1920×1080; the talking-head video-type preset expects 3840×2160.</li>
       <li class="issue"><span class="issue-tag">Numbering</span>Segment 3 is referenced in the shot log but has no matching clips.</li>
-      <li class="issue"><span class="issue-tag">Silent Audio</span>No waveform detected on 2-audio between 00:00:12–00:00:54.</li>
+      <li class="issue"><span class="issue-tag">Silent Audio</span>No waveform detected on 2-audio between 00:00:12.40–00:00:54.03.</li>
     </ul>
   </section>
 
@@ -947,6 +993,9 @@
     </figure>
   </section>
 
+  <!-- Times: HH:MM:SS.ss. E: is edit clock, S: is segment clock. Beat headings E. Takes S. Graphics E. Source active clips and PIP are E and S. -->
+  <!-- A kept take may list multiple S ranges (silence cuts). Sum of those S durations MUST equal the beat's E duration. Active clip S ranges match. -->
+  <!-- Columns: 1 Beats | 2 Active Clips | 3 PIP. Cards start sideways with heading only. Click to expand upright (ranges + graphic description). -->
   <h1 class="section-heading">Plan</h1>
 
   <!-- Scene 1 -->
@@ -958,19 +1007,29 @@
     <div class="timeline-rule"></div>
 
     <div class="beats-layout">
+      <!-- Column 1: Beats -->
       <ol class="beats">
         <li class="beat">
           <div class="beat-head">
             <span class="beat-number">Beat 1</span>
-            <span class="beat-tc">00:00:00–00:00:04</span>
+            <span class="beat-tc">E:00:00:00.00–00:00:04.18</span>
           </div>
           <ul class="takes">
             <li class="take kept">
               <span class="take-id">C</span>
               <div class="take-source">
-                <span class="take-tc"><span class="take-clip">1-screen</span><span class="take-range">00:00:48–00:00:52</span></span>
+                <span class="take-tc"><span class="take-clip">1-head</span></span>
               </div>
-              <p class="take-transcript">Every morning starts the same way.</p>
+              <ul class="take-segments">
+                <li class="take-segment">
+                  <span class="take-tc"><span class="take-range">S:00:00:48.12–00:00:49.72</span></span>
+                  <p class="take-transcript">Every morning</p>
+                </li>
+                <li class="take-segment">
+                  <span class="take-tc"><span class="take-range">S:00:00:50.52–00:00:53.10</span></span>
+                  <p class="take-transcript">starts the same way</p>
+                </li>
+              </ul>
             </li>
           </ul>
           <details class="cut-takes">
@@ -979,7 +1038,7 @@
               <li class="take cut">
                 <span class="take-id">A</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">00:00:41–00:00:44</span></span>
+                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">S:00:00:41.08–00:00:44.61</span></span>
                   <p class="take-note">Reach is rushed, arrives too early</p>
                 </div>
                 <p class="take-transcript">Ev— every morning starts the same way.</p>
@@ -987,7 +1046,7 @@
               <li class="take cut">
                 <span class="take-id">B</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">00:00:44–00:00:48</span></span>
+                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">S:00:00:44.61–00:00:48.05</span></span>
                   <p class="take-note">Mic bump on table knock</p>
                 </div>
                 <p class="take-transcript">Every morning starts the same way.</p>
@@ -995,7 +1054,7 @@
               <li class="take cut">
                 <span class="take-id">D</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">00:00:52–00:00:55</span></span>
+                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">S:00:00:52.30–00:00:55.14</span></span>
                   <p class="take-note">Focus drifts soft on the handle</p>
                 </div>
                 <p class="take-transcript">Every morning starts the same— way.</p>
@@ -1007,13 +1066,13 @@
         <li class="beat">
           <div class="beat-head">
             <span class="beat-number">Beat 2</span>
-            <span class="beat-tc">00:00:04–00:00:09</span>
+            <span class="beat-tc">E:00:00:04.18–00:00:09.41</span>
           </div>
           <ul class="takes">
             <li class="take kept">
               <span class="take-id">B</span>
               <div class="take-source">
-                <span class="take-tc"><span class="take-clip">1-screen</span><span class="take-range">00:01:07–00:01:12</span></span>
+                <span class="take-tc"><span class="take-clip">1-screen</span><span class="take-range">S:00:01:07.22–00:01:12.45</span></span>
               </div>
               <p class="take-transcript">Coffee first. Everything else after.</p>
             </li>
@@ -1024,7 +1083,7 @@
               <li class="take cut">
                 <span class="take-id">A</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">00:01:03–00:01:07</span></span>
+                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">S:00:01:03.18–00:01:07.09</span></span>
                   <p class="take-note">Backlight blows out the highlight</p>
                 </div>
                 <p class="take-transcript">Coffee first. Every— everything else after.</p>
@@ -1032,7 +1091,7 @@
               <li class="take cut">
                 <span class="take-id">C</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">00:01:12–00:01:15</span></span>
+                  <span class="take-tc"><span class="take-clip">1-head</span><span class="take-range">S:00:01:12.45–00:01:15.33</span></span>
                   <p class="take-note">Duplicate angle, no new info</p>
                 </div>
                 <p class="take-transcript">Coffee first, everything... else after.</p>
@@ -1044,13 +1103,13 @@
         <li class="beat">
           <div class="beat-head">
             <span class="beat-number">Beat 3</span>
-            <span class="beat-tc">00:00:09–00:00:14</span>
+            <span class="beat-tc">E:00:00:09.41–00:00:14.06</span>
           </div>
           <ul class="takes">
             <li class="take kept">
               <span class="take-id">B</span>
               <div class="take-source">
-                <span class="take-tc"><span class="take-clip">2-screen</span><span class="take-range">00:01:22–00:01:27</span></span>
+                <span class="take-tc"><span class="take-clip">2-screen</span><span class="take-range">S:00:01:22.08–00:01:26.73</span></span>
               </div>
               <p class="take-transcript">Then I get out the door.</p>
             </li>
@@ -1061,7 +1120,7 @@
               <li class="take cut">
                 <span class="take-id">A</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">2-head</span><span class="take-range">00:01:18–00:01:22</span></span>
+                  <span class="take-tc"><span class="take-clip">2-screen</span><span class="take-range">S:00:01:18.40–00:01:22.08</span></span>
                   <p class="take-note">Mug clips the frame edge</p>
                 </div>
                 <p class="take-transcript">Then I get out the door.</p>
@@ -1069,7 +1128,7 @@
               <li class="take cut">
                 <span class="take-id">C</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">2-head</span><span class="take-range">00:01:27–00:01:31</span></span>
+                  <span class="take-tc"><span class="take-clip">2-screen</span><span class="take-range">S:00:01:26.73–00:01:31.02</span></span>
                   <p class="take-note">False start, repeats Beat 2 energy</p>
                 </div>
                 <p class="take-transcript">Then I— I get out the door.</p>
@@ -1079,23 +1138,40 @@
         </li>
       </ol>
 
-      <!-- grid-row is this scene's beat index; the end line is exclusive (1 / 2 is beat 1, 2 / 4 is beats 2–3) -->
-      <aside class="graphic" style="grid-row: 2 / 4">
-        <p class="graphic-label">GRAPHIC</p>
-        <div class="graphic-head">
-          <span class="graphic-kind">Graphic</span>
-          <span class="graphic-tc">00:00:04–00:00:14</span>
-        </div>
-        <p class="graphic-copy">Kinetic type: COFFEE FIRST, steam particles. Lands on “everything else after,” then holds through the walk-out.</p>
-      </aside>
+      <!-- Column 2: Active Clips. Collapsed: heading only, sideways. Open: upright with clocks. Graphics: E only. Source clips: E and S (one S per kept-take range). -->
+      <details class="active-clip" style="grid-row: 1 / 2">
+        <summary>
+          <span class="active-clip-label">1-head</span>
+          <span class="active-clip-tc">E:00:00:00.00–<br>00:00:04.18</span>
+          <span class="active-clip-tc">S:00:00:48.12–<br>00:00:49.72</span>
+          <span class="active-clip-tc">S:00:00:50.52–<br>00:00:53.10</span>
+        </summary>
+      </details>
 
-      <aside class="pip-card" style="grid-row: 1 / 3">
-        <p class="pip-label">PIP - 1-head</p>
-      </aside>
+      <details class="active-clip" style="grid-row: 2 / 4">
+        <summary>
+          <span class="active-clip-label">GRAPHIC - coffee-first</span>
+          <span class="active-clip-tc">E:00:00:04.18–<br>00:00:14.06</span>
+          <p class="active-clip-copy">Kinetic type: COFFEE FIRST, steam particles. Lands on “everything else after,” then holds through the walk-out.</p>
+        </summary>
+      </details>
 
-      <aside class="pip-card" style="grid-row: 3 / 4">
-        <p class="pip-label">PIP - 2-head</p>
-      </aside>
+      <!-- Column 3: PIP. Collapsed: heading only, sideways. Open: upright with E and S. -->
+      <details class="pip-card" style="grid-row: 2 / 3">
+        <summary>
+          <span class="pip-label">PIP - 1-head</span>
+          <span class="pip-tc">E:00:00:04.18–<br>00:00:09.41</span>
+          <span class="pip-tc">S:00:01:07.10–<br>00:01:12.33</span>
+        </summary>
+      </details>
+
+      <details class="pip-card" style="grid-row: 3 / 4">
+        <summary>
+          <span class="pip-label">PIP - 2-head</span>
+          <span class="pip-tc">E:00:00:09.41–<br>00:00:14.06</span>
+          <span class="pip-tc">S:00:01:22.05–<br>00:01:26.70</span>
+        </summary>
+      </details>
     </div>
   </section>
 
@@ -1108,17 +1184,18 @@
     <div class="timeline-rule"></div>
 
     <div class="beats-layout">
+      <!-- Column 1: Beats -->
       <ol class="beats">
         <li class="beat">
           <div class="beat-head">
             <span class="beat-number">Beat 1</span>
-            <span class="beat-tc">00:00:14–00:00:18</span>
+            <span class="beat-tc">E:00:00:14.06–00:00:18.22</span>
           </div>
           <ul class="takes">
             <li class="take kept">
               <span class="take-id">B</span>
               <div class="take-source">
-                <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:20–00:00:24</span></span>
+                <span class="take-tc"><span class="take-clip">3-screen</span><span class="take-range">S:00:00:20.14–00:00:24.30</span></span>
               </div>
               <p class="take-transcript">Some days, I actually make it out on time.</p>
             </li>
@@ -1129,7 +1206,7 @@
               <li class="take cut">
                 <span class="take-id">A</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:16–00:00:20</span></span>
+                  <span class="take-tc"><span class="take-clip">3-screen</span><span class="take-range">S:00:00:16.22–00:00:20.14</span></span>
                   <p class="take-note">Lock catches, breaks the rhythm</p>
                 </div>
                 <p class="take-transcript">Some days, I— I actually make it out on time.</p>
@@ -1137,7 +1214,7 @@
               <li class="take cut">
                 <span class="take-id">C</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:24–00:00:27</span></span>
+                  <span class="take-tc"><span class="take-clip">3-screen</span><span class="take-range">S:00:00:24.30–00:00:27.91</span></span>
                   <p class="take-note">Passerby walks through frame</p>
                 </div>
                 <p class="take-transcript">Some days, I actually make it— out on time.</p>
@@ -1149,13 +1226,13 @@
         <li class="beat">
           <div class="beat-head">
             <span class="beat-number">Beat 2</span>
-            <span class="beat-tc">00:00:18–00:00:24</span>
+            <span class="beat-tc">E:00:00:18.22–00:00:24.55</span>
           </div>
           <ul class="takes">
             <li class="take kept">
               <span class="take-id">A</span>
               <div class="take-source">
-                <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:28–00:00:34</span></span>
+                <span class="take-tc"><span class="take-clip">3-screen</span><span class="take-range">S:00:00:28.05–00:00:34.38</span></span>
               </div>
               <p class="take-transcript">The cut only works if it knows what I actually meant.</p>
             </li>
@@ -1166,7 +1243,7 @@
               <li class="take cut">
                 <span class="take-id">B</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:34–00:00:39</span></span>
+                  <span class="take-tc"><span class="take-clip">3-screen</span><span class="take-range">S:00:00:34.38–00:00:39.12</span></span>
                   <p class="take-note">Restart mid-line</p>
                 </div>
                 <p class="take-transcript">The cut only works if it knows what I— what I actually meant.</p>
@@ -1174,7 +1251,7 @@
               <li class="take cut">
                 <span class="take-id">C</span>
                 <div class="take-source">
-                  <span class="take-tc"><span class="take-clip">3-head</span><span class="take-range">00:00:39–00:00:44</span></span>
+                  <span class="take-tc"><span class="take-clip">3-screen</span><span class="take-range">S:00:00:39.12–00:00:44.80</span></span>
                   <p class="take-note">Wind hits the lav</p>
                 </div>
                 <p class="take-transcript">The cut only works if it knows what I actually meant.</p>
@@ -1183,7 +1260,51 @@
           </details>
         </li>
       </ol>
+
+      <!-- Column 2: Active Clips. One card per beat; S follows that beat's kept take. -->
+      <details class="active-clip" style="grid-row: 1 / 2">
+        <summary>
+          <span class="active-clip-label">3-screen</span>
+          <span class="active-clip-tc">E:00:00:14.06–<br>00:00:18.22</span>
+          <span class="active-clip-tc">S:00:00:20.14–<br>00:00:24.30</span>
+        </summary>
+      </details>
+
+      <details class="active-clip" style="grid-row: 2 / 3">
+        <summary>
+          <span class="active-clip-label">3-screen</span>
+          <span class="active-clip-tc">E:00:00:18.22–<br>00:00:24.55</span>
+          <span class="active-clip-tc">S:00:00:28.05–<br>00:00:34.38</span>
+        </summary>
+      </details>
+
+      <!-- Column 3: PIP. E and S. -->
+      <details class="pip-card" style="grid-row: 1 / 3">
+        <summary>
+          <span class="pip-label">PIP - 3-head</span>
+          <span class="pip-tc">E:00:00:14.06–<br>00:00:24.55</span>
+          <span class="pip-tc">S:00:00:20.02–<br>00:00:30.51</span>
+        </summary>
+      </details>
     </div>
   </section>
 
 </div>
+
+<script>
+  document.addEventListener("toggle", (event) => {
+    const card = event.target;
+    if (!(card instanceof HTMLDetailsElement)) return;
+
+    const selector = card.classList.contains("pip-card")
+      ? ".pip-card"
+      : card.classList.contains("active-clip")
+        ? ".active-clip"
+        : null;
+    if (!selector) return;
+
+    document.querySelectorAll(selector).forEach((other) => {
+      if (other.open !== card.open) other.open = card.open;
+    });
+  }, true);
+</script>
