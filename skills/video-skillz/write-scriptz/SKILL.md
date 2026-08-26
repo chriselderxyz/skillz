@@ -85,7 +85,7 @@ If the user selects 'create new'
 ## Online Research
 - Spin up a subagent to research each topic
 - If the user asked to use a specific research skill or workflow, use that
-- Otherwise use the /research-topicz skill
+- Otherwise use the /research-thingz skill
 - Give the subagent a brief summary of the video being scripted, along with the research topic they are responsible for
 
 ## Local Research
