@@ -55,7 +55,7 @@ Prompt the user for each input if it wasn't provided
 - `script_type`
     - Options: Files in `assets/script-types/*`, 'create new' or none
 - `brand_voice`
-    - Options: Files in `assets/brand-voice/*`, 'create new' or none
+    - Options: Files in `assets/brand-voices/*`, 'create new' or none
 
 If the user selects 'create new'
 - Prompt them to provide the relevant information
