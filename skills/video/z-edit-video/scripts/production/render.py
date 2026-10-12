@@ -606,8 +606,10 @@ def extract_segment(
     a_end = a_origin + duration
 
     # Fast input seek, then trim on original timestamps (-copyts) so packet
-    # boundaries cannot shift the cut. Video stops on n_frames. Audio stops
-    # on n_samples. They are muxed afterwards so one cannot cut the other short.
+    # boundaries cannot shift the cut. -start_at_zero puts the file's first
+    # sample at 0, the origin transcripts and sync offsets use. Video stops on
+    # n_frames. Audio stops on n_samples. They are muxed afterwards so one
+    # cannot cut the other short.
     vf = ",".join(vf_parts)
     v_chain = (
         f"trim=start={seg_start:.9f}:end={v_end:.9f},"
@@ -660,6 +662,7 @@ def extract_segment(
             "ffmpeg",
             "-y",
             "-copyts",
+            "-start_at_zero",
             "-ss",
             f"{v_seek:.6f}",
             "-i",
@@ -676,6 +679,7 @@ def extract_segment(
         "ffmpeg",
         "-y",
         "-copyts",
+        "-start_at_zero",
         "-ss",
         f"{a_seek:.6f}",
         "-i",
@@ -1073,6 +1077,7 @@ def extract_pip_track(
                     "ffmpeg",
                     "-y",
                     "-copyts",
+                    "-start_at_zero",
                     "-ss",
                     f"{v_seek:.6f}",
                     "-i",
