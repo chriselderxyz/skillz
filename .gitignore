@@ -6,7 +6,8 @@
 .context/
 
 # Temp folders for AI artifacts
-.temp/
+.skill-temp/
+.skill-session-memory/
 .lavish/
 
 # Old files kept around

@@ -1,9 +1,0 @@
-{
-  "shape": "circle",
-  "width_fraction": 0.32,
-  "anchor": "bottom_center",
-  "margin_fraction": 0.04,
-  "border_px": 3,
-  "border_color": "#FFFFFF",
-  "corner_radius_fraction": 0.0
-}
