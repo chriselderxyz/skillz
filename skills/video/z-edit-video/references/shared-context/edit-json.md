@@ -4,18 +4,18 @@
     - `path` is the file, relative to the working directory.
     - `type`, `audio`, `duration`, `resolution`, and `fps` are the measured facts.
     - `base_crops` holds `full`, `pip`, `top`, and `bottom`.
-    - An `animation` or `image` **source** has `description`. Omit `path` until it exists.
+    - An `animation`, `image`, or `browser` **source** has `description`. Omit `path` until its file exists.
     - An `animation` or `image` **source** may have `text_elements`, keyed by role (ex. `headline`).
     - An `image` **source** has no `audio`, `duration`, or `fps`.
     - An **overlay graphic** **source** has `overlay_graphic_type`.
     - A `creator-credit` **source** has `credited_source`, naming the **source** it credits.
     - A **source** named by a `credited_source` has `credit`, with `creator`, `title`, and `speaker` when someone other than the creator speaks.
-    - A browser recording **source** has `type` `browser`, `description`, and `actions`. Omit `path` until the recording exists.
+    - A `browser` **source** has `actions`.
         - `actions` run on the recording clock, which starts at `00:00:00.00` on the first **layer** that uses that **source**.
         - Each action has `type` and `at`.
-            - `open` has `url` and shows that page.
-            - `scroll` has `to`. A recording can scroll more than once.
-            - `highlight` has `text`.
+            - `open` has `url`, the page to show.
+            - `scroll` has `to`, the words to bring into view.
+            - `highlight` has `text`, the words to mark.
 - `video_settings` is the video-settings config object.
 - `video_style` is the video-style config object.
 - `caption_style`, `srt_style`, `pip_style`, and `grading_style` are the chosen style objects.
@@ -27,10 +27,8 @@
 
 # Identifiers
 - **Scenes** use `s<n>`, **lines** use `l<n>`, **takes** use `t<n>`.
-- Every identifier is monotonically increasing and is never reused.
-  - **Line** and **take** identifiers increase across the whole file, not per **scene**.
-  - New **scenes**, **lines**, and **takes** take the next unused number.
-  - A deleted **scene**, **line**, or **take** leaves its number retired.
+- Numbers increase across the whole file and are never reused.
+  - A new **scene**, **line**, or **take** takes the next unused number.
 
 # Play Order
 - **Scene** keys inside `scenes` are written in play order.
@@ -39,11 +37,11 @@
 - Reorder by rewriting keys in the new order, never by changing an identifier.
 
 # Clocks
+- Every time is a `HH:MM:SS.ss` string.
 - `edit_start` and `edit_end` are on the **edit clock**.
 - `audio_source_start` and `audio_source_end` are on the **audio source clock**.
-- Footage **layer's** with a `source` in the same **source group** as the `audio_source` stay on the **audio source clock**, the same times as the kept take.
-- Unsynced footage, such as B-roll or a source from another **source group**, is stored from `00:00:00.00` for the length of the layer. Compiling does not add a sync offset.
-- Every time is a `HH:MM:SS.ss` string.
+- A footage **layer** with a `source` in the same **source group** as the `audio_source` uses the same times as the kept take.
+- Unsynced footage, such as **B-Roll** or a **source** from another **source group**, is stored from `00:00:00.00` for the length of the **layer**.
 
 # Duration Rules
 - The sum of a **line**'s `kept_take` cut durations equals that **line**'s **edit clock** duration.
@@ -54,17 +52,17 @@
 # Layers
 - Every **line** has its own `layers` array, painted back to front.
 - A **line** has at least one **layer**.
-- Every **layer** has `frame`.
-    - `full`, `pip`, `top`, `bottom`, or `{ "x", "y", "w", "h" }` as fractions of the output frame.
-    - `full` fills the frame.
-    - `pip` is the picture-in-picture inset. `pip_style` places and sizes it.
-    - `top` and `bottom` each take half the frame.
-- Every **layer** has `source`, which names an entry in `sources`.
-- A footage **layer** has `edit_start`, `edit_end`, and `cuts`.
-- A browser recording **layer** has no `cuts`. It uses `frame` `full`, `top`, `bottom`, or `{ "x", "y", "w", "h" }`.
-- An `animation` or `image` **layer** has no `cuts`. It uses `frame` `full` or `{ "x", "y", "w", "h" }`.
+- Every **layer** has `frame`, `source`, `edit_start`, and `edit_end`.
+    - `frame` is `full`, `pip`, `top`, `bottom`, or `{ "x", "y", "w", "h" }` as fractions of the output frame.
+        - `full` fills the frame.
+        - `pip` is the picture-in-picture inset. `pip_style` places and sizes it.
+        - `top` and `bottom` each take half the frame.
+    - `source` names an entry in `sources`.
+- Only a footage **layer** has `cuts`.
+- A browser recording **layer** uses `frame` `full`, `top`, `bottom`, or `{ "x", "y", "w", "h" }`.
+- An `animation` or `image` **layer** uses `frame` `full` or `{ "x", "y", "w", "h" }`.
 - A **layer** may have `crop` to override `base_crops`.
-- A full-frame `head` **layer** may have `zoom_cut` set to `true` when `video_style.zoom_cut` is true. That jumps the picture in by `video_style.zoom_amount`.
+- A full-frame `head` **layer** may have `zoom_cut` set to `true`.
 - **Layers** may overlap.
 
 # Shape
@@ -148,7 +146,6 @@
     "cut_breaths": false,
     "cut_keyboard": false,
     "take_selection_mode": "last",
-    "b_roll_enabled": false,
     "full_graphics_enabled": true,
     "min_full_graphic_length_ms": 3000,
     "max_full_graphic_length_ms": 20000,

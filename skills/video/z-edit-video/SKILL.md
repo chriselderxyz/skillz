@@ -19,6 +19,11 @@ disable-model-invocation: true
     - `references/`, `assets/`, `configs/` and `scripts/` resolve from the skill directory - `<skill_dir>`.
     - Paths referenced by another invoked skill resolve from that skill's directory.
 
+## HTML Review
+- Open the html file with any available skill for reviewing html documents, and listen for comments.
+    - Each element has a `data-json-path` property that maps it to its `edit/edit.json` key.
+- If no such skill is available, open it in the default browser.
+
 # Phase 1 - Prep
 
 Run the /z-session-memory skill.
@@ -89,43 +94,15 @@ Create New Options.
 - Create `edit/<n>/` for each **source group**.
 
 ## Action 2. Initial Writes
-- Write top level `title` and `description` properties to `edit/edit.json`.
-- Write `source_groups` to `edit/edit.json`, one key per **source group** number.
-- Write `sources` to `edit/edit.json`.
-    - An entry in `sources` for each **source**, keyed by the **source** name (ex. "1-head").
-    - `path` is the file, relative to the working directory.
-    - Set `type` from the **source type** in the filename.
-- Write the JSON from `configs/video-settings/<video_settings>.json` under the `video_settings` key.
-- Write the JSON from `configs/video-styles/<video_style>.json` under the `video_style` key.
-- Write the JSON from the corresponding file for each of these input variables, under the same key as the input variable.
-    - `caption_style`.
-    - `srt_style`.
-    - `pip_style`.
-    - `grading_style`.
-    - Skip any of those that are "none", and skip `grading_style` if it is "auto".
+- Write `title`, `description`, `source_groups`, and `sources` to `edit/edit.json`.
+    - Set each **source**'s `path`, and its `type` from the **source type** in the filename.
+- Write the JSON from each chosen config under its input name: `video_settings`, `video_style`, `caption_style`, `srt_style`, `pip_style`, and `grading_style`.
 
 ## Action 3. Probe Sources
 - `ffprobe` every **source** that has a `path`.
 - Write `audio`, `duration`, `resolution`, and `fps` for each probed **source** onto its entry in `sources`.
 
-## Action 4. Scan Sources for Issues
-- Use the **source** values written to `edit/edit.json` `sources`.
-- Check for issues.
-    - Value mismatches between **sources**.
-    - Value mismatches against `video_settings`.
-    - Gaps in the numbering (missing **source groups**).
-    - Silent audio tracks.
-    - Other issues you think are relevant.
-- Write issues to `edit/edit.json` under `issues`, one object per issue with a `tag` and `text`.
-    - Do not duplicate the same issue (one root cause = one issue).
-    - Edit decisions are not issues, do not consider them here.
-    - Skill override's from the user are not issues.
-    - A **source** with no or little transcript is not an issue, it is likely just a bad take.
-    - A **source** with no audio is not an issue.
-    - A **source group** with only 1 audio file is not an issue.
-- Variations between the transcript and `script` are not issues, do not mention them to the user.
-
-## Action 5. Select Audio Sources
+## Action 4. Select Audio Sources
 - For each **source group**, select a single **source** as the **audio source**.
     - The selected source must have `audio = true`.
     - If no audio exists, skip the **source group**.
@@ -138,36 +115,52 @@ Create New Options.
   6. Any other **B-Roll**
 - Write the selected **source** name to `audio_source` on that **source group** in `edit/edit.json`.
 
-## Action 6. Sync Sources
+## Action 5. Sync Sources
 - Write source offsets to `edit/edit.json`.
 ```bash
 uv run --no-project scripts/sync/sync_pair.py <src>
 ```
 
-## Action 7. Transcribe
+## Action 6. Transcribe
 - Transcribe the **audio source** for each **source group** into `edit/source-transcriptions/<source-name>.json` with the following command.
 
 ```bash
 uv run --no-project --with 'requests>=2,<3' scripts/transcription/transcribe_batch.py <src>
 ```
 
-## Action 8. Detect Silences
+## Action 7. Detect Silences
 - Write the silences on each **audio source** to `edit/silences.json`.
 ```bash
 uv run --no-project scripts/transcription/detect_silences.py
 ```
 
-## Action 9. Repair Transcription Timings
+## Action 8. Repair Transcription Timings
 - Repair broken word timings in `edit/source-transcriptions/`.
 ```bash
 uv run --no-project --with 'requests>=2,<3' scripts/transcription/repair_timings.py
 ```
 
-## Action 10. Pack Transcriptions
+## Action 9. Pack Transcriptions
 - Turn transcriptions into the **packed transcript**, a readable cut-picking view.
 ```bash
 uv run --no-project scripts/transcription/pack_transcripts.py
 ```
+
+## Action 10. Scan Sources for Issues
+- Use the **source** values in `edit/edit.json` `sources`, the transcripts in `edit/source-transcriptions/`, and `edit/silences.json`.
+- Check for issues.
+    - Value mismatches between **sources**.
+    - Value mismatches against `video_settings`.
+    - Gaps in the numbering (missing **source groups**).
+    - Silent audio tracks.
+    - Other issues you think are relevant.
+- Write issues to `edit/edit.json` under `issues`.
+    - Edit decisions are not issues, do not consider them here.
+    - Skill override's from the user are not issues.
+    - A **source** with no or little transcript is not an issue, it is likely just a bad take.
+    - A **source** with no audio is not an issue.
+    - A **source group** with only 1 audio file is not an issue.
+- Variations between the transcript and `script` are not issues, do not mention them to the user.
 
 # Phase 3: Plan and Review Loop
 
@@ -179,8 +172,7 @@ uv run --no-project scripts/transcription/pack_transcripts.py
 ## Action 1. Cut Subagent
 
 ### Action Context
-- If the `script` input variable exists, tell the subagent to use it as a skeleton for video structure.
-- Always tell the subagent the value for `pip_style`.
+- If the `script` input variable exists, give the subagent its path.
 
 ### A. Initial Loop Run
 - Run a subagent to make cut decisions with the following prompt.
@@ -203,8 +195,6 @@ The following user feedback has been provided:
 - List of user feedback with full context on the pieces of edit.json they apply to.
 
 Use `references/subagents/plan-cuts.md` to apply the requested changes
-
-Do not fully regenerate `edit/edit.json`, just apply changes
 ```
 
 ## Action 2. Crop Subagent
@@ -212,8 +202,6 @@ Do not fully regenerate `edit/edit.json`, just apply changes
 - On an edit pass, pass the feedback and the sources it applies to.
 ```
 You are planning crops for video sources in a <video_settings> video
-
-All sources live in `<src>/*`
 
 Execute `references/subagents/plan-crops.md`
 ```
@@ -239,7 +227,6 @@ Read `references/subagents/plan-auto-grading.md` and follow the guidelines and s
 uv run --no-project scripts/production/build_plan_html.py
 ```
 
-- The script reports every problem it finds and writes nothing until they are all fixed.
 - Correct `edit/edit.json` and rerun until it succeeds.
 - Note the `edit/plan-<hash>.html` path it prints, that is the file the user reviews.
 
@@ -252,9 +239,7 @@ uv run --no-project scripts/production/build_plan_html.py
     - Write the settings for the selected option to `edit/edit.json` under `grading_style`.
 
 ### B. Open Plan HTML File
-- If you have access to any skills for tooling used to review html documents, open the plan html file (`edit/plan-<hash>.html`) using that and listen for comments.
-    - Each element in the cut plan has a `data-json-path` property used to map html elements to edit.json keys.
-- If no skills are available, open it in the default browser.
+- Open `edit/plan-<hash>.html` with HTML Review.
 
 ### C. Credits
 - For each **source** named by a `credited_source` that is missing `credit.creator` or `credit.title`, ask the user for its creator, its title, and any speaker who is not the creator.
@@ -270,7 +255,7 @@ uv run --no-project scripts/production/build_plan_html.py
 - Make sure you use subagents for the Actions that call for them, don't do edits manually yourself unless required.
 
 ### E. Approval
-- Wait for explicit approval before moving to Phase 4, approval of one piece is not full approval.
+- Wait for approval of the whole plan.
 
 # Phase 4: Produce Draft
 
@@ -281,12 +266,10 @@ This phase follows the finalized plan in `edit/edit.json`.
 ### Action Context
 - Wait for all subagents to complete before continuing.
 - Every **source** with `type` `animation` or `image` is one graphic.
-- A graphic **layer** names that **source**.
 - Read `orientation` and `resolution` from `video_settings` in `edit/edit.json`.
 
 ### A. Graphic Creation
 - Use this step to create NEW graphics.
-- A graphic **source** that already has `path` is finished. Skip it.
 - Spin up a single subagent to run `/z-create-graphics` with the following prompt.
 
 ```md
@@ -296,8 +279,8 @@ Run `/z-create-graphics` with these inputs:
 - `mode`: `create`.
 - `video_description`: <description>.
 - `graphics_style_guide`: <graphics_style_guide>.
-- `orientation`: <orientation from edit/edit.json>.
-- `resolution`: <resolution from edit/edit.json>.
+- `orientation`: <orientation>.
+- `resolution`: <resolution>.
 - `output_dir`: `edit/graphics`.
 - `graphics`.
     - <Give every graphic source that has no `path`, in order of first appearance. graphic_number is that order. graphic_name is the source name. graphic_type is the source type. graphic_duration is an `animation` source's total duration, as HH:MM:SS.ss. graphic_description is the source description. text_elements is the source `text_elements`. frame is that graphic's frame. Include whether other layers sit behind it>.
@@ -313,8 +296,8 @@ You are editing existing graphics for a video
 Run `/z-create-graphics` with these inputs:
 - `mode`: `edit`.
 - `video_description`: <description>.
-- `orientation`: <orientation from edit/edit.json>.
-- `resolution`: <resolution from edit/edit.json>.
+- `orientation`: <orientation>.
+- `resolution`: <resolution>.
 - `output_dir`: `edit/graphics`.
 - `graphics`.
     - <Give each affected graphic source with its original graphic_number, graphic_name, graphic_type, graphic_duration as an `animation` source's total duration, graphic_description from the source, text_elements from the source, graphic_feedback, frame, and whether other layers sit behind it>.
@@ -329,15 +312,10 @@ Run `/z-create-graphics` with these inputs:
 
 ### Action Context
 - Wait for the subagent to complete before continuing.
-- Every **source** with `type` `browser` is one browser recording.
-- A browser recording **layer** names that **source**.
-- Skip this step when `browser_enabled` is not true.
 - Skip this step when no **source** has `type` `browser`.
-- Read `resolution` from `video_settings` in `edit/edit.json`.
 
 ### A. Browser Recording Creation
 - Use this step to record NEW browser recordings.
-- A browser recording **source** that already has `path` is finished. Skip it.
 - Spin up a single subagent with the following prompt.
 
 ```md
@@ -368,19 +346,17 @@ Re-record these sources:
 ```
 
 ## Action 3. Do the Cut
-- The script reports every problem it finds in `edit/edit.json` and renders nothing until they are all fixed.
-
 ```bash
 uv run --no-project scripts/production/render.py \
   -o edit/edit-draft.mp4 --draft
 ```
 
+- Correct `edit/edit.json` and rerun until it succeeds.
 - When rerendering, `rm` the draft folders/files first.
     - `edit/edit-draft.mp4`.
     - `edit/base-draft.mp4`.
     - `edit/range-cuts-draft/`.
     - `edit/sources-pip-draft/`.
-- Do not delete draft folders/files if a draft rerender is not required.
 
 ## Action 4. Build Review HTML
 - Run the script to generate the review page.
@@ -405,7 +381,6 @@ uv run --no-project scripts/production/build_review_html.py
 
 ### A. Transcript
 - Use the **source** level transcripts and the kept takes in `edit/edit.json` to create `edit/transcript.edit.md`.
-- Do not retranscribe in this step, use the existing transcriptions.
 - Read the transcript.
 - Look for issues.
     - A cut that severed a word.
@@ -423,12 +398,9 @@ uv run --no-project --with numpy scripts/inspect/check_draft.py
 ## Gate
 - When the render is ready for review, explicitly tell the user.
 - Summarize the render for the user.
-- If you have access to any skills for tooling used to review html documents, open the review html file (`edit/review-<hash>.html`) using that and listen for comments.
-    - Each element in the review has a `data-json-path` property used to map html elements to edit.json keys.
-- If no skills are available, open it in the default browser.
-- Ask the user to review `edit/review-<hash>.html` and `transcript.edit.md`.
+- Open `edit/review-<hash>.html` with HTML Review.
+- Ask the user to review `edit/review-<hash>.html` and `edit/transcript.edit.md`.
 - Address any user comments by rerunning the phase with the feedback and corrections as context.
-- Wait for explicit approval before moving on to the next phase.
 
 # Phase 5: Produce Finalized
 
@@ -456,7 +428,6 @@ mm:ss - Chapter Name
 - Summarize phase to user.
 - Ask for any feedback required.
     - Rerun this phase with any feedback as context.
-- Wait for explicit approval before moving on.
 
 # Phase 6: Process Audio
 
@@ -484,7 +455,6 @@ Run `/z-process-audio` with these inputs:
 - Explicitly tell the user when the Auphonic video, transcript, subtitles, shownotes, and chapters are ready.
 - Ask for any feedback required.
     - Rerun this phase with any feedback as context.
-- Wait for explicit approval before moving on.
 
 # Phase 7: Produce MP4
 
@@ -501,12 +471,10 @@ ffmpeg -y -i <source> -c:v copy -c:a aac -b:a 192k -ar 48000 -movflags +faststar
 - Explicitly tell the user when `edit/edit.mp4` is ready.
 - Ask for any feedback required.
     - Rerun this phase with any feedback as context.
-- Wait for explicit approval before moving on.
 
 # Phase 8: Cleanup
 
 ## Action 1
-- Do not clean up until the user approves the final exports from Produce MP4.
 - Move the following folders/files in the `edit/` directory to trash.
     - `edit-draft.mp4`.
     - `base-draft.mp4`.

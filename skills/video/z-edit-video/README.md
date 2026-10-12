@@ -125,7 +125,6 @@ All three target −14 LUFS (loudness units relative to full scale).
 | `cut_breaths` | Remove breaths |
 | `cut_keyboard` | Remove keyboard clacking |
 | `take_selection_mode` | `last`, `best`, or `highest-energy` |
-| `b_roll_enabled` | Stored on the style. The cut planner does not read it yet |
 | `full_graphics_enabled` | An animation or image may be the picture (a full graphic) |
 | `min_full_graphic_length_ms` | Shortest full graphic |
 | `max_full_graphic_length_ms` | Longest full graphic |

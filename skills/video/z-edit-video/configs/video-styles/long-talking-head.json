@@ -6,7 +6,6 @@
   "cut_breaths": false,
   "cut_keyboard": false,
   "take_selection_mode": "last",
-  "b_roll_enabled": false,
   "full_graphics_enabled": true,
   "min_full_graphic_length_ms": 3000,
   "overlay_graphic_types": ["creator-credit", "context", "cta"],
