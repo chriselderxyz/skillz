@@ -245,11 +245,11 @@ A grade is an ffmpeg filter description: `eq` for contrast, brightness, and satu
 - Runs only when `process_audio` is true.
 - If the Auphonic CLI is not installed, the phase tells you to install it from `https://auphonic.com/cli` and skips the rest.
 - A subagent runs the process-audio skill on `edit/edit.mov`.
-- You review `edit/edit-processed.mov`, `edit/transcript.html`, `edit/subtitles.srt`, `edit/shownotes.md`, and `edit/auphonic-chapters.txt`.
+- You review `edit/edit-auphonic.mov`, `edit/edit-auphonic-transcript.html`, `edit/edit-auphonic-subtitles.srt`, `edit/edit-auphonic-shownotes.md`, and `edit/edit-auphonic.chapters.txt`.
 
 ### Phase 7 — Produce MP4
 
-- Converts the processed movie to `edit/edit.mp4` when Process Audio ran.
+- Converts the Auphonic movie to `edit/edit.mp4` when Process Audio ran.
 - Otherwise converts `edit/edit.mov`.
 - You review `edit/edit.mp4`.
 
