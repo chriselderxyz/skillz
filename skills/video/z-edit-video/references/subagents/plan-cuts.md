@@ -43,11 +43,6 @@
 - Eleven labs can extend word ranges into silence, which can cause some mid **take** silences to appear.
 
 ## Action 1
-- Run the script to create `edit/silences.json`.
-```bash
-uv run --no-project scripts/transcription/detect_silences.py
-```
-
 - For each kept **take**, use only `edit/silences.json` `sources.<audio_source>`, where `<audio_source>` is that **take**'s `audio_source`.
 - Those `start` and `end` times are on the **audio source clock**.
 - A silence that falls inside the kept **take** splits it into separate **cuts** in the same **take**, same **line**, and same **scene**.

@@ -151,7 +151,19 @@ uv run --no-project scripts/sync/sync_pair.py <src>
 uv run --no-project --with 'requests>=2,<3' scripts/transcription/transcribe_batch.py <src>
 ```
 
-## Action 8. Pack Transcriptions
+## Action 8. Detect Silences
+- Write the silences on each **audio source** to `edit/silences.json`.
+```bash
+uv run --no-project scripts/transcription/detect_silences.py
+```
+
+## Action 9. Repair Transcription Timings
+- Repair broken word timings in `edit/source-transcriptions/`.
+```bash
+uv run --no-project --with 'requests>=2,<3' scripts/transcription/repair_timings.py
+```
+
+## Action 10. Pack Transcriptions
 - Turn transcriptions into the **packed transcript**, a readable cut-picking view.
 ```bash
 uv run --no-project scripts/transcription/pack_transcripts.py

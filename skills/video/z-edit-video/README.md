@@ -217,6 +217,7 @@ A grade is an ffmpeg filter description: `eq` for contrast, brightness, and satu
 - Create the `edit/` folders and the first `edit/edit.json`.
 - Probe the sources and record problems.
 - Sync sources and transcribe the audio.
+- Detect silences and repair broken word timings.
 - Pack the transcripts into a take list.
 
 ### Phase 3 — Plan and review
@@ -343,8 +344,9 @@ Scripts live in `scripts/` and are run from the working directory with `uv run -
 | --- | --- |
 | `scripts/transcription/transcribe_batch.py` | Transcribes each source group's audio source with ElevenLabs Scribe, four at a time, into `edit/source-transcriptions/`. Skips sources that already have a transcript |
 | `scripts/transcription/transcribe.py` | Transcribes one file. The batch script calls it. Extracts 16 kHz mono audio, requests verbatim text, speaker labels, audio events, and word times |
+| `scripts/transcription/repair_timings.py` | Finds impossible word timings: zero-length words, single words lasting seconds, and words stretching across a silence in `edit/silences.json`. Splits each flagged stretch at its silences, re-transcribes each piece on its own, and splices the new words into the transcript. Keeps the raw transcript in `edit/source-transcriptions-original/`. Skips transcripts it already repaired |
 | `scripts/transcription/pack_transcripts.py` | Turns those transcripts into `edit/takes-packed.md`, with phrases split on half-second silences and speaker changes |
-| `scripts/transcription/detect_silences.py` | Finds silences on each source group's audio source. Probes that audio and sets its silence floor from those levels, then keeps silences at or above the video style's silence threshold. Writes `edit/silences.json`, including the floor used for each source. Times are on that audio source clock. Silences that sit on a transcribed audio event are left out. The cut planner uses the list for the take's audio source |
+| `scripts/transcription/detect_silences.py` | Finds silences on each source group's audio source. Probes that audio and sets its silence floor from those levels, then keeps silences at or above the video style's silence threshold. Writes `edit/silences.json`, including the floor used for each source. Times are on that audio source clock. Silences that sit on a transcribed audio event are left out. Timing repair and the cut planner both use this file |
 
 ### Production
 
