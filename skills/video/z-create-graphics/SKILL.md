@@ -106,6 +106,8 @@ npx --yes hyperframes init <output_dir> --example blank --non-interactive --skip
 - Treat `<output_dir>/frame.md` as the brand source.
 - Use its colors and fonts verbatim.
 - Do not select a frame preset or invent additional colors.
+- Never use a gradient background.
+    - Fill an opaque background with one solid color from `frame.md`.
 - Set the duration to the graphic's `graphic_duration`.
 - Pass `-c compositions/<graphic_number>-graphic-<graphic_name>.html` to every composition command.
 - Render a graphic that is the picture to `<graphic_number>-graphic-<graphic_name>.mp4`.
