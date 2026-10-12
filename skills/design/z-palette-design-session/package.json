@@ -1,0 +1,15 @@
+{
+  "name": "z-palette-design-session",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "contrast": "tsx scripts/contrast.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "z-make-brand-palette",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deriveBackground": "tsx scripts/deriveBackground.ts",
+    "generate": "tsx scripts/generate.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@adobe/leonardo-contrast-colors": "1.1.0",
+    "colorjs.io": "0.5.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "z-make-brand-palette-2",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "tsx scripts/generate.ts",
+    "selectGray": "tsx scripts/selectGray.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@radix-ui/colors": "^3.0.0",
+    "bezier-easing": "^2.1.0",
+    "colorjs.io": "^0.5.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

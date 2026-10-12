@@ -1,0 +1,3674 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Palette Design Session</title>
+		<style>
+			:root {
+				color-scheme: light;
+				--page-background: #f4f4f1;
+				--page-foreground: #171714;
+				--muted-foreground: #686862;
+				--panel-background: #ffffff;
+				--line: #d9d9d2;
+				--soft-line: #e9e9e4;
+				--accent: #171714;
+				--radius: 18px;
+				--shadow: 0 18px 60px rgb(23 23 20 / 8%);
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			html {
+				/* No elastic overscroll past the top and bottom of the page (macOS rubber-banding). */
+				overscroll-behavior: none;
+				background: var(--page-background);
+			}
+
+			body {
+				margin: 0;
+				overscroll-behavior: none;
+				background:
+					radial-gradient(circle at top left, rgb(99 91 255 / 8%), transparent 32rem),
+					var(--page-background);
+				color: var(--page-foreground);
+				font-family:
+					Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+			}
+
+			.page {
+				width: min(100% - 32px, 1480px);
+				margin: 0 auto;
+				padding: 40px 0 96px;
+			}
+
+			.page-header {
+				display: flex;
+				gap: 24px;
+				align-items: center;
+				justify-content: space-between;
+				margin-bottom: 28px;
+			}
+
+			h1,
+			h2,
+			h3,
+			p {
+				margin-top: 0;
+			}
+
+			h1 {
+				margin-bottom: 0;
+				font-size: clamp(2rem, 5vw, 4.5rem);
+				font-weight: 780;
+				letter-spacing: -0.055em;
+				line-height: 0.95;
+			}
+
+			.palette-count {
+				display: inline-grid;
+				flex: 0 0 auto;
+				grid-template-columns: 42px auto;
+				gap: 11px;
+				align-items: center;
+				padding: 7px 16px 7px 7px;
+				border-radius: 999px;
+				background: var(--page-foreground);
+				box-shadow: 0 8px 24px rgb(23 23 20 / 16%);
+				color: #ffffff;
+			}
+
+			#palette-count-number {
+				display: grid;
+				width: 42px;
+				height: 42px;
+				place-items: center;
+				border-radius: 50%;
+				background: #ffffff;
+				color: var(--page-foreground);
+				font-size: 1rem;
+				font-weight: 800;
+				font-variant-numeric: tabular-nums;
+			}
+
+			.palette-count-label {
+				font-size: 0.7rem;
+				font-weight: 760;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+			}
+
+			.palette-tabs {
+				position: sticky;
+				z-index: 20;
+				top: 0;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 4px 12px;
+				align-items: center;
+				margin: 0 0 16px;
+				padding: 4px 0;
+				border-top: 1px solid var(--line);
+				border-bottom: 1px solid var(--line);
+				background: rgb(244 244 241 / 88%);
+				backdrop-filter: blur(18px);
+			}
+
+			.palette-tabs-list {
+				display: flex;
+				gap: 8px;
+				overflow-x: auto;
+				scrollbar-width: none;
+			}
+
+			.palette-tabs-list::-webkit-scrollbar {
+				display: none;
+			}
+
+			.palette-tab {
+				flex: 0 0 auto;
+				padding: 2px 9px;
+				border: 1px solid var(--line);
+				border-radius: 999px;
+				background: rgb(255 255 255 / 72%);
+				color: var(--page-foreground);
+				font-size: 0.68rem;
+				font-weight: 720;
+				letter-spacing: 0.02em;
+				text-decoration: none;
+				transition:
+					border-color 160ms ease,
+					background 160ms ease;
+			}
+
+			.palette-tab:hover,
+			.palette-tab:focus-visible {
+				border-color: var(--page-foreground);
+				background: #ffffff;
+				outline: none;
+			}
+
+			.palette-tab-group {
+				display: flex;
+				flex: 0 0 auto;
+				align-items: center;
+				gap: 2px;
+				padding: 4px;
+				border: 1px solid var(--line);
+				border-radius: 999px;
+				background: rgb(255 255 255 / 72%);
+			}
+
+			.palette-tab-group .palette-tab {
+				border-color: transparent;
+				background: transparent;
+			}
+
+			.palette-tab-group .palette-tab-example {
+				padding: 2px 8px;
+				color: var(--muted-foreground);
+			}
+
+			.palette-tab-group .palette-tab:hover,
+			.palette-tab-group .palette-tab:focus-visible {
+				border-color: transparent;
+				background: #ffffff;
+			}
+
+			.palette-section {
+				margin-top: 72px;
+				padding-top: 32px;
+				border-top: 1px solid var(--line);
+				scroll-margin-top: 44px;
+			}
+
+			.palette-section:first-child {
+				margin-top: 0;
+			}
+
+			.palette-heading {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 20px;
+				align-items: end;
+				justify-content: space-between;
+				margin-bottom: 24px;
+			}
+
+			.palette-heading h2 {
+				margin-bottom: 6px;
+				font-size: clamp(2rem, 4vw, 3.6rem);
+				letter-spacing: -0.045em;
+				line-height: 1;
+			}
+
+			.palette-heading p {
+				margin-bottom: 0;
+				color: var(--muted-foreground);
+			}
+
+			.seed {
+				display: inline-flex;
+				gap: 10px;
+				align-items: center;
+				padding: 9px 12px;
+				border: 1px solid var(--line);
+				border-radius: 999px;
+				background: rgb(255 255 255 / 72%);
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 0.78rem;
+				font-weight: 700;
+			}
+
+			.seed-swatch {
+				width: 13px;
+				height: 13px;
+				border: 1px solid rgb(0 0 0 / 12%);
+				border-radius: 50%;
+				background: var(--seed-color);
+			}
+
+			.background-details {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 10px;
+				align-items: center;
+				margin-bottom: 14px;
+			}
+
+			.background-details-label {
+				margin-right: 4px;
+				color: var(--muted-foreground);
+				font-size: 0.7rem;
+				font-weight: 760;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+			}
+
+			.background-badge {
+				display: inline-flex;
+				gap: 9px;
+				align-items: center;
+				padding: 7px 10px 7px 7px;
+				border: 1px solid var(--line);
+				border-radius: 999px;
+				background: rgb(255 255 255 / 78%);
+				font-size: 0.72rem;
+				font-weight: 680;
+			}
+
+			.background-swatch {
+				width: 22px;
+				height: 22px;
+				border: 1px solid rgb(0 0 0 / 14%);
+				border-radius: 50%;
+				background: var(--background-color);
+			}
+
+			.background-mode {
+				color: var(--muted-foreground);
+				text-transform: uppercase;
+			}
+
+			.background-value {
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-weight: 760;
+			}
+
+			.background-lightness {
+				padding-left: 9px;
+				border-left: 1px solid var(--line);
+				color: var(--muted-foreground);
+			}
+
+			.ramp-table-group {
+				margin-top: 34px;
+			}
+
+			.ramp-table-header {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 14px;
+				align-items: center;
+				justify-content: space-between;
+				margin-bottom: 12px;
+			}
+
+			.ramp-table-header h3 {
+				margin-bottom: 0;
+				font-size: 1.15rem;
+				letter-spacing: -0.02em;
+			}
+
+			.table-shell {
+				overflow-x: auto;
+				border: 1px solid var(--line);
+				border-radius: var(--radius);
+				background: var(--panel-background);
+				box-shadow: var(--shadow);
+			}
+
+			table {
+				width: 100%;
+				border-collapse: separate;
+				border-spacing: 0;
+				table-layout: fixed;
+			}
+
+			.ramp-table {
+				min-width: 1120px;
+			}
+
+			th,
+			td {
+				border-right: 1px solid var(--soft-line);
+				border-bottom: 1px solid var(--soft-line);
+			}
+
+			th:last-child,
+			td:last-child {
+				border-right: 0;
+			}
+
+			tr:last-child td {
+				border-bottom: 0;
+			}
+
+			th {
+				height: 70px;
+				padding: 12px 10px;
+				background: #f8f8f5;
+				color: #555550;
+				font-size: 0.68rem;
+				font-weight: 760;
+				letter-spacing: 0.07em;
+				line-height: 1.3;
+				text-align: center;
+				text-transform: uppercase;
+			}
+
+			th:first-child {
+				width: 62px;
+			}
+
+			th.color-column {
+				width: 118px;
+			}
+
+			th.contrast-column {
+				width: 104px;
+			}
+
+			th small {
+				font-weight: 600;
+				letter-spacing: 0;
+				opacity: 0.7;
+				text-transform: none;
+			}
+
+			td {
+				height: 58px;
+				padding: 0;
+				background: #fff;
+				font-variant-numeric: tabular-nums;
+			}
+
+			.step,
+			.contrast,
+			.swatch {
+				text-align: center;
+			}
+
+			.step {
+				color: var(--muted-foreground);
+				font-size: 0.76rem;
+				font-weight: 760;
+			}
+
+			.swatch {
+				padding: 10px;
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 0.78rem;
+				font-weight: 760;
+				letter-spacing: 0.025em;
+				text-shadow: 0 1px 1px rgb(0 0 0 / 10%);
+			}
+
+			.swatch.is-alpha {
+				font-size: 0.68rem;
+				letter-spacing: 0;
+			}
+
+			.swatch.is-wide {
+				min-width: 240px;
+				padding: 8px 6px;
+				font-size: 0.62rem;
+				line-height: 1.35;
+				letter-spacing: 0;
+				white-space: normal;
+				word-break: break-word;
+			}
+
+			.contrast {
+				color: #4e4e49;
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 0.75rem;
+				font-weight: 650;
+			}
+
+			.examples {
+				margin-top: 16px;
+				padding: 12px;
+				border: 1px solid var(--line);
+				border-radius: var(--radius);
+				background: rgb(255 255 255 / 56%);
+			}
+
+			.examples-header {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+				align-items: baseline;
+				justify-content: space-between;
+				margin-bottom: 8px;
+			}
+
+			.examples-header h3 {
+				margin-bottom: 0;
+				font-size: 1.25rem;
+				letter-spacing: -0.02em;
+			}
+
+			.examples-header p {
+				margin-bottom: 0;
+				color: var(--muted-foreground);
+				font-size: 0.85rem;
+			}
+
+			.mode-examples {
+				display: grid;
+				gap: 10px;
+			}
+
+			.mode-group {
+				display: grid;
+				gap: 8px;
+				padding-top: 8px;
+				border-top: 1px solid var(--soft-line);
+				scroll-margin-top: 44px;
+			}
+
+			.mode-label {
+				color: var(--muted-foreground);
+				font-size: 0.7rem;
+				font-weight: 760;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+			}
+
+			.screen-grid {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 12px;
+			}
+
+			.mockup-placeholder {
+				display: grid;
+				min-height: 210px;
+				padding: 22px;
+				place-content: center;
+				border: 1px dashed #aaa9a1;
+				border-radius: 14px;
+				background:
+					linear-gradient(135deg, rgb(255 255 255 / 84%), rgb(244 244 241 / 76%));
+				color: #666660;
+				text-align: center;
+			}
+
+			.mockup-placeholder[data-mode="dark"] {
+				border-color: #52524e;
+				background: linear-gradient(135deg, #20201e, #121211);
+				color: #bcbcb4;
+			}
+
+			.mockup-placeholder strong {
+				display: block;
+				margin: 8px 0;
+				color: inherit;
+				font-size: 0.92rem;
+			}
+
+			.mockup-placeholder code {
+				color: inherit;
+				font-size: 0.66rem;
+				line-height: 1.5;
+			}
+
+
+			/*==================================================
+			  Session additions: scheme switcher, token tables, mockups
+			==================================================*/
+
+			.page-intro {
+				max-width: 900px;
+				margin: -8px 0 28px;
+				color: var(--muted-foreground);
+				line-height: 1.55;
+			}
+
+			.scheme-bar {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 4px 10px;
+				align-items: center;
+			}
+
+			.scheme-bar-label {
+				color: var(--muted-foreground);
+				font-size: 0.7rem;
+				font-weight: 760;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+			}
+
+			.scheme-buttons {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+			}
+
+			.scheme-button {
+				padding: 2px 9px;
+				border: 1px solid var(--line);
+				border-radius: 999px;
+				background: rgb(255 255 255 / 72%);
+				color: var(--page-foreground);
+				font: inherit;
+				font-size: 0.68rem;
+				font-weight: 720;
+				cursor: pointer;
+			}
+
+			.scheme-button[aria-pressed="true"] {
+				border-color: var(--page-foreground);
+				background: var(--page-foreground);
+				color: #ffffff;
+			}
+
+			.scheme-button:focus-visible {
+				outline: 2px solid #635bff;
+				outline-offset: 2px;
+			}
+
+			.overview {
+				margin-bottom: 56px;
+			}
+
+			.overview h2 {
+				margin-bottom: 8px;
+				font-size: clamp(1.6rem, 3vw, 2.4rem);
+				letter-spacing: -0.04em;
+			}
+
+			.overview > p {
+				max-width: 900px;
+				color: var(--muted-foreground);
+				line-height: 1.55;
+			}
+
+			.scheme-cards {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+				gap: 12px;
+				margin: 22px 0 28px;
+			}
+
+			.scheme-card {
+				padding: 18px;
+				border: 1px solid var(--line);
+				border-radius: 14px;
+				background: var(--panel-background);
+				cursor: pointer;
+				text-align: left;
+				font: inherit;
+				color: inherit;
+			}
+
+			.scheme-card[aria-pressed="true"] {
+				border-color: var(--page-foreground);
+				box-shadow: inset 0 0 0 1px var(--page-foreground);
+			}
+
+			.hue-meter {
+				height: 6px;
+				margin: 6px 0 8px;
+				overflow: hidden;
+				border-radius: 999px;
+				background: var(--soft-line);
+			}
+
+			.hue-meter span {
+				display: block;
+				height: 100%;
+				border-radius: inherit;
+				background: linear-gradient(90deg, #8a8a84, #635bff);
+			}
+
+			.status-badge {
+				display: inline-block;
+				margin-bottom: 8px;
+				padding: 2px 8px;
+				border-radius: 999px;
+				font-size: 0.64rem;
+				font-weight: 760;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+			}
+
+			.status-badge.selected {
+				background: #e3f5e8;
+				color: #1d6b38;
+			}
+
+			.status-badge.candidate {
+				background: #eef0ff;
+				color: #3d3aa8;
+			}
+
+			.scheme-card h3 {
+				margin-bottom: 4px;
+				font-size: 1rem;
+				letter-spacing: -0.01em;
+			}
+
+			.scheme-card .influences {
+				margin-bottom: 10px;
+				color: var(--muted-foreground);
+				font-size: 0.72rem;
+				font-weight: 700;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+			}
+
+			.scheme-card p {
+				margin-bottom: 0;
+				font-size: 0.84rem;
+				line-height: 1.5;
+			}
+
+			.matrix-shell {
+				overflow-x: auto;
+				border: 1px solid var(--line);
+				border-radius: var(--radius);
+				background: var(--panel-background);
+				box-shadow: var(--shadow);
+			}
+
+			.matrix {
+				min-width: 980px;
+				table-layout: auto;
+			}
+
+			.matrix th,
+			.matrix td {
+				height: auto;
+				padding: 7px 10px;
+				font-size: 0.74rem;
+				text-align: left;
+			}
+
+			.matrix th {
+				position: sticky;
+				top: 0;
+			}
+
+			.matrix td {
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+			}
+
+			.matrix td:first-child {
+				font-weight: 700;
+			}
+
+			.matrix .group-row td {
+				background: #f8f8f5;
+				color: var(--muted-foreground);
+				font-family: inherit;
+				font-size: 0.66rem;
+				font-weight: 760;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+			}
+
+			.matrix .is-selected {
+				background: #f1f0ff;
+			}
+
+			.matrix .ref-pair {
+				white-space: nowrap;
+			}
+
+			.matrix .ref-pair span {
+				color: var(--muted-foreground);
+			}
+
+			.score-grid td {
+				text-align: center;
+			}
+
+			.score {
+				display: inline-block;
+				min-width: 64px;
+				padding: 3px 8px;
+				border-radius: 999px;
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 0.72rem;
+				font-weight: 760;
+			}
+
+			.score.good {
+				background: #e3f5e8;
+				color: #1d6b38;
+			}
+
+			.score.ok {
+				background: #fff3d1;
+				color: #7a5500;
+			}
+
+			.score.bad {
+				background: #ffe3e1;
+				color: #a3261f;
+			}
+
+			.overview-subhead {
+				margin: 30px 0 10px;
+				font-size: 1.05rem;
+				letter-spacing: -0.01em;
+			}
+
+			.token-table-shell {
+				margin-top: 34px;
+			}
+
+			.token-table {
+				min-width: 1444px;
+			}
+
+			.token-table th,
+			.token-table td {
+				height: auto;
+				padding: 7px 10px;
+				font-size: 0.75rem;
+			}
+
+			.token-table .token-name {
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-weight: 700;
+				text-align: left;
+			}
+
+			.token-table .token-name-head {
+				width: 190px;
+				text-align: left;
+			}
+
+			.token-table .mode-head {
+				height: 34px;
+				background: #efeee9;
+				color: var(--page-foreground);
+				letter-spacing: 0.12em;
+			}
+
+			.token-table .token-fill-head {
+				width: 172px;
+			}
+
+			.token-table .cx-head {
+				width: 96px;
+			}
+
+			.token-table thead th,
+			.ramp-table thead th {
+				padding: 8px 5px;
+				font-size: 0.6rem;
+				letter-spacing: 0.02em;
+			}
+
+			.token-table .token-fill {
+				padding: 7px 6px;
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 0.66rem;
+				font-weight: 760;
+				text-align: center;
+				white-space: nowrap;
+			}
+
+			.token-table .group-row td {
+				background: #f8f8f5;
+				color: var(--muted-foreground);
+				font-family: inherit;
+				font-size: 0.66rem;
+				font-weight: 760;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+			}
+
+			.token-cell {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+			}
+
+			.token-swatch {
+				flex: 0 0 auto;
+				width: 22px;
+				height: 22px;
+				border: 1px solid rgb(0 0 0 / 14%);
+				border-radius: 6px;
+			}
+
+			.token-ref {
+				min-width: 30px;
+				font-weight: 760;
+			}
+
+			.token-hex {
+				color: var(--muted-foreground);
+			}
+
+			.contrast .cx-sep,
+			.cx .cx-sep {
+				margin: 0 4px;
+				color: #b9b8b0;
+			}
+
+			.cx {
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 0.7rem;
+				font-weight: 650;
+				text-align: center;
+				white-space: nowrap;
+			}
+
+			.cx .good {
+				color: #15803d;
+			}
+
+			.cx .ok {
+				color: #a16207;
+			}
+
+			.cx .bad {
+				color: #b91c1c;
+				font-weight: 800;
+			}
+
+			.cx-empty {
+				color: #b9b8b0;
+			}
+
+			.cx-legend {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px 16px;
+				align-items: center;
+				margin: 0 0 10px;
+				font-size: 0.72rem;
+			}
+
+			.cx-legend-title {
+				color: var(--muted-foreground);
+				font-weight: 760;
+			}
+
+			.cx-legend-item b {
+				margin-right: 4px;
+			}
+
+			.cx-legend-item span {
+				margin-right: 6px;
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-weight: 700;
+			}
+
+			.cx-legend .good {
+				color: #15803d;
+			}
+
+			.cx-legend .ok {
+				color: #a16207;
+			}
+
+			.cx-legend .bad {
+				color: #b91c1c;
+			}
+
+			.check {
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 0.72rem;
+				white-space: nowrap;
+			}
+
+			.check.pass {
+				color: #1d6b38;
+			}
+
+			.check.fail {
+				color: #b3261e;
+				font-weight: 760;
+			}
+
+			.check .lc {
+				padding: 0 5px;
+				border-radius: 4px;
+				background: #eef0ff;
+				color: #3d3aa8;
+			}
+
+			.check .lc.lc-low {
+				background: #fff3d1;
+				color: #7a5500;
+			}
+
+			.check .lc.lc-poor {
+				background: #ffe3e1;
+				color: #a3261f;
+			}
+
+			.check.info {
+				color: var(--muted-foreground);
+			}
+
+			.examples .mode-group {
+				gap: 8px;
+			}
+
+			.example-grid {
+				display: grid;
+				grid-template-columns: 220px minmax(0, 1fr);
+				gap: 10px;
+				align-items: start;
+			}
+
+			.web-scroll {
+				display: flex;
+				min-width: 0;
+				height: 0;
+				min-height: 100%;
+				overflow: auto;
+				border-radius: 16px;
+			}
+
+			.token-legend {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 4px;
+			}
+
+			.legend-chip {
+				display: inline-flex;
+				gap: 4px;
+				align-items: center;
+				padding: 1px 6px 1px 2px;
+				border: 1px solid var(--line);
+				border-radius: 999px;
+				background: #ffffff;
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 0.58rem;
+				font-weight: 650;
+				cursor: default;
+			}
+
+			.legend-chip:hover {
+				border-color: var(--page-foreground);
+			}
+
+			.legend-chip i {
+				width: 10px;
+				height: 10px;
+				border: 1px solid rgb(0 0 0 / 14%);
+				border-radius: 50%;
+			}
+
+			.legend-chip b {
+				color: var(--muted-foreground);
+				font-weight: 600;
+			}
+
+			.legend-hint {
+				color: var(--muted-foreground);
+				font-size: 0.75rem;
+			}
+
+			[data-tok].is-highlighted {
+				outline: 2px dashed #ff2d95 !important;
+				outline-offset: -2px;
+			}
+
+			.mode-group:has([data-legend]:hover) .mock {
+				overflow: visible;
+			}
+
+			/*----- Mockups: everything below reads only token variables -----*/
+
+			.mock {
+				--radius-sm: 6px;
+				--radius-md: 8px;
+				font-family:
+					Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+				font-size: 10.5px;
+				line-height: 1.35;
+				color: var(--foreground);
+				background: var(--background);
+			}
+
+			.mock * {
+				box-sizing: border-box;
+			}
+
+			.mock button {
+				font: inherit;
+			}
+
+			.mock .kbd {
+				padding: 1px 4px;
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				background: var(--muted);
+				color: var(--muted-foreground);
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 9px;
+			}
+
+			.mock .btn {
+				display: inline-flex;
+				gap: 5px;
+				align-items: center;
+				justify-content: center;
+				height: 26px;
+				padding: 0 9px;
+				border: 1px solid transparent;
+				border-radius: var(--radius-sm);
+				font-weight: 600;
+				white-space: nowrap;
+			}
+
+			.mock .btn-primary {
+				background: var(--primary);
+				color: var(--primary-foreground);
+			}
+
+			.mock .btn-secondary {
+				background: var(--secondary);
+				color: var(--secondary-foreground);
+			}
+
+			.mock .btn-outline {
+				border-color: var(--input);
+				background: var(--background);
+				color: var(--foreground);
+			}
+
+			.mock .btn-destructive {
+				border-color: color-mix(in srgb, var(--destructive-fill-foreground) 35%, transparent);
+				background: var(--destructive-fill);
+				color: var(--destructive-fill-foreground);
+			}
+
+			.mock .btn.is-open,
+			.mock .is-focus-ring {
+				box-shadow:
+					0 0 0 2px var(--background),
+					0 0 0 4px var(--ring);
+			}
+
+			.mock .badge {
+				display: inline-flex;
+				gap: 3px;
+				align-items: center;
+				padding: 1px 6px;
+				border-radius: 999px;
+				font-size: 10px;
+				font-weight: 650;
+				white-space: nowrap;
+			}
+
+			.mock .badge-success {
+				background: var(--success-fill);
+				color: var(--success-fill-foreground);
+			}
+
+			.mock .badge-warning {
+				background: var(--warning-fill);
+				color: var(--warning-fill-foreground);
+			}
+
+			.mock .badge-destructive {
+				background: var(--destructive-fill);
+				color: var(--destructive-fill-foreground);
+			}
+
+			.mock .badge-primary {
+				background: var(--primary);
+				color: var(--primary-foreground);
+			}
+
+			.mock .badge-muted {
+				background: var(--muted);
+				color: var(--muted-foreground);
+			}
+
+			.mock .text-muted {
+				color: var(--muted-foreground);
+			}
+
+			.mock .icon {
+				display: inline-grid;
+				width: 14px;
+				height: 14px;
+				place-items: center;
+				font-size: 11px;
+				line-height: 1;
+			}
+
+			/* Web app */
+
+			.web-app {
+				display: grid;
+				grid-template-columns: 132px minmax(0, 1fr);
+				width: 100%;
+				min-width: 0;
+				min-height: 100%;
+				overflow: hidden;
+				border: 1px solid var(--border);
+				border-radius: 14px;
+				box-shadow: var(--mock-shadow);
+			}
+
+			.web-sidebar {
+				display: flex;
+				flex-direction: column;
+				gap: 1px;
+				padding: 10px 8px;
+				border-right: 1px solid var(--sidebar-border);
+				background: var(--sidebar);
+				color: var(--sidebar-foreground);
+			}
+
+			.web-workspace {
+				display: flex;
+				gap: 9px;
+				align-items: center;
+				margin: 0 4px 8px;
+				font-weight: 700;
+			}
+
+			.web-logo {
+				display: grid;
+				width: 22px;
+				height: 22px;
+				place-items: center;
+				border-radius: 6px;
+				background: var(--sidebar-primary);
+				color: var(--sidebar-primary-foreground);
+				font-size: 12px;
+				font-weight: 800;
+			}
+
+			.web-sidebar .sb-cta {
+				justify-content: flex-start;
+				margin: 0 0 8px;
+				background: var(--sidebar-primary);
+				color: var(--sidebar-primary-foreground);
+			}
+
+			.sb-label {
+				margin: 8px 6px 2px;
+				font-size: 9px;
+				font-weight: 700;
+				letter-spacing: 0.06em;
+				opacity: 0.72;
+				text-transform: uppercase;
+			}
+
+			.sb-item {
+				display: flex;
+				gap: 7px;
+				align-items: center;
+				height: 26px;
+				padding: 0 7px;
+				border-radius: 7px;
+				color: var(--sidebar-foreground);
+			}
+
+			.sb-item.is-active {
+				background: var(--sidebar-accent);
+				color: var(--sidebar-accent-foreground);
+				font-weight: 650;
+			}
+
+			.sb-item.is-focus {
+				box-shadow: inset 0 0 0 2px var(--sidebar-ring);
+			}
+
+			.sb-item .sb-count {
+				margin-left: auto;
+				font-size: 11px;
+				opacity: 0.8;
+			}
+
+			.sb-divider {
+				height: 1px;
+				margin: 6px 4px;
+				background: var(--sidebar-border);
+			}
+
+			.sb-footer {
+				display: flex;
+				gap: 9px;
+				align-items: center;
+				margin-top: auto;
+				padding: 8px 4px 0;
+				border-top: 1px solid var(--sidebar-border);
+				font-size: 11px;
+			}
+
+			.avatar {
+				display: grid;
+				flex: 0 0 auto;
+				width: 22px;
+				height: 22px;
+				place-items: center;
+				border-radius: 50%;
+				background: var(--secondary);
+				color: var(--secondary-foreground);
+				font-size: 10px;
+				font-weight: 750;
+			}
+
+			.web-main {
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+				min-width: 0;
+				padding: 0 12px 12px;
+			}
+
+			.web-top {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+				align-items: center;
+				margin: 0 -12px;
+				padding: 8px 12px;
+				border-bottom: 1px solid var(--border);
+			}
+
+			.web-top h4 {
+				margin: 0 auto 0 0;
+				font-size: 13px;
+				letter-spacing: -0.01em;
+			}
+
+			.search {
+				display: flex;
+				flex: 1 1 120px;
+				gap: 8px;
+				align-items: center;
+				width: auto;
+				min-width: 0;
+				max-width: 168px;
+				height: 26px;
+				padding: 0 8px 0 10px;
+				border: 1px solid var(--input);
+				border-radius: var(--radius-sm);
+				background: var(--background);
+				color: var(--muted-foreground);
+			}
+
+			.search .kbd {
+				margin-left: auto;
+			}
+
+			.banner {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				padding: 6px 10px;
+				border: 1px solid color-mix(in srgb, var(--warning-fill-foreground) 28%, transparent);
+				border-radius: var(--radius-md);
+				background: var(--warning-fill);
+				color: var(--warning-fill-foreground);
+				font-weight: 550;
+			}
+
+			.banner .banner-link {
+				margin-left: auto;
+				font-weight: 700;
+				text-decoration: underline;
+			}
+
+			.stats {
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: 10px;
+			}
+
+			.card {
+				border: 1px solid var(--border);
+				border-radius: var(--radius-md);
+				background: var(--card);
+				color: var(--card-foreground);
+			}
+
+			.stat {
+				padding: 8px 10px;
+			}
+
+			.stat-label {
+				color: var(--muted-foreground);
+				font-size: 11px;
+				font-weight: 600;
+			}
+
+			.stat-value {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+				align-items: baseline;
+				margin-top: 4px;
+				font-size: 16px;
+				font-weight: 750;
+				letter-spacing: -0.02em;
+			}
+
+			.web-panels {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+				gap: 10px;
+			}
+
+			.panel-head {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				justify-content: space-between;
+				padding: 8px 10px;
+				border-bottom: 1px solid var(--border);
+				font-weight: 700;
+			}
+
+			.chart {
+				display: flex;
+				gap: 7px;
+				align-items: end;
+				height: 64px;
+				padding: 10px 10px 0;
+				border-bottom: 1px solid var(--border);
+				margin: 0 10px;
+				padding-left: 0;
+				padding-right: 0;
+			}
+
+			.chart-bar {
+				flex: 1;
+				border-radius: 4px 4px 0 0;
+				background: var(--chart-primary);
+			}
+
+			.chart-axis {
+				display: flex;
+				justify-content: space-between;
+				padding: 4px 10px 8px;
+				color: var(--muted-foreground);
+				font-size: 10px;
+			}
+
+			.rows {
+				padding: 4px;
+			}
+
+			.row {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) auto 42px;
+				gap: 10px;
+				align-items: center;
+				height: 24px;
+				padding: 0 10px;
+				border-bottom: 1px solid var(--border);
+			}
+
+			.row:last-child {
+				border-bottom: 0;
+			}
+
+			.row.is-hover {
+				border-radius: 7px;
+				background: var(--accent);
+				color: var(--accent-foreground);
+			}
+
+			.row > span:first-child {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.row .row-amount {
+				text-align: right;
+				font-variant-numeric: tabular-nums;
+				font-weight: 650;
+			}
+
+			.menu-anchor {
+				position: relative;
+			}
+
+			.menu-trigger {
+				width: 28px;
+				height: 26px;
+				padding: 0;
+			}
+
+			.popover {
+				position: absolute;
+				z-index: 2;
+				top: 32px;
+				right: 0;
+				width: 160px;
+				padding: 5px;
+				border: 1px solid var(--border);
+				border-radius: var(--radius-md);
+				background: var(--popover);
+				box-shadow: var(--mock-shadow);
+				color: var(--popover-foreground);
+				font-weight: 500;
+			}
+
+			.menu-label {
+				padding: 5px 8px 4px;
+				color: var(--muted-foreground);
+				font-size: 11px;
+			}
+
+			.menu-item {
+				display: flex;
+				gap: 6px;
+				align-items: center;
+				height: 24px;
+				padding: 0 8px;
+				border-radius: 6px;
+			}
+
+			.menu-item.is-hover {
+				background: var(--accent);
+				color: var(--accent-foreground);
+			}
+
+			.menu-item .kbd {
+				margin-left: auto;
+			}
+
+			.menu-item.is-danger {
+				color: var(--destructive);
+			}
+
+			.menu-sep {
+				height: 1px;
+				margin: 4px -5px;
+				background: var(--border);
+			}
+
+			/* Mobile app */
+
+			.phone {
+				display: flex;
+				flex-direction: column;
+				width: 100%;
+				overflow: hidden;
+				border: 1px solid var(--border);
+				border-radius: 22px;
+				box-shadow: var(--mock-shadow);
+			}
+
+			.phone-status {
+				display: flex;
+				justify-content: space-between;
+				padding: 8px 14px 2px;
+				font-size: 10px;
+				font-weight: 700;
+			}
+
+			.phone-body {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+				padding: 2px 8px 6px;
+			}
+
+			.phone-head {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+			}
+
+			.phone-head h4 {
+				margin: 0;
+				font-size: 15px;
+				letter-spacing: -0.02em;
+			}
+
+			.phone-head p {
+				margin: 0;
+				color: var(--muted-foreground);
+				font-size: 11px;
+			}
+
+			.phone-head .avatar {
+				width: 26px;
+				height: 26px;
+				margin-left: auto;
+				font-size: 10px;
+			}
+
+			.segmented {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				padding: 2px;
+				border-radius: 8px;
+				background: var(--muted);
+				color: var(--muted-foreground);
+				font-size: 11px;
+				font-weight: 600;
+				text-align: center;
+			}
+
+			.segmented span {
+				padding: 3px 0;
+				border-radius: 6px;
+			}
+
+			.segmented .is-on {
+				background: var(--background);
+				box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+				color: var(--foreground);
+			}
+
+			.goal {
+				padding: 8px 10px;
+			}
+
+			.goal-top {
+				display: flex;
+				align-items: baseline;
+				justify-content: space-between;
+				font-weight: 700;
+			}
+
+			.progress {
+				height: 8px;
+				margin: 6px 0 4px;
+				overflow: hidden;
+				border-radius: 999px;
+				background: var(--muted);
+			}
+
+			.progress i {
+				display: block;
+				width: 68%;
+				height: 100%;
+				border-radius: inherit;
+				background: var(--chart-primary);
+			}
+
+			.toast {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				padding: 6px 8px;
+				border: 1px solid color-mix(in srgb, var(--success-fill-foreground) 28%, transparent);
+				border-radius: var(--radius-md);
+				background: var(--success-fill);
+				color: var(--success-fill-foreground);
+				font-weight: 600;
+			}
+
+			.field {
+				display: grid;
+				gap: 2px;
+			}
+
+			.field label {
+				font-size: 11px;
+				font-weight: 650;
+			}
+
+			.input {
+				display: flex;
+				align-items: center;
+				height: 24px;
+				padding: 0 11px;
+				border: 1px solid var(--input);
+				border-radius: var(--radius-sm);
+				background: var(--background);
+				color: var(--foreground);
+			}
+
+			.input.is-placeholder {
+				color: var(--muted-foreground);
+			}
+
+			.input.is-focus {
+				border-color: var(--ring);
+				box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
+			}
+
+			.input.is-error {
+				border-color: var(--destructive);
+			}
+
+			.field-warning {
+				color: var(--warning);
+				font-size: 11.5px;
+				font-weight: 600;
+			}
+
+			.stat-note {
+				margin-top: 4px;
+				color: var(--success);
+				font-size: 11px;
+				font-weight: 650;
+			}
+
+			.field-error {
+				color: var(--destructive);
+				font-size: 11.5px;
+				font-weight: 600;
+			}
+
+			.alert {
+				display: flex;
+				gap: 8px;
+				padding: 6px 8px;
+				border: 1px solid color-mix(in srgb, var(--destructive-fill-foreground) 28%, transparent);
+				border-radius: var(--radius-md);
+				background: var(--destructive-fill);
+				color: var(--destructive-fill-foreground);
+			}
+
+			.alert strong {
+				display: block;
+				font-size: 12.5px;
+			}
+
+			.alert span {
+				font-size: 12px;
+			}
+
+			.phone-actions {
+				display: grid;
+				grid-template-columns: 1.35fr 1fr 0.85fr;
+				gap: 6px;
+			}
+
+			.phone-actions .btn {
+				height: 24px;
+				padding: 0 6px;
+			}
+
+			.tabbar {
+				display: grid;
+				grid-template-columns: repeat(4, 1fr);
+				padding: 6px 6px 10px;
+				border-top: 1px solid var(--border);
+				background: var(--card);
+				color: var(--muted-foreground);
+				font-size: 10px;
+				font-weight: 600;
+				text-align: center;
+			}
+
+			.tabbar span {
+				display: grid;
+				gap: 2px;
+				justify-items: center;
+			}
+
+			.tabbar b {
+				display: block;
+				width: 16px;
+				height: 16px;
+				border-radius: 6px;
+				background: var(--muted);
+			}
+
+			.tabbar .is-on {
+				color: var(--foreground);
+			}
+
+			.tabbar .is-on b {
+				background: var(--foreground);
+			}
+
+			@media (max-width: 820px) {
+				.page {
+					width: min(100% - 20px, 1480px);
+					padding-top: 28px;
+				}
+
+				.page-header {
+					align-items: flex-start;
+					flex-direction: column;
+				}
+
+				.palette-tabs {
+					margin-bottom: 12px;
+				}
+
+				.examples {
+					padding: 10px;
+				}
+			}
+
+		</style>
+	</head>
+	<body>
+		<main class="page">
+			<header class="page-header">
+				<h1>PALETTE DESIGN SESSION</h1>
+				<div class="palette-count" id="palette-count">
+					<span id="palette-count-number"></span>
+					<span class="palette-count-label">Palettes</span>
+				</div>
+			</header>
+			<!-- @@SUMMARY_START -->
+				<p class="page-intro">
+					<strong>SUMMARY PLACEHOLDER.</strong> Replace everything between the SUMMARY markers with a
+					short session summary: the generators used, the palettes and token schemes compared, how refs
+					read (<code>B9</code> = brand step 9, <code>N3</code> = neutral step 3, <code>S11</code> = the
+					signal's own step 11, plus any named literals) and the key findings.
+				</p>
+				<!-- @@SUMMARY_END -->
+
+			<nav class="palette-tabs" aria-label="Palette navigation">
+				<div class="palette-tabs-list" id="palette-tabs-list">
+					<a class="palette-tab" href="#schemes">Schemes overview</a>
+				</div>
+				<div class="scheme-bar">
+					<span class="scheme-bar-label">Token scheme</span>
+					<div class="scheme-buttons" id="scheme-buttons"></div>
+				</div>
+			</nav>
+
+			<section class="overview" id="schemes">
+				<h2>Token mapping schemes</h2>
+				<p>
+					Each scheme maps every token to a ramp step for light and dark mode. Every scheme follows
+					Radix's step semantics (1–2 backgrounds, 3–5 component fills, 6–8 borders, 9–10 solids,
+					11–12 text) and keeps <code>background</code> on step 1 so steps 2–3 stay free for
+					elevated layers. Where they differ is <em>where the brand shows up</em> and
+					<em>how much contrast</em> they ask for.
+				</p>
+				<div class="scheme-cards" id="scheme-cards"></div>
+
+				<h3 class="overview-subhead">Contrast checks passed (light + dark) · palette × scheme</h3>
+				<div class="matrix-shell">
+					<table class="matrix score-grid" id="score-grid"></table>
+				</div>
+
+				<h3 class="overview-subhead">Step mapping · light / dark</h3>
+				<div class="matrix-shell">
+					<table class="matrix" id="scheme-matrix"></table>
+				</div>
+			</section>
+
+			<div id="palette-sections"></div>
+		</main>
+
+		<script>
+			//==================================================
+			// Palette Data
+			//==================================================
+
+			// Replace the block between the PALETTE_DATA markers with the session's palettes.
+			// Each palette:
+			//   name, description
+			//   seed (the brand seed; `primary` uses this color). For Radix, step 9 equals this seed
+			//   gray,
+			//   generators: { brand, neutral }  "Radix" or "Leonardo"
+			//   backgrounds: { light: { color, lightness }, dark: { color, lightness } }
+			//   ramps: { lightBrand, lightNeutral, darkBrand, darkNeutral }  12 HEX steps each
+			//   alphaRamps: { lightBrand, lightNeutral, darkBrand, darkNeutral }  12 alpha HEX steps each
+			//   signals: [{ key: "destructive" | "warning" | "success", name, seed, generator,
+			//               backgrounds, ramps: { light, dark }, alphaRamps: { light, dark } }]
+			// Wide gamut ramps are omitted on this page.
+			// All contrast values are computed in the page.
+			// Alpha contrast uses the alpha step composited over that mode's background.
+			// @@PALETTE_DATA_START
+			const paletteData = [
+				{
+					"name": "Clear Blue",
+					"description": "Product blue with slate-cool neutrals. Seed darkened from #0090FF to #0073E0 so white text on it passes WCAG and APCA. Standard red / amber / green signals.",
+					"seed": "#0073E0",
+					"gray": "#68737F",
+					"generators": {
+						"brand": "Radix",
+						"neutral": "Radix"
+					},
+					"backgrounds": {
+						"light": {
+							"color": "#FFFFFF",
+							"lightness": 100
+						},
+						"dark": {
+							"color": "#111111",
+							"lightness": 17.8
+						}
+					},
+					"ramps": {
+						"lightBrand": [
+							"#FBFDFF",
+							"#F5F9FF",
+							"#E9F3FF",
+							"#DAECFF",
+							"#C9E2FF",
+							"#B5D5FF",
+							"#9BC4F9",
+							"#74ACF3",
+							"#0073E0",
+							"#0065D1",
+							"#0070DD",
+							"#093363"
+						],
+						"lightNeutral": [
+							"#FBFCFE",
+							"#F7FAFD",
+							"#ECF1F6",
+							"#E3E9F0",
+							"#DAE2EA",
+							"#D2DBE4",
+							"#C5D0DC",
+							"#AFBDCE",
+							"#81909F",
+							"#788593",
+							"#5B6671",
+							"#1A2129"
+						],
+						"darkBrand": [
+							"#0A121C",
+							"#0F1825",
+							"#0D2747",
+							"#0A3260",
+							"#103D72",
+							"#1A4A83",
+							"#245897",
+							"#2A68B3",
+							"#0073E0",
+							"#2B69B4",
+							"#7FB8FF",
+							"#CFE3FE"
+						],
+						"darkNeutral": [
+							"#0F1114",
+							"#17191C",
+							"#1F2327",
+							"#262A2F",
+							"#2C3137",
+							"#343A41",
+							"#404851",
+							"#57626E",
+							"#646F7B",
+							"#727C88",
+							"#ACB4BD",
+							"#ECEEF1"
+						]
+					},
+					"alphaRamps": {
+						"lightBrand": [
+							"#0080FF04",
+							"#0066FF0A",
+							"#0074FF16",
+							"#007DFF25",
+							"#0077FF36",
+							"#016FFF4A",
+							"#0069F064",
+							"#0067E98B",
+							"#0073E0",
+							"#0065D1",
+							"#0070DD",
+							"#002C5DF6"
+						],
+						"lightNeutral": [
+							"#0040C004",
+							"#0060C008",
+							"#00448713",
+							"#0037771C",
+							"#00386F25",
+							"#0033662D",
+							"#0031663A",
+							"#002D6350",
+							"#001F3D7E",
+							"#00193387",
+							"#001122A4",
+							"#000811E5"
+						],
+						"darkBrand": [
+							"#0027FB0C",
+							"#0062F916",
+							"#0072FF3A",
+							"#0074FF55",
+							"#0F7DFF68",
+							"#2487FD7B",
+							"#338FFF90",
+							"#3691FFAE",
+							"#0082FFDE",
+							"#3792FFAF",
+							"#7FB8FF",
+							"#D0E4FFFE"
+						],
+						"darkNeutral": [
+							"#0011D104",
+							"#91BCFB0C",
+							"#A6D1FB18",
+							"#B4D3F921",
+							"#B9D9FE29",
+							"#BCDAFC34",
+							"#BFDDFE45",
+							"#C4E0FF64",
+							"#CBE4FF72",
+							"#D3E7FF80",
+							"#E6F1FEB9",
+							"#FAFCFFF0"
+						]
+					},
+					"signals": [
+						{
+							"key": "destructive",
+							"name": "Destructive",
+							"seed": "#E5484D",
+							"generator": "Radix",
+							"backgrounds": {
+								"light": {
+									"color": "#FFFFFF",
+									"lightness": 100
+								},
+								"dark": {
+									"color": "#111111",
+									"lightness": 17.8
+								}
+							},
+							"ramps": {
+								"light": [
+									"#FFFCFC",
+									"#FFF7F7",
+									"#FFEBEA",
+									"#FFDCD9",
+									"#FFCDCA",
+									"#FEBDB9",
+									"#F5A9A5",
+									"#EB8F8B",
+									"#E5484D",
+									"#D73840",
+									"#CC2E39",
+									"#64181B"
+								],
+								"dark": [
+									"#170F0E",
+									"#201312",
+									"#3B1212",
+									"#500F13",
+									"#61171A",
+									"#732425",
+									"#8C3434",
+									"#B54546",
+									"#E5484D",
+									"#D63941",
+									"#FF8F8B",
+									"#FFD2CE"
+								]
+							},
+							"alphaRamps": {
+								"light": [
+									"#FF000003",
+									"#FF000008",
+									"#FF0D0015",
+									"#FF150026",
+									"#FF0F0035",
+									"#FC0F0046",
+									"#E30C015A",
+									"#D4090074",
+									"#DB0007B7",
+									"#CC000AC7",
+									"#C1000ED1",
+									"#540003E7"
+								],
+								"dark": [
+									"#EC000007",
+									"#F22F2011",
+									"#FF17172D",
+									"#FE0A1944",
+									"#FF232C56",
+									"#FF404269",
+									"#FF555584",
+									"#FF5D5EB0",
+									"#FE4E54E4",
+									"#FE414BD4",
+									"#FF8F8B",
+									"#FFD2CE"
+								]
+							}
+						},
+						{
+							"key": "warning",
+							"name": "Warning",
+							"seed": "#FFC53D",
+							"generator": "Radix",
+							"backgrounds": {
+								"light": {
+									"color": "#FFFFFF",
+									"lightness": 100
+								},
+								"dark": {
+									"color": "#111111",
+									"lightness": 17.8
+								}
+							},
+							"ramps": {
+								"light": [
+									"#FEFDFB",
+									"#FFFAEA",
+									"#FFF2C3",
+									"#FFE9A0",
+									"#FFDE7F",
+									"#FCD27A",
+									"#E9C16E",
+									"#D7A944",
+									"#FFCA2F",
+									"#FAC137",
+									"#9B6F00",
+									"#463A20"
+								],
+								"dark": [
+									"#13110C",
+									"#1C1810",
+									"#2C220C",
+									"#3B2900",
+									"#483300",
+									"#554112",
+									"#695323",
+									"#84692E",
+									"#FFC53D",
+									"#F4BB2E",
+									"#FFCC4C",
+									"#FEE7BA"
+								]
+							},
+							"alphaRamps": {
+								"light": [
+									"#C0800004",
+									"#FFC30015",
+									"#FFC8003C",
+									"#FFC4005F",
+									"#FFBE0080",
+									"#FAA90085",
+									"#D9920091",
+									"#C98A00BB",
+									"#FFBE00D0",
+									"#F9B000C8",
+									"#9B6F00",
+									"#2C1E00DF"
+								],
+								"dark": [
+									"#BB110003",
+									"#FBA6000C",
+									"#FFA7001D",
+									"#FF99002D",
+									"#FFA4003B",
+									"#FFB91549",
+									"#FDC2415F",
+									"#FDC64D7C",
+									"#FFC53D",
+									"#FEC22FF4",
+									"#FFCC4C",
+									"#FFE8BBFE"
+								]
+							}
+						},
+						{
+							"key": "success",
+							"name": "Success",
+							"seed": "#30A46C",
+							"generator": "Radix",
+							"backgrounds": {
+								"light": {
+									"color": "#FFFFFF",
+									"lightness": 100
+								},
+								"dark": {
+									"color": "#111111",
+									"lightness": 17.8
+								}
+							},
+							"ramps": {
+								"light": [
+									"#FBFEFC",
+									"#F4FBF7",
+									"#E5F6EB",
+									"#D6F1DF",
+									"#C4E8D1",
+									"#ADDDC0",
+									"#8FCEA8",
+									"#60B887",
+									"#30A46C",
+									"#289662",
+									"#00814C",
+									"#1D3B2A"
+								],
+								"dark": [
+									"#0C130F",
+									"#121B16",
+									"#152C1F",
+									"#143B27",
+									"#1B4930",
+									"#23573B",
+									"#2B6848",
+									"#327C55",
+									"#30A46C",
+									"#1D9760",
+									"#63D196",
+									"#B2F1CB"
+								]
+							},
+							"alphaRamps": {
+								"light": [
+									"#00C04004",
+									"#00A3460B",
+									"#00A73B1A",
+									"#00A83829",
+									"#019C393B",
+									"#00963C52",
+									"#00903970",
+									"#008D3F9F",
+									"#008F4ACF",
+									"#008345D7",
+									"#00814C",
+									"#00220FE2"
+								],
+								"dark": [
+									"#00BB0003",
+									"#29F9850B",
+									"#35FF8D1D",
+									"#22FF8E2D",
+									"#3CFF953C",
+									"#4FFFA04B",
+									"#58FDA65E",
+									"#5BFFA873",
+									"#44FFA49E",
+									"#27FF9D90",
+									"#77FFB6CE",
+									"#BCFFD7F0"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Deep Violet",
+					"description": "Rich violet with lavender-gray neutrals. Step 9 is dark enough for white text at AA.",
+					"seed": "#6E56CF",
+					"gray": "#71707E",
+					"generators": {
+						"brand": "Radix",
+						"neutral": "Radix"
+					},
+					"backgrounds": {
+						"light": {
+							"color": "#FFFFFF",
+							"lightness": 100
+						},
+						"dark": {
+							"color": "#111111",
+							"lightness": 17.8
+						}
+					},
+					"ramps": {
+						"lightBrand": [
+							"#FCFCFE",
+							"#F9F9FF",
+							"#F2F1FF",
+							"#E7E6FF",
+							"#DDDAFF",
+							"#CFCBFF",
+							"#BCB7F7",
+							"#A49BEE",
+							"#6E56CF",
+							"#614CB5",
+							"#6450BA",
+							"#30265F"
+						],
+						"lightNeutral": [
+							"#FCFCFE",
+							"#F9F9FC",
+							"#F0EFF5",
+							"#E8E7EF",
+							"#E0E0EA",
+							"#D9D8E3",
+							"#CECDDB",
+							"#BBB9CC",
+							"#8D8C9D",
+							"#828192",
+							"#646370",
+							"#201F29"
+						],
+						"darkBrand": [
+							"#100F1C",
+							"#171626",
+							"#252045",
+							"#30265C",
+							"#392F6A",
+							"#433978",
+							"#52478D",
+							"#6659AE",
+							"#6E56CF",
+							"#6052A7",
+							"#B3A8FF",
+							"#E0DEFF"
+						],
+						"darkNeutral": [
+							"#111113",
+							"#19191C",
+							"#232226",
+							"#2A292F",
+							"#313037",
+							"#3A3A41",
+							"#484750",
+							"#605F6C",
+							"#6E6D7B",
+							"#7B7A88",
+							"#B3B3BF",
+							"#EEEEF0"
+						]
+					},
+					"alphaRamps": {
+						"lightBrand": [
+							"#0000AA03",
+							"#0000FF06",
+							"#1300FF0E",
+							"#0B00FF19",
+							"#1500FF25",
+							"#1400FF34",
+							"#1200E348",
+							"#1700D464",
+							"#2400B7A9",
+							"#1E0096B3",
+							"#1D009BAF",
+							"#0C0043D9"
+						],
+						"lightNeutral": [
+							"#0000AA03",
+							"#00008006",
+							"#10006010",
+							"#0B005518",
+							"#0000531F",
+							"#07004827",
+							"#06004832",
+							"#08004646",
+							"#03002673",
+							"#0300237E",
+							"#0200169C",
+							"#01000BE0"
+						],
+						"darkBrand": [
+							"#0000FB0C",
+							"#5449FA17",
+							"#6D56FE38",
+							"#7253FD51",
+							"#7B60FD60",
+							"#846DFD6F",
+							"#8E79FF85",
+							"#917DFEA9",
+							"#8668FFCC",
+							"#8F78FFA1",
+							"#B3A8FF",
+							"#E0DEFF"
+						],
+						"darkNeutral": [
+							"#1111BB03",
+							"#BCBCFB0C",
+							"#D9CEFA17",
+							"#D3CBF921",
+							"#D9D2FE29",
+							"#DADAFC34",
+							"#E0DCFE44",
+							"#DFDCFE62",
+							"#E2DFFF72",
+							"#E5E3FF80",
+							"#EDEDFEBB",
+							"#FDFDFFEF"
+						]
+					},
+					"signals": [
+						{
+							"key": "destructive",
+							"name": "Destructive",
+							"seed": "#E5484D",
+							"generator": "Radix",
+							"backgrounds": {
+								"light": {
+									"color": "#FFFFFF",
+									"lightness": 100
+								},
+								"dark": {
+									"color": "#111111",
+									"lightness": 17.8
+								}
+							},
+							"ramps": {
+								"light": [
+									"#FFFCFC",
+									"#FFF7F7",
+									"#FFEBEA",
+									"#FFDCD9",
+									"#FFCDCA",
+									"#FEBDB9",
+									"#F5A9A5",
+									"#EB8F8B",
+									"#E5484D",
+									"#D73840",
+									"#CC2E39",
+									"#64181B"
+								],
+								"dark": [
+									"#170F0E",
+									"#201312",
+									"#3B1212",
+									"#500F13",
+									"#61171A",
+									"#732425",
+									"#8C3434",
+									"#B54546",
+									"#E5484D",
+									"#D63941",
+									"#FF8F8B",
+									"#FFD2CE"
+								]
+							},
+							"alphaRamps": {
+								"light": [
+									"#FF000003",
+									"#FF000008",
+									"#FF0D0015",
+									"#FF150026",
+									"#FF0F0035",
+									"#FC0F0046",
+									"#E30C015A",
+									"#D4090074",
+									"#DB0007B7",
+									"#CC000AC7",
+									"#C1000ED1",
+									"#540003E7"
+								],
+								"dark": [
+									"#EC000007",
+									"#F22F2011",
+									"#FF17172D",
+									"#FE0A1944",
+									"#FF232C56",
+									"#FF404269",
+									"#FF555584",
+									"#FF5D5EB0",
+									"#FE4E54E4",
+									"#FE414BD4",
+									"#FF8F8B",
+									"#FFD2CE"
+								]
+							}
+						},
+						{
+							"key": "warning",
+							"name": "Warning",
+							"seed": "#FFC53D",
+							"generator": "Radix",
+							"backgrounds": {
+								"light": {
+									"color": "#FFFFFF",
+									"lightness": 100
+								},
+								"dark": {
+									"color": "#111111",
+									"lightness": 17.8
+								}
+							},
+							"ramps": {
+								"light": [
+									"#FEFDFB",
+									"#FFFAEA",
+									"#FFF2C3",
+									"#FFE9A0",
+									"#FFDE7F",
+									"#FCD27A",
+									"#E9C16E",
+									"#D7A944",
+									"#FFCA2F",
+									"#FAC137",
+									"#9B6F00",
+									"#463A20"
+								],
+								"dark": [
+									"#13110C",
+									"#1C1810",
+									"#2C220C",
+									"#3B2900",
+									"#483300",
+									"#554112",
+									"#695323",
+									"#84692E",
+									"#FFC53D",
+									"#F4BB2E",
+									"#FFCC4C",
+									"#FEE7BA"
+								]
+							},
+							"alphaRamps": {
+								"light": [
+									"#C0800004",
+									"#FFC30015",
+									"#FFC8003C",
+									"#FFC4005F",
+									"#FFBE0080",
+									"#FAA90085",
+									"#D9920091",
+									"#C98A00BB",
+									"#FFBE00D0",
+									"#F9B000C8",
+									"#9B6F00",
+									"#2C1E00DF"
+								],
+								"dark": [
+									"#BB110003",
+									"#FBA6000C",
+									"#FFA7001D",
+									"#FF99002D",
+									"#FFA4003B",
+									"#FFB91549",
+									"#FDC2415F",
+									"#FDC64D7C",
+									"#FFC53D",
+									"#FEC22FF4",
+									"#FFCC4C",
+									"#FFE8BBFE"
+								]
+							}
+						},
+						{
+							"key": "success",
+							"name": "Success",
+							"seed": "#30A46C",
+							"generator": "Radix",
+							"backgrounds": {
+								"light": {
+									"color": "#FFFFFF",
+									"lightness": 100
+								},
+								"dark": {
+									"color": "#111111",
+									"lightness": 17.8
+								}
+							},
+							"ramps": {
+								"light": [
+									"#FBFEFC",
+									"#F4FBF7",
+									"#E5F6EB",
+									"#D6F1DF",
+									"#C4E8D1",
+									"#ADDDC0",
+									"#8FCEA8",
+									"#60B887",
+									"#30A46C",
+									"#289662",
+									"#00814C",
+									"#1D3B2A"
+								],
+								"dark": [
+									"#0C130F",
+									"#121B16",
+									"#152C1F",
+									"#143B27",
+									"#1B4930",
+									"#23573B",
+									"#2B6848",
+									"#327C55",
+									"#30A46C",
+									"#1D9760",
+									"#63D196",
+									"#B2F1CB"
+								]
+							},
+							"alphaRamps": {
+								"light": [
+									"#00C04004",
+									"#00A3460B",
+									"#00A73B1A",
+									"#00A83829",
+									"#019C393B",
+									"#00963C52",
+									"#00903970",
+									"#008D3F9F",
+									"#008F4ACF",
+									"#008345D7",
+									"#00814C",
+									"#00220FE2"
+								],
+								"dark": [
+									"#00BB0003",
+									"#29F9850B",
+									"#35FF8D1D",
+									"#22FF8E2D",
+									"#3CFF953C",
+									"#4FFFA04B",
+									"#58FDA65E",
+									"#5BFFA873",
+									"#44FFA49E",
+									"#27FF9D90",
+									"#77FFB6CE",
+									"#BCFFD7F0"
+								]
+							}
+						}
+					]
+				}
+			];
+// @@PALETTE_DATA_END
+
+			//==================================================
+			// Token Schemes
+			//==================================================
+
+			// A ref is one of:
+			//   "B<n>" brand step, "N<n>" neutral step, "S<n>" the token's own signal ramp step
+			//   "BA<n>" / "NA<n>" / "SA<n>" the alpha version of that step (Radix alpha ramp). It is
+			//                               see-through: it blends with the surface under it (its ground,
+			//                               see groundOf). Over the generator background it equals the solid step
+			//   "white" / "black"           pure #FFFFFF / #000000 (not ramp steps)
+			//   "selected-background"       the palette's selected page background for the mode
+			//                               (backgrounds.light / .dark; the generator's background input,
+			//                               which the alpha ramps are built over). Not a ramp step
+			//   "black-or-white"            pure black or white, whichever passes WCAG 4.5 + APCA Lc 60
+			//                               on the token's fill (higher APCA wins)
+			//   "seed"                      the palette's brand seed color. `primary` and `sidebar-primary` use it
+			//   "on-seed"                   white on a deep brand seed, or light neutral step 12
+			//                               on a light seed. The text must pass WCAG 4.5:1 and
+			//                               APCA Lc 75 on the seed
+			//   { light, dark }             mode-specific refs
+			// Every ref is the same fixed step for every palette. If a palette fails a
+			// scheme's mapping, that palette needs a different scheme or a different ramp.
+
+			// Replace the block between the SCHEMES markers with the session's schemes.
+			// A ref is "B<n>" / "N<n>" / "S<n>" (brand, neutral, the token's signal ramp), an alpha
+			// step "BA<n>" / "NA<n>" / "SA<n>", a named
+			// literal ("white", "black", "seed", "selected-background", "on-seed", "black-or-white"), or
+			// { light, dark }.
+			// Optional status: "selected" | "candidate" shows a badge on the scheme card.
+			// @@SCHEMES_START
+			// Signals, per type:
+			//   <signal>                  text on the page (S12; destructive is S11 in light mode)
+			//   <signal>-fill             fill for badges, buttons, banners and alerts
+			//   <signal>-fill-foreground  text on that fill
+			const solidSignals = {
+				destructive: { light: "S11", dark: "S12" },
+				"destructive-fill": { light: "S4", dark: "S12" },
+				"destructive-fill-foreground": { light: "S12", dark: "S6" },
+				warning: "S12",
+				"warning-fill": { light: "S4", dark: "S12" },
+				"warning-fill-foreground": { light: "S12", dark: "S6" },
+				success: "S12",
+				"success-fill": { light: "S4", dark: "S12" },
+				"success-fill-foreground": { light: "S12", dark: "S6" },
+			};
+
+			const schemes = [
+				{
+					id: "quiet",
+					name: "Neutral",
+					influences: "Vercel Geist · shadcn/ui · Linear",
+					summary:
+						"Neutral surfaces and text. Brand appears on the primary button, light B4 secondary buttons, the sidebar CTA and charts. Primary is the brand seed with on-seed text. Inputs and focus rings use N10 (3.5:1 or more). Signal text is S12; signal fills are S4 (light) / S12 (dark) with S12 / S6 text on them.",
+					tokens: {
+						background: "N1",
+						foreground: "N12",
+						primary: "seed",
+						"primary-foreground": "on-seed",
+						secondary: { light: "B4", dark: "B6" },
+						"secondary-foreground": "black-or-white",
+						accent: "N4",
+						"accent-foreground": "N12",
+						muted: "N3",
+						"muted-foreground": "N11",
+						border: { light: "N6", dark: "N7" },
+						input: "N10",
+						ring: "N10",
+						sidebar: "N2",
+						"sidebar-foreground": "N12",
+						"sidebar-primary": "seed",
+						"sidebar-primary-foreground": "on-seed",
+						"sidebar-accent": "N4",
+						"sidebar-accent-foreground": "N12",
+						"sidebar-border": { light: "N6", dark: "N7" },
+						"sidebar-ring": "N10",
+						card: "N2",
+						"card-foreground": "N12",
+						popover: "N2",
+						"popover-foreground": "N12",
+						"chart-primary": "B11",
+						...solidSignals,
+					},
+				},
+				{
+					id: "canvas",
+					name: "Tinted",
+					influences: "Linear custom themes · Arc Spaces · Raycast",
+					summary:
+						"Brand hue lives in the surfaces: background B1, sidebar and cards B2, popover B3, selected nav B4 with neutral N12 text. Text and borders stay neutral; secondary buttons are light B4 with black-or-white text, and signal text is S12; signal fills are S4 (light) / S12 (dark) with S12 / S6 text on them. Primary, charts and the focus ring use B11.",
+					tokens: {
+						background: "B1",
+						foreground: "N12",
+						primary: "seed",
+						"primary-foreground": "on-seed",
+						secondary: { light: "B4", dark: "B6" },
+						"secondary-foreground": "black-or-white",
+						accent: "N4",
+						"accent-foreground": "N12",
+						muted: "N3",
+						"muted-foreground": "N11",
+						border: { light: "N6", dark: "N7" },
+						input: "N10",
+						ring: "B11",
+						sidebar: "B2",
+						"sidebar-foreground": "N12",
+						"sidebar-primary": "seed",
+						"sidebar-primary-foreground": "on-seed",
+						"sidebar-accent": "B4",
+						"sidebar-accent-foreground": "N12",
+						"sidebar-border": { light: "N6", dark: "N7" },
+						"sidebar-ring": "B11",
+						card: "B2",
+						"card-foreground": "N12",
+						popover: { light: "B1", dark: "B3" },
+						"popover-foreground": "N12",
+						"chart-primary": "B11",
+						...solidSignals,
+					},
+				},
+				{
+					id: "tonal",
+					name: "More Tinted",
+					influences: "Material 3 tonal surfaces · Tailwind UI tinted apps",
+					summary:
+						"Brand ramp first, mapped the Material 3 way: primary is the brand seed with on-seed text, surfaces are tinted B1–B3, secondary buttons are B4 with black-or-white text, and body text is B12. Hover and selected states use a B4 tint but use neutral N12 labels, because navy B12 on a blue tint blurs together. Neutral is used only for secondary text and input outlines (M3 onSurfaceVariant / outline). Signal text is S12; signal fills are S4 (light) / S12 (dark) with S12 / S6 text on them.",
+					tokens: {
+						background: "B1",
+						foreground: "B12",
+						primary: "seed",
+						"primary-foreground": "on-seed",
+						secondary: { light: "B4", dark: "B6" },
+						"secondary-foreground": "black-or-white",
+						accent: "B4",
+						"accent-foreground": "N12",
+						muted: "B3",
+						"muted-foreground": "N11",
+						border: "B6",
+						input: "N10",
+						ring: "B11",
+						sidebar: "B2",
+						"sidebar-foreground": "B12",
+						"sidebar-primary": "seed",
+						"sidebar-primary-foreground": "on-seed",
+						"sidebar-accent": "B4",
+						"sidebar-accent-foreground": "N12",
+						"sidebar-border": "B6",
+						"sidebar-ring": "B11",
+						card: "B2",
+						"card-foreground": "B12",
+						popover: { light: "B1", dark: "B3" },
+						"popover-foreground": "B12",
+						"chart-primary": "B11",
+						...solidSignals,
+					},
+				},
+			];
+
+			// Display order (least to most brand hue).
+			const schemeOrder = ["quiet", "canvas", "tonal"];
+			// @@SCHEMES_END
+
+			const tokenGroups = [
+				{
+					label: "Normal",
+					tokens: [
+						"background",
+						"foreground",
+						"primary",
+						"primary-foreground",
+						"secondary",
+						"secondary-foreground",
+						"accent",
+						"accent-foreground",
+						"muted",
+						"muted-foreground",
+						"border",
+						"input",
+						"ring",
+					],
+				},
+				{
+					label: "Sidebar",
+					tokens: [
+						"sidebar",
+						"sidebar-foreground",
+						"sidebar-primary",
+						"sidebar-primary-foreground",
+						"sidebar-accent",
+						"sidebar-accent-foreground",
+						"sidebar-border",
+						"sidebar-ring",
+					],
+				},
+				{ label: "Cards", tokens: ["card", "card-foreground"] },
+				{ label: "Popovers", tokens: ["popover", "popover-foreground"] },
+				{ label: "Charts", tokens: ["chart-primary"] },
+				{
+					label: "Signals",
+					tokens: [
+						"destructive",
+						"destructive-fill",
+						"destructive-fill-foreground",
+						"warning",
+						"warning-fill",
+						"warning-fill-foreground",
+						"success",
+						"success-fill",
+						"success-fill-foreground",
+					],
+				},
+			];
+
+			// [measured against, minimum ratio or null for informational]
+			// 4.5 = text. 3 = control border, fill, glyph, focus ring, and chart mark.
+			const TEXT = 4.5;
+			const NON_TEXT = 3;
+			// Primary button text must pass WCAG 4.5:1 and APCA Lc 75.
+			// Other button text must pass WCAG 4.5:1 and APCA Lc 60.
+			const BUTTON_LC = 60;
+			const PRIMARY_BUTTON_LC = 75;
+			const tokenChecks = {
+				foreground: [["background", TEXT], ["card", TEXT], ["popover", TEXT]],
+				"primary-foreground": [["primary", TEXT, PRIMARY_BUTTON_LC]],
+				"secondary-foreground": [["secondary", TEXT, BUTTON_LC]],
+				"accent-foreground": [["accent", TEXT]],
+				"muted-foreground": [["muted", TEXT], ["background", TEXT], ["card", TEXT], ["popover", TEXT]],
+				border: [["background", null]],
+				input: [["background", NON_TEXT], ["card", NON_TEXT], ["sidebar", NON_TEXT], ["popover", NON_TEXT]],
+				ring: [["background", NON_TEXT], ["card", NON_TEXT]],
+				"sidebar-foreground": [["sidebar", TEXT]],
+				"sidebar-primary-foreground": [["sidebar-primary", TEXT, PRIMARY_BUTTON_LC]],
+				"sidebar-accent-foreground": [["sidebar-accent", TEXT]],
+				"sidebar-border": [["sidebar", null]],
+				"sidebar-ring": [["sidebar", NON_TEXT]],
+				"card-foreground": [["card", TEXT]],
+				"popover-foreground": [["popover", TEXT]],
+				"chart-primary": [["card", NON_TEXT], ["background", NON_TEXT], ["muted", NON_TEXT]],
+				"destructive-fill-foreground": [["destructive-fill", TEXT, BUTTON_LC]],
+				"warning-fill-foreground": [["warning-fill", TEXT, BUTTON_LC]],
+				"success-fill-foreground": [["success-fill", TEXT, BUTTON_LC]],
+				"destructive-fill": [["background", null]],
+				"warning-fill": [["background", null]],
+				"success-fill": [["background", null]],
+				primary: [["background", NON_TEXT], ["card", NON_TEXT]],
+				secondary: [["background", null]],
+				accent: [["background", null]],
+				muted: [["background", null]],
+				sidebar: [["background", null]],
+				"sidebar-primary": [["sidebar", NON_TEXT]],
+				"sidebar-accent": [["sidebar", null]],
+				card: [["background", null]],
+				popover: [["background", null]],
+				destructive: [["background", TEXT, BUTTON_LC], ["card", TEXT, BUTTON_LC], ["popover", TEXT, BUTTON_LC]],
+				warning: [["background", TEXT, BUTTON_LC], ["card", TEXT, BUTTON_LC]],
+				success: [["background", TEXT, BUTTON_LC], ["card", TEXT, BUTTON_LC]],
+			};
+
+			//==================================================
+			// Color Math
+			//==================================================
+
+			const luminance = (hex) => {
+				const channels = [1, 3, 5].map((offset) => {
+					const value = Number.parseInt(hex.slice(offset, offset + 2), 16) / 255;
+					return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+				});
+				return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+			};
+
+			const contrast = (a, b) => {
+				const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+				return (high + 0.05) / (low + 0.05);
+			};
+
+			// APCA (the contrast method in the WCAG 3 draft), SA98G constants. Returns |Lc|.
+			// Lc 90 is preferred for body text, 75 is the floor for fluent reading text,
+			// 60 for other content text, 45 for large headings and non-text.
+			const apcaY = (hex) => {
+				const [red, green, blue] = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255);
+				return 0.2126729 * red ** 2.4 + 0.7151522 * green ** 2.4 + 0.072175 * blue ** 2.4;
+			};
+
+			const apca = (textHex, backgroundHex) => {
+				const clamp = (y) => (y > 0.022 ? y : y + (0.022 - y) ** 1.414);
+				const text = clamp(apcaY(textHex));
+				const background = clamp(apcaY(backgroundHex));
+				if (Math.abs(background - text) < 0.0005) return 0;
+				if (background > text) {
+					const sapc = (background ** 0.56 - text ** 0.57) * 1.14;
+					return sapc < 0.1 ? 0 : (sapc - 0.027) * 100;
+				}
+				const sapc = (background ** 0.65 - text ** 0.62) * 1.14;
+				return sapc > -0.1 ? 0 : -(sapc + 0.027) * 100;
+			};
+
+			const formatRatio = (ratio) => `${ratio.toFixed(2).replace(/\.?0+$/, "")}:1`;
+
+			// Text on a brand seed. White for a deep seed, light neutral step 12 for a
+			// light seed. Use whichever passes WCAG 4.5:1 and APCA Lc 75 on the seed.
+			// When both pass, or neither passes, use the higher APCA.
+			const onSeedText = (palette) => {
+				const options = ["#FFFFFF", palette.ramps.lightNeutral[11]].map((text) => ({
+					text,
+					wcag: contrast(text, palette.seed),
+					lc: apca(text, palette.seed),
+				}));
+				const passing = options.filter((option) => option.wcag >= TEXT && option.lc >= PRIMARY_BUTTON_LC);
+				return (passing.length > 0 ? passing : options).sort((a, b) => b.lc - a.lc)[0].text;
+			};
+
+			//==================================================
+			// Token Resolution
+			//==================================================
+
+			const signalKeyOf = (token) =>
+				["destructive", "warning", "success"].find((key) => token.startsWith(key));
+
+			const modeRef = (scheme, token, mode) => {
+				const ref = scheme.tokens[token];
+				return typeof ref === "string" ? ref : ref[mode];
+			};
+
+			// Named literals, not ramp steps. white matches the generator's light background;
+			// black is pure #000000, darker than the generator's dark background (#111111).
+			const literalRefs = { white: "#FFFFFF", black: "#000000" };
+
+			// Returns the CSS value of a ref: six-digit HEX, or eight-digit HEX for an alpha step.
+			const stepHex = (palette, ref, mode, token) => {
+				if (ref === "seed") return palette.seed;
+				if (ref === "on-seed") return palette.onSeed;
+				if (ref === "selected-background") return palette.backgrounds[mode].color;
+				if (literalRefs[ref]) return literalRefs[ref];
+				const [, ramp, alpha, step] = /^([BNS])(A?)(\d+)$/.exec(ref);
+				const index = Number(step) - 1;
+				const ramps = alpha ? palette.alphaRamps : palette.ramps;
+				if (ramp === "B") return ramps[`${mode}Brand`][index];
+				if (ramp === "N") return ramps[`${mode}Neutral`][index];
+				const signal = palette.signals.find((item) => item.key === signalKeyOf(token));
+				return (alpha ? signal.alphaRamps : signal.ramps)[mode][index];
+			};
+
+			// Alpha compositing. overHex paints a CSS HEX value (6 or 8 digits) over an opaque
+			// ground and returns the opaque six-digit result; opaque colors come back unchanged.
+			const hexChannels = (hex) => {
+				let value = hex.slice(1);
+				if (value.length === 3 || value.length === 4) value = [...value].map((char) => char + char).join("");
+				const channel = (offset) => Number.parseInt(value.slice(offset, offset + 2), 16);
+				return { r: channel(0), g: channel(2), b: channel(4), a: value.length >= 8 ? channel(6) / 255 : 1 };
+			};
+			const overHex = (css, ground) => {
+				const color = hexChannels(css);
+				if (color.a === 1) return css.slice(0, 7).toUpperCase();
+				const base = hexChannels(ground);
+				const byte = (fg, bg) =>
+					Math.min(255, Math.max(0, Math.round(fg * color.a + bg * (1 - color.a))))
+						.toString(16)
+						.padStart(2, "0");
+				return `#${byte(color.r, base.r)}${byte(color.g, base.g)}${byte(color.b, base.b)}`.toUpperCase();
+			};
+
+			// The surface an alpha token is painted on in the mockups. Text sits on its fill
+			// (secondary-foreground on secondary); sidebar tokens on the sidebar; everything else on
+			// the page background. Contrast checks paint a token over whatever it is measured against.
+			const surfaceTokens = ["background", "card", "popover", "sidebar"];
+			const groundOf = (token, tokens) => {
+				if (token === "background") return null;
+				if (token.endsWith("-foreground") && token !== "foreground") {
+					const fill = token.replace(/-foreground$/, "");
+					if (tokens.includes(fill)) return fill;
+				}
+				if (token.startsWith("sidebar") && token !== "sidebar") return "sidebar";
+				return "background";
+			};
+
+			// Pure black or white text for a fill: whichever passes WCAG 4.5:1 and APCA Lc 60;
+			// if both pass, the higher APCA wins.
+			const blackOrWhite = (fillHex) => {
+				const options = ["white", "black"].map((name) => ({
+					name,
+					wcag: contrast(literalRefs[name], fillHex),
+					lc: apca(literalRefs[name], fillHex),
+				}));
+				const passing = options.filter((option) => option.wcag >= TEXT && option.lc >= BUTTON_LC);
+				return (passing.length > 0 ? passing : options).sort((a, b) => b.lc - a.lc)[0].name;
+			};
+
+			// Text on each seed (on-seed): white, or light neutral step 12.
+			for (const palette of paletteData) palette.onSeed = onSeedText(palette);
+
+			// Each token resolves to { ref, css, hex }. css is what the mockups paint (eight-digit
+			// HEX for alpha steps); hex is the opaque color seen on the token's ground (groundOf).
+			// "black-or-white" resolves against the token's fill (the same token name without
+			// "-foreground"), as seen on that fill's ground.
+			const resolveScheme = (palette, scheme, mode) => {
+				const resolved = {};
+				const tokens = Object.keys(scheme.tokens);
+				const resolve = (token) => {
+					if (resolved[token]) return resolved[token];
+					const ground = groundOf(token, tokens);
+					const groundHex = ground ? resolve(ground).hex : palette.backgrounds[mode].color;
+					let ref = modeRef(scheme, token, mode);
+					let css;
+					if (ref === "black-or-white") {
+						ref = blackOrWhite(resolve(token.replace(/-foreground$/, "")).hex);
+						css = literalRefs[ref];
+					} else {
+						css = stepHex(palette, ref, mode, token);
+					}
+					resolved[token] = { ref, css, hex: overHex(css, groundHex) };
+					return resolved[token];
+				};
+				for (const token of tokens) resolve(token);
+				return resolved;
+			};
+
+			// Opaque colors as seen on each token's ground.
+			const resolveTokens = (palette, scheme, mode) =>
+				Object.fromEntries(
+					Object.entries(resolveScheme(palette, scheme, mode)).map(([token, { hex }]) => [token, hex]),
+				);
+
+			// CSS values for the mockups (alpha steps stay see-through).
+			const resolveCss = (palette, scheme, mode) =>
+				Object.fromEntries(
+					Object.entries(resolveScheme(palette, scheme, mode)).map(([token, { css }]) => [token, css]),
+				);
+
+			// resolved: resolveScheme output. An alpha token is painted over the color it is
+			// measured against.
+			const runChecks = (resolved, mode = "dark") => {
+				const results = {};
+				for (const [token, checks] of Object.entries(tokenChecks)) {
+					results[token] = checks.map(([against, minimum, apcaMinimum]) => {
+						const ground = resolved[against].hex;
+						const color = overHex(resolved[token].css, ground);
+						const ratio = contrast(color, ground);
+						const lc = apca(color, ground);
+						return {
+							against,
+							minimum,
+							apcaMinimum,
+							ratio,
+							lc,
+							pass: minimum === null ? null : ratio >= minimum && (!apcaMinimum || lc >= apcaMinimum),
+						};
+					});
+				}
+				return results;
+			};
+
+			const scoreFor = (palette, scheme) => {
+				let passed = 0;
+				let total = 0;
+				for (const mode of ["light", "dark"]) {
+					const results = runChecks(resolveScheme(palette, scheme, mode), mode);
+					for (const checks of Object.values(results)) {
+						for (const check of checks) {
+							if (check.pass === null) continue;
+							total += 1;
+							if (check.pass) passed += 1;
+						}
+					}
+				}
+				return { passed, total };
+			};
+
+			// Brand hue level: how much colour the scheme puts on screen. Each token's OKLCH
+			// chroma is weighted by a rough share of screen area in the mockups (surfaces
+			// large, text and lines small), averaged over every palette and mode. Signal
+			// tokens are left out. The weights are estimates; the order is what matters.
+			const areaWeights = {
+				background: 30,
+				card: 20,
+				sidebar: 14,
+				popover: 3,
+				muted: 3,
+				"chart-primary": 3,
+				secondary: 2,
+				accent: 2,
+				foreground: 2,
+				"card-foreground": 2,
+				"sidebar-accent": 1.5,
+				primary: 1.5,
+				"sidebar-primary": 1,
+				border: 1,
+				"sidebar-foreground": 1,
+				"muted-foreground": 1,
+				input: 0.5,
+				"sidebar-border": 0.5,
+				"popover-foreground": 0.5,
+				ring: 0.3,
+				"secondary-foreground": 0.3,
+				"accent-foreground": 0.3,
+				"primary-foreground": 0.3,
+				"sidebar-ring": 0.2,
+				"sidebar-primary-foreground": 0.2,
+				"sidebar-accent-foreground": 0.2,
+			};
+
+			// sRGB hex → OKLCH chroma (Björn Ottosson's OKLab matrices).
+			const oklchChroma = (hex) => {
+				const [r, g, b] = [1, 3, 5].map((offset) => {
+					const value = Number.parseInt(hex.slice(offset, offset + 2), 16) / 255;
+					return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+				});
+				const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+				const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+				const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+				const labA = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+				const labB = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+				return Math.hypot(labA, labB);
+			};
+
+			const visibleHue = (scheme) => {
+				let weighted = 0;
+				let weightTotal = 0;
+				for (const palette of paletteData) {
+					for (const mode of ["light", "dark"]) {
+						const tokens = resolveTokens(palette, scheme, mode);
+						for (const [token, weight] of Object.entries(areaWeights)) {
+							weighted += oklchChroma(tokens[token]) * weight;
+							weightTotal += weight;
+						}
+					}
+				}
+				return (weighted / weightTotal) * 1000;
+			};
+
+			for (const scheme of schemes) scheme.hueScore = visibleHue(scheme);
+			// Display order comes from schemeOrder; the visible hue score is shown for reference.
+			schemes.sort((a, b) => schemeOrder.indexOf(a.id) - schemeOrder.indexOf(b.id));
+			let maxHueScore = Math.max(...schemes.map((scheme) => scheme.hueScore));
+			schemes.forEach((scheme, index) => {
+				scheme.level = index + 1;
+				scheme.label = `${scheme.level} · ${scheme.name}`;
+			});
+
+			//==================================================
+			// Ramp Tables
+			//==================================================
+
+			// Each contrast cell shows "WCAG 2 ratio | APCA Lc". Steps are measured as text on the
+			// mode background and on brand step 2; black and white are measured as text on the step.
+			const formatPair = (ratio, lc) =>
+				`<span class="cx-v2">${ratio.toFixed(2)}</span><span class="cx-sep">|</span><span class="cx-v3">${Math.round(lc)}</span>`;
+
+			const renderRampTable = ({ title, seed, backgrounds, columns, tableClass, kind = "solid" }) => {
+				const rgb = (hex) => {
+					let value = hex.slice(1);
+					if (value.length === 3 || value.length === 4) value = [...value].map((char) => char + char).join("");
+					const channel = (offset) => Number.parseInt(value.slice(offset, offset + 2), 16);
+					return {
+						r: channel(0),
+						g: channel(2),
+						b: channel(4),
+						a: value.length >= 8 ? channel(6) / 255 : 1,
+					};
+				};
+				const compositeHex = (color, ground) => {
+					const foreground = rgb(color);
+					const background = rgb(ground);
+					const blend = (fg, bg) => Math.round(bg * (1 - foreground.a)) + Math.round(fg * foreground.a);
+					const byte = (n) => Math.min(255, Math.max(0, n)).toString(16).padStart(2, "0");
+					return `#${byte(blend(foreground.r, background.r))}${byte(blend(foreground.g, background.g))}${byte(blend(foreground.b, background.b))}`.toUpperCase();
+				};
+				const textOn = (color, ground) => {
+					if (color.startsWith("#")) {
+						const hex = compositeHex(color, ground);
+						return contrast(hex, "#000000") >= contrast(hex, "#FFFFFF") ? "#000000" : "#FFFFFF";
+					}
+					const oklch = color.match(/oklch\(\s*([\d.]+)%/i);
+					if (oklch) return Number(oklch[1]) >= 65 ? "#000000" : "#FFFFFF";
+					const p3 = color.match(/color\(display-p3\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\)/i);
+					if (p3) {
+						const alpha = p3[4] === undefined ? 1 : Number(p3[4]);
+						const y = 0.2126 * Number(p3[1]) + 0.7152 * Number(p3[2]) + 0.0722 * Number(p3[3]);
+						const blended = luminance(ground) * (1 - alpha) + y * alpha;
+						return blended > 0.35 ? "#000000" : "#FFFFFF";
+					}
+					return "#111111";
+				};
+				const showContrast = kind !== "wide";
+				const measures = [
+					["vs. background", (hex, column) => [contrast(hex, column.background), apca(hex, column.background)]],
+					["vs. brand step 2", (hex, column) => [contrast(hex, column.brandStep2), apca(hex, column.brandStep2)]],
+					["vs. black", (hex) => [contrast(hex, "#000000"), apca("#000000", hex)]],
+					["vs. white", (hex) => [contrast(hex, "#FFFFFF"), apca("#FFFFFF", hex)]],
+				];
+				const headers = columns
+					.map(
+						(column) => `
+							<th class="color-column">${column.label}</th>
+							${showContrast ? measures.map(([label]) => `<th class="contrast-column">${label}<br /><small>v2 | v3</small></th>`).join("") : ""}
+						`,
+					)
+					.join("");
+				const rows = Array.from({ length: 12 }, (_, index) => {
+					const renderedCells = columns
+						.map((column) => {
+							const color = column.values[index];
+							const measured = color.startsWith("#") ? compositeHex(color, column.background) : color;
+							const textColor = textOn(color, column.background);
+							const swatchClass = kind === "solid" ? "swatch" : `swatch is-${kind}`;
+							return `
+								<td class="${swatchClass}" style="background:linear-gradient(${color}, ${color}), ${column.background};color:${textColor}">${color}</td>
+								${showContrast ? measures.map(([, measure]) => `<td class="contrast">${formatPair(...measure(measured, column))}</td>`).join("") : ""}
+							`;
+						})
+						.join("");
+					return `<tr><td class="step">${index + 1}</td>${renderedCells}</tr>`;
+				}).join("");
+				const seedBadge = seed
+					? `<span class="seed" style="--seed-color:${seed}"><span class="seed-swatch" aria-hidden="true"></span>Seed ${seed}</span>`
+					: "";
+
+				return `
+					<div class="ramp-table-group">
+						<div class="ramp-table-header">
+							<h3>${title}</h3>
+							${seedBadge}
+						</div>
+						<div class="background-details">
+							<span class="background-details-label">Background colors</span>
+							${["light", "dark"]
+								.map(
+									(mode) => `
+								<span class="background-badge">
+									<span class="background-swatch" style="--background-color:${backgrounds[mode].color}" aria-hidden="true"></span>
+									<span class="background-mode">${mode}</span>
+									<span class="background-value">${backgrounds[mode].color}</span>
+									<span class="background-lightness">OKLCH lightness ${backgrounds[mode].lightness}</span>
+								</span>`,
+								)
+								.join("")}
+						</div>
+						<div class="table-shell">
+							<table class="${tableClass}">
+								<thead><tr><th>Step</th>${headers}</tr></thead>
+								<tbody>${rows}</tbody>
+							</table>
+						</div>
+					</div>
+				`;
+			};
+
+			const rampColumns = (values, palette, backgrounds) =>
+				["light", "dark"].map((mode) => ({
+					label: mode === "light" ? "Light" : "Dark",
+					values: values[mode],
+					background: backgrounds[mode].color,
+					brandStep2: palette.ramps[`${mode}Brand`][1],
+				}));
+
+			//==================================================
+			// Token Table
+			//==================================================
+
+			// Contrast colour coding by token role. Each value is green at or above the first
+			// threshold, yellow at or above the second, red below. Pairing cells always use the
+			// text scale because they measure text on its surface.
+			const contrastScales = {
+				text: { v2: [4.5, 3], v3: [75, 60], label: "Text" },
+				nonText: { v2: [3, 2], v3: [45, 30], label: "UI marks (input, ring, primary, chart)" },
+				border: { v2: [1.5, 1.2], v3: [20, 10], label: "Borders" },
+				surface: { v2: [1.15, 1.03], v3: [10, 4], label: "Surfaces and fills" },
+			};
+
+			const tokenRole = (token) => {
+				if (["input", "ring", "sidebar-ring", "chart-primary", "primary", "sidebar-primary"].includes(token)) return "nonText";
+				if (["border", "sidebar-border"].includes(token)) return "border";
+				if (token === "foreground" || token.endsWith("-foreground") || ["destructive", "warning", "success"].includes(token))
+					return "text";
+				return "surface";
+			};
+
+			// Specific pairs: each surface with the text that sits on it.
+			const pairOf = { background: "foreground", foreground: "background" };
+			for (const token of tokenGroups.flatMap((group) => group.tokens)) {
+				if (token === "foreground" || !token.endsWith("-foreground")) continue;
+				const surface = token.replace(/-foreground$/, "");
+				pairOf[token] = surface;
+				pairOf[surface] = token;
+			}
+
+			const tone = (value, [good, ok]) => (value >= good ? "good" : value >= ok ? "ok" : "bad");
+
+			const contrastCell = (textHex, backgroundHex, role) => {
+				const scale = contrastScales[role];
+				const ratio = contrast(textHex, backgroundHex);
+				const lc = apca(textHex, backgroundHex);
+				return `<td class="cx"><span class="cx-v2 ${tone(ratio, scale.v2)}">${ratio.toFixed(2)}</span><span class="cx-sep">|</span><span class="cx-v3 ${tone(lc, scale.v3)}">${Math.round(lc)}</span></td>`;
+			};
+
+			const emptyCell = `<td class="cx cx-empty">—</td>`;
+			const comparisonTokens = ["background", "card", "popover", "sidebar"];
+
+			const renderContrastLegend = () =>
+				`<div class="cx-legend">
+					<span class="cx-legend-title">Each cell: WCAG 2 ratio | APCA Lc</span>
+					${Object.values(contrastScales)
+						.map(
+							(scale) =>
+								`<span class="cx-legend-item"><b>${scale.label}</b> <span class="good">≥ ${scale.v2[0]} | ${scale.v3[0]}</span> <span class="ok">≥ ${scale.v2[1]} | ${scale.v3[1]}</span> <span class="bad">below</span></span>`,
+						)
+						.join("")}
+				</div>`;
+
+			const renderTokenTable = (palette, scheme) => {
+				const byMode = Object.fromEntries(["light", "dark"].map((mode) => [mode, resolveScheme(palette, scheme, mode)]));
+				const modeCells = (token, mode) => {
+					const resolved = byMode[mode];
+					const { hex, css, ref } = resolved[token];
+					const role = tokenRole(token);
+					const textColor = contrast(hex, "#000000") >= contrast(hex, "#FFFFFF") ? "#000000" : "#FFFFFF";
+					// Alpha tokens are painted over each surface they are compared with.
+					const comparisons = comparisonTokens
+						.map((against) =>
+							against === token ? emptyCell : contrastCell(overHex(css, resolved[against].hex), resolved[against].hex, role),
+						)
+						.join("");
+					const pair = pairOf[token];
+					let pairing = emptyCell;
+					if (pair && resolved[pair]) {
+						const [text, surface] =
+							tokenRole(token) === "text"
+								? [overHex(css, resolved[pair].hex), resolved[pair].hex]
+								: [overHex(resolved[pair].css, hex), hex];
+						pairing = contrastCell(text, surface, "text").replace(
+							'<td class="cx">',
+							`<td class="cx" title="${token} vs ${pair}">`,
+						);
+					}
+					const alphaNote = css.length > 7 ? ` title="alpha ${css}, shown on ${groundOf(token, Object.keys(resolved))}"` : "";
+					return `<td class="token-fill" style="background:${hex};color:${textColor}"${alphaNote}>${ref} - ${hex}</td>${comparisons}${pairing}`;
+				};
+				const columnHeads = ["Color", "vs. background", "vs. card", "vs. popover", "vs. sidebar", "vs. pairing"]
+					.map((label, index) => `<th class="${index === 0 ? "token-fill-head" : "cx-head"}">${label}</th>`)
+					.join("");
+				const rows = tokenGroups
+					.map((group) => {
+						const groupRows = group.tokens
+							.map((token) => `<tr><td class="token-name">${token}</td>${modeCells(token, "light")}${modeCells(token, "dark")}</tr>`)
+							.join("");
+						return `<tr class="group-row"><td colspan="13">${group.label}</td></tr>${groupRows}`;
+					})
+					.join("");
+				return `
+					${renderContrastLegend()}
+					<div class="table-shell">
+						<table class="token-table">
+							<colgroup>
+								<col style="width:164px" />
+								${'<col style="width:160px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" />'.repeat(2)}
+							</colgroup>
+							<thead>
+								<tr><th rowspan="2" class="token-name-head">Token</th><th colspan="6" class="mode-head">Light</th><th colspan="6" class="mode-head">Dark</th></tr>
+								<tr>${columnHeads}${columnHeads}</tr>
+							</thead>
+							<tbody>${rows}</tbody>
+						</table>
+					</div>`;
+			};
+
+			//==================================================
+			// Mockups
+			//==================================================
+
+			const cssVars = (tokens, mode) =>
+				Object.entries(tokens)
+					.map(([token, hex]) => `--${token}:${hex}`)
+					.concat(
+						`--mock-shadow:${
+							mode === "light"
+								? "0 1px 2px rgb(0 0 0 / 6%), 0 12px 32px rgb(0 0 0 / 10%)"
+								: "0 1px 2px rgb(0 0 0 / 40%), 0 16px 40px rgb(0 0 0 / 55%)"
+						}`,
+					)
+					.join(";");
+
+			const bars = [38, 52, 44, 68, 57, 81, 63, 92, 74, 86, 70, 97];
+
+			const webMockup = () => `
+				<div class="mock web-app" data-tok="background foreground border">
+					<aside class="web-sidebar" data-tok="sidebar sidebar-foreground sidebar-border">
+						<div class="web-workspace" data-tok="sidebar-foreground"><span class="web-logo" data-tok="sidebar-primary sidebar-primary-foreground">A</span>Acme Inc</div>
+						<button class="btn sb-cta" data-tok="sidebar-primary sidebar-primary-foreground"><span class="icon">＋</span>New report</button>
+						<div class="sb-label" data-tok="sidebar-foreground">Workspace</div>
+						<div class="sb-item" data-tok="sidebar-foreground"><span class="icon">⌂</span>Home</div>
+						<div class="sb-item is-active" data-tok="sidebar-accent sidebar-accent-foreground"><span class="icon">▦</span>Dashboard</div>
+						<div class="sb-item is-focus" data-tok="sidebar-foreground sidebar-ring"><span class="icon">◎</span>Projects<span class="sb-count">12</span></div>
+						<div class="sb-item" data-tok="sidebar-foreground"><span class="icon">✉</span>Inbox<span class="sb-count">3</span></div>
+						<div class="sb-divider" data-tok="sidebar-border"></div>
+						<div class="sb-label" data-tok="sidebar-foreground">Teams</div>
+						<div class="sb-item" data-tok="sidebar-foreground"><span class="icon">●</span>Design</div>
+						<div class="sb-item" data-tok="sidebar-foreground"><span class="icon">●</span>Engineering</div>
+						<div class="sb-footer" data-tok="sidebar-foreground sidebar-border"><span class="avatar" data-tok="secondary secondary-foreground">JD</span>Jo Doe</div>
+					</aside>
+					<div class="web-main">
+						<div class="web-top" data-tok="border">
+							<h4 data-tok="foreground">Dashboard</h4>
+							<div class="search" data-tok="background input muted-foreground"><span class="icon">⌕</span>Search<span class="kbd" data-tok="muted muted-foreground border">⌘K</span></div>
+							<button class="btn btn-secondary" data-tok="secondary secondary-foreground">Export</button>
+							<button class="btn btn-primary" data-tok="primary primary-foreground">Create report</button>
+						</div>
+						<div class="banner" data-tok="warning-fill warning-fill-foreground"><span class="icon">⚠</span>Your trial ends in 3 days.<span class="banner-link">Upgrade</span></div>
+						<div class="stats">
+							<div class="card stat" data-tok="card card-foreground border">
+								<div class="stat-label" data-tok="muted-foreground">Revenue</div>
+								<div class="stat-value" data-tok="card-foreground">$48.2k <span class="badge badge-success" data-tok="success-fill success-fill-foreground">▲ 12.4%</span></div>
+								<div class="stat-note" data-tok="success">On track for Q3 target</div>
+							</div>
+							<div class="card stat" data-tok="card card-foreground border">
+								<div class="stat-label" data-tok="muted-foreground">Active users</div>
+								<div class="stat-value" data-tok="card-foreground">2,318 <span class="badge badge-muted" data-tok="muted muted-foreground">0.0%</span></div>
+							</div>
+							<div class="card stat" data-tok="card card-foreground border">
+								<div class="stat-label" data-tok="muted-foreground">Churn</div>
+								<div class="stat-value" data-tok="card-foreground">3.1% <span class="badge badge-destructive" data-tok="destructive-fill destructive-fill-foreground">▼ 0.8%</span></div>
+							</div>
+						</div>
+						<div class="web-panels">
+							<div class="card" data-tok="card card-foreground border">
+								<div class="panel-head" data-tok="border card-foreground">Weekly volume <span class="badge badge-primary" data-tok="primary primary-foreground">Live</span></div>
+								<div class="chart" data-tok="border">${bars.map((height) => `<span class="chart-bar" data-tok="chart-primary" style="height:${height}%"></span>`).join("")}</div>
+								<div class="chart-axis" data-tok="muted-foreground"><span>Jan</span><span>Apr</span><span>Jul</span><span>Oct</span></div>
+							</div>
+							<div class="card" data-tok="card card-foreground border">
+								<div class="panel-head" data-tok="border card-foreground">
+									Recent invoices
+									<div class="menu-anchor">
+										<button class="btn btn-outline menu-trigger is-open" data-tok="background foreground input ring">⋯</button>
+										<div class="popover" data-tok="popover popover-foreground border">
+											<div class="menu-label" data-tok="muted-foreground">Invoice #1042</div>
+											<div class="menu-item" data-tok="popover-foreground"><span class="icon">✎</span>Edit<span class="kbd" data-tok="muted muted-foreground border">E</span></div>
+											<div class="menu-item is-hover" data-tok="accent accent-foreground"><span class="icon">⧉</span>Duplicate<span class="kbd" data-tok="muted muted-foreground border">D</span></div>
+											<div class="menu-item" data-tok="popover-foreground"><span class="icon">↓</span>Download</div>
+											<div class="menu-sep" data-tok="border"></div>
+											<div class="menu-item is-danger" data-tok="destructive"><span class="icon">✕</span>Delete</div>
+										</div>
+									</div>
+								</div>
+								<div class="rows">
+									<div class="row" data-tok="border card-foreground"><span>Northwind Ltd</span><span class="badge badge-success" data-tok="success-fill success-fill-foreground">Paid</span><span class="row-amount">$840</span></div>
+									<div class="row is-hover" data-tok="accent accent-foreground border"><span>Globex Corp</span><span class="badge badge-warning" data-tok="warning-fill warning-fill-foreground">Due</span><span class="row-amount">$1.2k</span></div>
+									<div class="row" data-tok="border card-foreground"><span>Initech</span><span class="badge badge-destructive" data-tok="destructive-fill destructive-fill-foreground">Overdue</span><span class="row-amount">$310</span></div>
+									<div class="row" data-tok="card-foreground"><span>Umbrella</span><span class="badge badge-muted" data-tok="muted muted-foreground">Draft</span><span class="row-amount">$95</span></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>`;
+
+			const mobileMockup = () => `
+				<div class="mock phone" data-tok="background foreground border">
+					<div class="phone-status" data-tok="foreground"><span>9:41</span><span>●●● ▮</span></div>
+					<div class="phone-body">
+						<div class="phone-head">
+							<div><h4 data-tok="foreground">Good morning</h4><p data-tok="muted-foreground">Here's your week at a glance</p></div>
+							<span class="avatar" data-tok="secondary secondary-foreground">JD</span>
+						</div>
+						<div class="segmented" data-tok="muted muted-foreground"><span class="is-on" data-tok="background foreground">Week</span><span>Month</span><span>Year</span></div>
+						<div class="card goal" data-tok="card card-foreground border">
+							<div class="goal-top" data-tok="card-foreground">Savings goal <span>68%</span></div>
+							<div class="progress" data-tok="muted"><i data-tok="chart-primary"></i></div>
+							<div class="text-muted" data-tok="muted-foreground">$3,400 of $5,000 · 21 days left</div>
+						</div>
+						<div class="toast" data-tok="success-fill success-fill-foreground"><span class="icon">✓</span>Transfer of $250 sent</div>
+						<div class="field">
+							<label data-tok="foreground">Recipient</label>
+							<div class="input is-placeholder" data-tok="background input muted-foreground">Name or email</div>
+						</div>
+						<div class="field">
+							<label data-tok="foreground">Amount</label>
+							<div class="input is-focus" data-tok="background foreground ring">$ 1,200.00</div>
+							<div class="field-warning" data-tok="warning">Transfers over $1,000 need approval</div>
+						</div>
+						<div class="field">
+							<label data-tok="foreground">Reference</label>
+							<div class="input is-error" data-tok="background foreground destructive">INV-10</div>
+							<div class="field-error" data-tok="destructive">Reference must be 8 characters</div>
+						</div>
+						<div class="alert" data-tok="destructive-fill destructive-fill-foreground"><span class="icon">!</span><div><strong>Card declined</strong><span>Update your payment method to continue.</span></div></div>
+						<div class="phone-actions">
+							<button class="btn btn-primary" data-tok="primary primary-foreground">Send money</button>
+							<button class="btn btn-secondary" data-tok="secondary secondary-foreground">Save draft</button>
+							<button class="btn btn-destructive" data-tok="destructive-fill destructive-fill-foreground">Cancel</button>
+						</div>
+					</div>
+					<div class="tabbar" data-tok="card border muted-foreground">
+						<span class="is-on" data-tok="foreground"><b data-tok="foreground"></b>Home</span><span><b data-tok="muted"></b>Cards</span><span><b data-tok="muted"></b>Pay</span><span><b data-tok="muted"></b>Me</span>
+					</div>
+				</div>`;
+
+			const renderLegend = (palette, scheme, mode) => {
+				const resolved = resolveScheme(palette, scheme, mode);
+				return tokenGroups
+					.flatMap((group) => group.tokens)
+					.map(
+						(token) =>
+							`<span class="legend-chip" data-legend="${token}"><i style="background:${resolved[token].hex}"></i>${token} <b>${resolved[token].ref}</b></span>`,
+					)
+					.join("");
+			};
+
+			const renderExamples = (palette, scheme, paletteId) =>
+				["light", "dark"]
+					.map((mode) => {
+						const tokens = resolveCss(palette, scheme, mode);
+						return `
+							<div class="mode-group" id="${paletteId}-${mode}" data-mode="${mode}">
+								<div class="mode-label">${mode} mode · ${scheme.label}</div>
+								<div class="example-grid" style="${cssVars(tokens, mode)}">
+									${mobileMockup()}
+									<div class="web-scroll">${webMockup()}</div>
+								</div>
+								<div class="token-legend">${renderLegend(palette, scheme, mode)}</div>
+							</div>`;
+					})
+					.join("");
+
+			//==================================================
+			// Overview
+			//==================================================
+
+			let activeSchemeId = schemes[0].id;
+			try {
+				activeSchemeId = localStorage.getItem("palette-session-scheme") || activeSchemeId;
+			} catch {}
+			if (!schemes.some((scheme) => scheme.id === activeSchemeId)) activeSchemeId = schemes[0].id;
+
+			const activeScheme = () => schemes.find((scheme) => scheme.id === activeSchemeId);
+
+			const renderOverview = () => {
+				for (const scheme of schemes) scheme.hueScore = visibleHue(scheme);
+				maxHueScore = Math.max(...schemes.map((scheme) => scheme.hueScore));
+
+				document.querySelector("#scheme-buttons").innerHTML = schemes
+					.map(
+						(scheme) =>
+							`<button class="scheme-button" data-scheme="${scheme.id}" aria-pressed="${scheme.id === activeSchemeId}">${scheme.label}</button>`,
+					)
+					.join("");
+
+				document.querySelector("#scheme-cards").innerHTML = schemes
+					.map(
+						(scheme) => `
+							<button class="scheme-card" data-scheme="${scheme.id}" aria-pressed="${scheme.id === activeSchemeId}">
+								${scheme.status ? `<span class="status-badge ${scheme.status}">${scheme.status === "selected" ? "Selected" : "Candidate"}</span>` : ""}
+								<h3>${scheme.label}</h3>
+								<div class="hue-meter" title="Area-weighted brand chroma"><span style="width:${(scheme.hueScore / maxHueScore) * 100}%"></span></div>
+								<div class="influences">Brand hue level ${scheme.level} · visible hue score ${scheme.hueScore.toFixed(1)}</div>
+								<div class="influences">${scheme.influences}</div>
+								<p>${scheme.summary}</p>
+							</button>`,
+					)
+					.join("");
+
+				const scoreHead = `<thead><tr><th>Palette</th>${schemes.map((scheme) => `<th class="${scheme.id === activeSchemeId ? "is-selected" : ""}">${scheme.label}</th>`).join("")}</tr></thead>`;
+				const scoreRows = paletteData
+					.map((palette) => {
+						const cells = schemes
+							.map((scheme) => {
+								const { passed, total } = scoreFor(palette, scheme);
+								const failed = total - passed;
+								const tone = failed === 0 ? "good" : failed <= 3 ? "ok" : "bad";
+								return `<td class="${scheme.id === activeSchemeId ? "is-selected" : ""}"><span class="score ${tone}">${passed}/${total}</span></td>`;
+							})
+							.join("");
+						return `<tr><td style="text-align:left">${palette.name}</td>${cells}</tr>`;
+					})
+					.join("");
+				document.querySelector("#score-grid").innerHTML = `${scoreHead}<tbody>${scoreRows}</tbody>`;
+
+				const matrixHead = `<thead><tr><th>Token</th>${schemes.map((scheme) => `<th class="${scheme.id === activeSchemeId ? "is-selected" : ""}">${scheme.label}</th>`).join("")}</tr></thead>`;
+				const matrixRows = tokenGroups
+					.map((group) => {
+						const rows = group.tokens
+							.map((token) => {
+								const cells = schemes
+									.map((scheme) => {
+										const light = modeRef(scheme, token, "light");
+										const dark = modeRef(scheme, token, "dark");
+										const text = light === dark ? light : `${light} <span>/</span> ${dark}`;
+										return `<td class="ref-pair ${scheme.id === activeSchemeId ? "is-selected" : ""}">${text}</td>`;
+									})
+									.join("");
+								return `<tr><td>${token}</td>${cells}</tr>`;
+							})
+							.join("");
+						return `<tr class="group-row"><td colspan="${schemes.length + 1}">${group.label}</td></tr>${rows}`;
+					})
+					.join("");
+				document.querySelector("#scheme-matrix").innerHTML = `${matrixHead}<tbody>${matrixRows}</tbody>`;
+			};
+
+			//==================================================
+			// Palette Sections
+			//==================================================
+
+			const paletteSections = document.querySelector("#palette-sections");
+			const paletteTabsList = document.querySelector("#palette-tabs-list");
+			document.querySelector("#palette-count").setAttribute("aria-label", `${paletteData.length} palettes`);
+			document.querySelector("#palette-count-number").textContent = String(paletteData.length);
+
+			paletteData.forEach((palette, paletteIndex) => {
+				const paletteId = `palette-${palette.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
+				const section = document.createElement("section");
+				section.className = "palette-section";
+				section.id = paletteId;
+				section.innerHTML = `
+					<div class="palette-heading">
+						<div>
+							<h2>${palette.name}</h2>
+							<p>${palette.description}</p>
+						</div>
+						<div data-palette-seed></div>
+					</div>
+					<div data-ramps></div>
+					<div class="ramp-table-group token-table-shell">
+						<div class="ramp-table-header"><h3>Token selection · <span data-scheme-name></span></h3></div>
+						<div data-token-table></div>
+					</div>
+					<div class="examples">
+						<div class="examples-header">
+							<h3>Application examples</h3>
+							<p class="legend-hint">Hover a token chip to outline where it is used.</p>
+						</div>
+						<div class="mode-examples" data-examples></div>
+					</div>
+				`;
+				section.dataset.paletteIndex = String(paletteIndex);
+
+				const tabGroup = document.createElement("div");
+				tabGroup.className = "palette-tab-group";
+				tabGroup.innerHTML = `
+					<a class="palette-tab" href="#${paletteId}">${palette.name}</a>
+					<a class="palette-tab palette-tab-example" href="#${paletteId}-light">Light</a>
+					<a class="palette-tab palette-tab-example" href="#${paletteId}-dark">Dark</a>
+				`;
+				paletteTabsList.append(tabGroup);
+				paletteSections.append(section);
+			});
+
+			const renderScheme = () => {
+				const scheme = activeScheme();
+				renderOverview();
+				document.querySelectorAll(".palette-section").forEach((section) => {
+					const palette = paletteData[Number(section.dataset.paletteIndex)];
+					const onSeedHex = palette.onSeed;
+					const onSeedLabel = onSeedHex === "#FFFFFF" ? "white" : "N12";
+					const rampTables = (title, seed, backgrounds, solid, alpha) =>
+						renderRampTable({
+							title,
+							seed,
+							backgrounds,
+							tableClass: "ramp-table",
+							columns: rampColumns(solid, palette, backgrounds),
+						}) +
+						renderRampTable({
+							title: `${title} alpha`,
+							seed,
+							backgrounds,
+							tableClass: "ramp-table",
+							kind: "alpha",
+							columns: rampColumns(alpha, palette, backgrounds),
+						});
+					const brandTable = rampTables(
+						"Brand ramp",
+						palette.seed,
+						palette.backgrounds,
+						{ light: palette.ramps.lightBrand, dark: palette.ramps.darkBrand },
+						{ light: palette.alphaRamps.lightBrand, dark: palette.alphaRamps.darkBrand },
+					);
+					const neutralTable = rampTables(
+						"Neutral ramp",
+						palette.gray,
+						palette.backgrounds,
+						{ light: palette.ramps.lightNeutral, dark: palette.ramps.darkNeutral },
+						{ light: palette.alphaRamps.lightNeutral, dark: palette.alphaRamps.darkNeutral },
+					);
+					const signalTables = palette.signals
+						.map((signal) =>
+							rampTables(
+								`${signal.name} ramp`,
+								signal.seed,
+								signal.backgrounds,
+								signal.ramps,
+								signal.alphaRamps,
+							),
+						)
+						.join("");
+					section.querySelector("[data-palette-seed]").innerHTML = `
+						<div class="seed" style="--seed-color:${palette.seed}"><span class="seed-swatch" aria-hidden="true"></span>Seed ${palette.seed} · on-seed text ${onSeedLabel} (${contrast(palette.seed, onSeedHex).toFixed(2)} | Lc ${Math.round(apca(onSeedHex, palette.seed))}) · Gray ${palette.gray}</div>
+					`;
+					section.querySelector("[data-ramps]").innerHTML = `${brandTable}${neutralTable}${signalTables}`;
+					section.querySelector("[data-scheme-name]").textContent = scheme.label;
+					section.querySelector("[data-token-table]").innerHTML = renderTokenTable(palette, scheme);
+					section.querySelector("[data-examples]").innerHTML = renderExamples(palette, scheme, section.id);
+				});
+			};
+
+			document.addEventListener("click", (event) => {
+				const button = event.target.closest("[data-scheme]");
+				if (!button) return;
+				activeSchemeId = button.dataset.scheme;
+				try {
+					localStorage.setItem("palette-session-scheme", activeSchemeId);
+				} catch {}
+				renderScheme();
+			});
+
+			document.addEventListener("mouseover", (event) => {
+				const chip = event.target.closest("[data-legend]");
+				document.querySelectorAll(".is-highlighted").forEach((element) => element.classList.remove("is-highlighted"));
+				if (!chip) return;
+				const group = chip.closest(".mode-group");
+				group
+					.querySelectorAll(`[data-tok~="${chip.dataset.legend}"]`)
+					.forEach((element) => element.classList.add("is-highlighted"));
+			});
+
+			renderScheme();
+		</script>
+	</body>
+</html>
