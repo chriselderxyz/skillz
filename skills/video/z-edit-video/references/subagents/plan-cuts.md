@@ -53,8 +53,6 @@ Example.
 ### Take Selection
 - Where a **line** is repeated, `video_style.take_selection_mode` picks the kept **take**.
   - `best` keeps the best **take** (usually the last).
-  - `last` keeps the last **take**.
-  - `highest-energy` keeps the **take** with the most energy.
 - Keep an unavoidable slip when no better **take** exists, and write why on the kept **take**'s `reason`.
 
 ### Lines
@@ -65,9 +63,7 @@ Example.
 - `video_style.opening_type` sets how the video opens.
   - `cold-open` starts on the claim or the action, with no greeting.
   - `greeting` allows a hello or intro line.
-  - `question` opens on a question.
   - `text-card` opens on a text graphic.
-  - `mid-action` starts inside an action already underway.
 - Keep the close that was filmed (a recap, a call to action, a sign-off, a hard stop, a loop, a callback, or a tease).
 - When ordering **scenes**, consider both the **source** order AND how each **line** should fit together so the video flows and makes sense.
   - A **line** from a later **source group** may play first.
@@ -92,13 +88,10 @@ Example **Scene** types/flows.
 
 # Phase 2: Cut Silences
 
-## Phase Context
-- Eleven labs can extend word ranges into silence, which can cause some mid **take** silences to appear.
-
 ## Action 1
 - For each kept **take**, use only `edit/silences.json` `sources.<audio_source>`, where `<audio_source>` is that **take**'s `audio_source`.
 - Those `start` and `end` times are on the **audio source clock**.
-- A silence that falls inside the kept **take** splits it into separate **cuts** in the same **take**, same **line**, and same **scene**.
+- A silence that falls inside the kept **take** splits it into separate **cuts**.
 - Apply the Cutting Guidelines to each new cut edge.
 - Update `edit/edit.json` with any split **cuts**.
 
@@ -161,7 +154,7 @@ Example **Scene** types/flows.
   - Leave more than 2 unless both zoom cuts land an important point.
 
 ### Picture in Picture
-- Add a `pip` **layer** only when `pip` is in `video_style.allowed_layouts` and `pip_style` is set.
+- Add a `pip` **layer** only when `pip_style` is set.
 - `pip` is only applied to `head` **sources**.
 - ALWAYS add a `pip` **layer** when a `head` **source** is available and another **layer** on the **line** is a `screen` **source**, a **full graphic**, or a full frame browser recording.
   - A `pip` **layer** may also go over other **source types**.
