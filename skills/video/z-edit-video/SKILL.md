@@ -60,9 +60,6 @@ Prompt the user for each input if it was not already provided.
     - Default: working directory (`.`).
 - `script`.
     - The filename or path to a Script file that has the planned script for the video (This is NOT the exact transcript).
-- `clip_credits`.
-    - Skip when no **source** in `src` is a `clip`.
-    - The creator and video of each `clip` **source**.
 
 Create New Options.
 - If the user selects "create new" for any input option.
@@ -98,7 +95,6 @@ Create New Options.
     - An entry in `sources` for each **source**, keyed by the **source** name (ex. "1-head").
     - `path` is the file, relative to the working directory.
     - Set `type` from the **source type** in the filename.
-    - Write `description` on each `clip` **source** from `clip_credits`.
 - Write the JSON from `configs/video-settings/<video_settings>.json` under the `video_settings` key.
 - Write the JSON from `configs/video-styles/<video_style>.json` under the `video_style` key.
 - Write the JSON from the corresponding file for each of these input variables, under the same key as the input variable.
@@ -250,7 +246,7 @@ uv run --no-project scripts/production/build_plan_html.py
 ## Gate
 
 ### A. Auto Grading
-- If `grading_style` is "auto" and the Color Grade Subagent ran in this loop iteration.
+- If `grading_style` is "auto", AND the user hasn't selected a style
     - Ask the user to select one of the styles.
     - Ask the user if they want to save the selected style to `configs/grading-styles`, and if yes, write the new JSON file.
     - Write the settings for the selected option to `edit/edit.json` under `grading_style`.
@@ -260,7 +256,11 @@ uv run --no-project scripts/production/build_plan_html.py
     - Each element in the cut plan has a `data-json-path` property used to map html elements to edit.json keys.
 - If no skills are available, open it in the default browser.
 
-### C. User Feedback Loop
+### C. Credits
+- For each **source** named by a `credited_source` that is missing `credit.creator` or `credit.title`, ask the user for its creator, its title, and any speaker who is not the creator.
+- Use the answers as user feedback.
+
+### D. User Feedback Loop
 - If the user gives comments/feedback, re-run the required actions from this phase with the new context.
     - 1. Cut Subagent - If edits to the **scenes**/**lines**/**takes**/**cuts**/**layers**/**full graphics**/**overlay graphics**/browser recordings/PIP placement/zoom cuts.
     - 2. Crop Subagent - If **layers** changed or a crop needs edits.
@@ -269,7 +269,7 @@ uv run --no-project scripts/production/build_plan_html.py
     - 5. Build Plan HTML - Always do this if any edits were made.
 - Make sure you use subagents for the Actions that call for them, don't do edits manually yourself unless required.
 
-### D. Approval
+### E. Approval
 - Wait for explicit approval before moving to Phase 4, approval of one piece is not full approval.
 
 # Phase 4: Produce Draft
@@ -300,7 +300,7 @@ Run `/z-create-graphics` with these inputs:
 - `resolution`: <resolution from edit/edit.json>.
 - `output_dir`: `edit/graphics`.
 - `graphics`.
-    - <Give every graphic source that has no `path`, in order of first appearance. graphic_number is that order. graphic_name is the source name. graphic_type is the source type. graphic_duration is an `animation` source's total duration, as HH:MM:SS.ss. graphic_description is the source description. frame is that graphic's frame. Include whether other layers sit behind it>.
+    - <Give every graphic source that has no `path`, in order of first appearance. graphic_number is that order. graphic_name is the source name. graphic_type is the source type. graphic_duration is an `animation` source's total duration, as HH:MM:SS.ss. graphic_description is the source description. text_elements is the source `text_elements`. frame is that graphic's frame. Include whether other layers sit behind it>.
 ```
 
 ### B. Graphic Editing
@@ -317,7 +317,7 @@ Run `/z-create-graphics` with these inputs:
 - `resolution`: <resolution from edit/edit.json>.
 - `output_dir`: `edit/graphics`.
 - `graphics`.
-    - <Give each affected graphic source with its original graphic_number, graphic_name, graphic_type, graphic_duration as an `animation` source's total duration, graphic_description from the source, graphic_feedback, frame, and whether other layers sit behind it>.
+    - <Give each affected graphic source with its original graphic_number, graphic_name, graphic_type, graphic_duration as an `animation` source's total duration, graphic_description from the source, text_elements from the source, graphic_feedback, frame, and whether other layers sit behind it>.
 ```
 
 ### C. Update the Source

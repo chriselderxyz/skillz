@@ -5,9 +5,11 @@
     - `type`, `audio`, `duration`, `resolution`, and `fps` are the measured facts.
     - `base_crops` holds `full`, `pip`, `top`, and `bottom`.
     - An `animation` or `image` **source** has `description`. Omit `path` until it exists.
+    - An `animation` or `image` **source** may have `text_elements`, keyed by role (ex. `headline`).
     - An `image` **source** has no `audio`, `duration`, or `fps`.
     - An **overlay graphic** **source** has `overlay_graphic_type`.
-    - A `clip` **source** has `description`, naming its creator and video.
+    - A `creator-credit` **source** has `credited_source`, naming the **source** it credits.
+    - A **source** named by a `credited_source` has `credit`, with `creator`, `title`, and `speaker` when someone other than the creator speaks.
     - A browser recording **source** has `type` `browser`, `description`, and `actions`. Omit `path` until the recording exists.
         - `actions` run on the recording clock, which starts at `00:00:00.00` on the first **layer** that uses that **source**.
         - Each action has `type` and `at`.
@@ -92,8 +94,25 @@
     },
     "coffee-first": {
       "type": "animation",
-      "description": "Kinetic type: COFFEE FIRST, steam particles",
+      "description": "Kinetic type with steam particles",
+      "text_elements": { "headline": "COFFEE FIRST" },
       "path": "edit/graphics/1-graphic-coffee-first.mp4"
+    },
+    "podcast-clip": {
+      "path": "src/podcast-clip.mp4",
+      "audio": true,
+      "type": "clip",
+      "duration": "00:00:12.00",
+      "resolution": "1920x1080",
+      "fps": 30,
+      "credit": { "creator": "Deep Work Podcast", "title": "Episode 12: Focus", "speaker": "Ana Ruiz" }
+    },
+    "podcast-clip-credit": {
+      "type": "image",
+      "overlay_graphic_type": "creator-credit",
+      "credited_source": "podcast-clip",
+      "description": "Lower third name plate, show line smaller under the speaker",
+      "text_elements": { "speaker": "Ana Ruiz", "show": "Deep Work Podcast · Episode 12: Focus" }
     },
     "install-docs": {
       "type": "browser",
@@ -110,7 +129,8 @@
     "docs-url": {
       "type": "image",
       "overlay_graphic_type": "context",
-      "description": "Text label: example.com/docs",
+      "description": "Rounded label pill",
+      "text_elements": { "label": "example.com/docs" },
       "path": "edit/graphics/2-graphic-docs-url.png",
       "resolution": "576x86"
     }
