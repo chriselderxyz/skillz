@@ -21,5 +21,6 @@
   "opening_type": "cold-open",
   "zoom_cut": true,
   "zoom_amount": 1.15,
+  "generate_chapters": false,
   "other_instructions": "No greeting. A later sentence may move up front when it is a stronger open. Change the full frame about every 1.5 to 2.5 seconds. Hold about 250 ms on the payoff reaction only."
 }

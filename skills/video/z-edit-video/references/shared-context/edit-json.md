@@ -143,6 +143,7 @@
     "opening_type": "greeting",
     "zoom_cut": true,
     "zoom_amount": 1.15,
+    "generate_chapters": true,
     "other_instructions": ""
   },
   "source_groups": {

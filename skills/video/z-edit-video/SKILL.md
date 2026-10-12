@@ -53,8 +53,6 @@ Prompt the user for each input if it was not already provided.
 - `graphics_style_guide`.
     - Skip when `video_style.full_graphics_enabled` is false and `video_style.overlay_graphic_types` is empty.
     - Options: File names under the `/z-create-graphics` skill's `configs/*`, an explicit file path or "create new".
-- `generate_chapters`.
-    - Boolean used to determine if video chapters should be generated.
 - `process_audio`.
     - Boolean used to determine if the Process Audio phase runs.
 - `src`.
@@ -444,7 +442,7 @@ uv run --no-project scripts/production/render.py \
 - If `srt_style` is not "none", read `references/create-artifacts/create-srt.md` and follow the steps.
 
 ## Action 3. Chapters
-- If `generate_chapters` is true, create a `edit/chapters.md` file with the following format.
+- If `video_style.generate_chapters` is true, create a `edit/chapters.md` file with the following format.
 - Use edit.json as a reference, but don't blindly follow the scenes written in it.
 ```md
 00:00 - Intro

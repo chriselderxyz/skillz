@@ -70,6 +70,9 @@
     // how much tighter a zoom cut is. 1 is the crop. 1.15 is 15% tighter
     "zoom_amount": 1.15,
 
+    // true writes video chapters with the finalized render
+    "generate_chapters": true,
+
     // extra instructions for this style
     "other_instructions": ""
 }

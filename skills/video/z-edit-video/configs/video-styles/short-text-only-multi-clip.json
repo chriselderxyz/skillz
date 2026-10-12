@@ -21,5 +21,6 @@
   "opening_type": "text-card",
   "zoom_cut": false,
   "zoom_amount": 1.15,
+  "generate_chapters": false,
   "other_instructions": "Text carries the point, on the clips and on full-frame cards. Change the clip when the point changes. Each text graphic only has to be recognizable at a glance. No greeting."
 }

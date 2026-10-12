@@ -21,5 +21,6 @@
   "opening_type": "text-card",
   "zoom_cut": false,
   "zoom_amount": 1.15,
+  "generate_chapters": false,
   "other_instructions": "One clip stays up for the whole short. Text overlay graphics carry the point. Do not cut the clip to change pace. Each text overlay graphic must be readable at a glance."
 }
