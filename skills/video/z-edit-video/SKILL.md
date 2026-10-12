@@ -491,7 +491,7 @@ Run `/z-process-audio` with these inputs:
 ```
 
 ## Gate
-- Explicitly tell the user when the processed video, transcript, subtitles, shownotes, and chapters are ready.
+- Explicitly tell the user when the Auphonic video, transcript, subtitles, shownotes, and chapters are ready.
 - Ask for any feedback required.
     - Rerun this phase with any feedback as context.
 - Wait for explicit approval before moving on.
@@ -499,7 +499,7 @@ Run `/z-process-audio` with these inputs:
 # Phase 7: Produce MP4
 
 ## Action 1
-- When Process Audio ran, convert `edit/edit-processed.mov`.
+- When Process Audio ran, convert `edit/edit-auphonic.mov`.
 - Otherwise convert `edit/edit.mov`.
 - Write `edit/edit.mp4`.
 
