@@ -89,6 +89,8 @@ uv run --no-project --with numpy --with Pillow scripts/inspect/timeline_view.py 
   - `full` allows `frame` `full`.
   - `top-bottom-split` is `frame` `top` and `frame` `bottom` on the same **line**.
   - `pip` allows `frame` `pip` over the **layers** under it.
+- Each line can have at most one full-frame video layer (not including graphics which can have transparency).
+  - Switching to a different video source partway through means splitting the line.
 - When the **line** explains something on screen, use the `screen` **source** when one is available.
 - When the **line** explains a provided `graphic`, use that `graphic` **source**.
 - When the **line** explains a webpage that no `screen` **source** already shows, use a browser recording **source**.

@@ -47,6 +47,7 @@ Prompt the user for each input if it was not already provided.
     - Options: File names under `configs/srt-styles/*`, "none", or "create new".
 - `pip_style`.
     - Options: File names under `configs/pip-styles/*`, "none", or "create new".
+    - The recommended option should be a circle.
 - `grading_style`.
     - Options: File names under `configs/grading-styles/*`, "none", or "auto".
 - `graphics_style_guide`.
