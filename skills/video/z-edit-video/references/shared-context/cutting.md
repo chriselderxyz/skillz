@@ -157,7 +157,7 @@ Example.
 ## Picture in Picture
 - Add a `pip` **layer** only when `pip` is in `video_style.allowed_layouts` and `pip_style` is set.
 - `pip` is only applied to `head` **sources**.
-- Add a `pip` **layer** when a `head` **source** is available and another **layer** on the **line** is a `screen` **source**, a **full graphic**, or a full frame browser recording.
+- ALWAYS add a `pip` **layer** when a `head` **source** is available and another **layer** on the **line** is a `screen` **source**, a **full graphic**, or a full frame browser recording. This does not exclude using `pip` over other **source** types.
 - Do not add a `pip` **layer** when a `head` **source** is already `frame` `full`.
 
 # Line Guidelines
