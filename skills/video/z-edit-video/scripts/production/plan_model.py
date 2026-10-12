@@ -106,6 +106,51 @@ def normalize_crop(
     return {"x": x, "y": y, "w": w, "h": h}
 
 
+def _length_range(
+    video_style: dict, kind: str, errors: list[str]
+) -> tuple[float | None, float | None]:
+    """`video_style` `min_<kind>_length_ms` / `max_<kind>_length_ms`, None when unset."""
+    bounds: list[float | None] = []
+    for edge in ("min", "max"):
+        field = f"{edge}_{kind}_length_ms"
+        raw = video_style.get(field)
+        if raw is None:
+            bounds.append(None)
+        elif isinstance(raw, bool) or not isinstance(raw, (int, float)) or raw < 0:
+            errors.append(f"video_style.{field}: expected a number of milliseconds")
+            bounds.append(None)
+        else:
+            bounds.append(float(raw))
+    min_ms, max_ms = bounds
+    if min_ms is not None and max_ms is not None and max_ms < min_ms:
+        errors.append(
+            f"video_style.max_{kind}_length_ms: expected a number at or above "
+            f"min_{kind}_length_ms"
+        )
+    return min_ms, max_ms
+
+
+def _check_length(
+    where: str,
+    span: float,
+    kind: str,
+    min_ms: float | None,
+    max_ms: float | None,
+    tolerance: float,
+    errors: list[str],
+) -> None:
+    """Record an error when `span` seconds falls outside the `kind` length range."""
+    span_ms = span * 1000
+    if min_ms is not None and span_ms + tolerance * 1000 < min_ms:
+        errors.append(
+            f"{where} is {span_ms:.0f}ms, under min_{kind}_length_ms {min_ms:.0f}"
+        )
+    if max_ms is not None and span_ms - tolerance * 1000 > max_ms:
+        errors.append(
+            f"{where} is {span_ms:.0f}ms, over max_{kind}_length_ms {max_ms:.0f}"
+        )
+
+
 # ==================================================
 # Load and validate
 # ==================================================
@@ -929,43 +974,51 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
         )
 
     # ==============================
+    # Graphics
+    # ==============================
+    min_graphic_ms, max_graphic_ms = _length_range(video_style, "graphic", errors)
+
+    graphic_layers: dict[str, list[dict]] = {}
+    for scene in scenes:
+        for card in scene["cards"]:
+            if card["type"] != "graphic":
+                continue
+            graphic_layers.setdefault(card["graphic"], []).append(card)
+
+    # Touching layers with the same frame are one play of the graphic file.
+    # Any other layer starts a new play from the top of the file.
+    for name, group in graphic_layers.items():
+        if any(card["start"] is None or card["end"] is None for card in group):
+            continue
+        group.sort(key=lambda card: card["start"])
+        plays: list[dict] = []
+        for card in group:
+            play = plays[-1] if plays else None
+            if (
+                play is not None
+                and abs(card["start"] - play["end"]) <= tolerance
+                and card["frame"] == play["frame"]
+            ):
+                play["end"] = card["end"]
+            else:
+                plays.append(
+                    {"start": card["start"], "end": card["end"], "frame": card["frame"]}
+                )
+        for play in plays:
+            _check_length(
+                f"sources.{name}: graphic at {fmt_tc(play['start'])}",
+                play["end"] - play["start"],
+                "graphic",
+                min_graphic_ms,
+                max_graphic_ms,
+                tolerance,
+                errors,
+            )
+
+    # ==============================
     # Browser recordings
     # ==============================
-    raw_min_browser = video_style.get("min_browser_length_ms")
-    raw_max_browser = video_style.get("max_browser_length_ms")
-    min_browser_ms = None
-    max_browser_ms = None
-    if raw_min_browser is not None:
-        if (
-            isinstance(raw_min_browser, bool)
-            or not isinstance(raw_min_browser, (int, float))
-            or raw_min_browser < 0
-        ):
-            errors.append(
-                "video_style.min_browser_length_ms: expected a number of milliseconds"
-            )
-        else:
-            min_browser_ms = float(raw_min_browser)
-    if raw_max_browser is not None:
-        if (
-            isinstance(raw_max_browser, bool)
-            or not isinstance(raw_max_browser, (int, float))
-            or raw_max_browser < 0
-        ):
-            errors.append(
-                "video_style.max_browser_length_ms: expected a number of milliseconds"
-            )
-        else:
-            max_browser_ms = float(raw_max_browser)
-    if (
-        min_browser_ms is not None
-        and max_browser_ms is not None
-        and max_browser_ms < min_browser_ms
-    ):
-        errors.append(
-            "video_style.max_browser_length_ms: expected a number at or above "
-            "min_browser_length_ms"
-        )
+    min_browser_ms, max_browser_ms = _length_range(video_style, "browser", errors)
 
     browser_layers: dict[str, list[dict]] = {}
     for scene in scenes:
@@ -997,17 +1050,15 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
             if earlier["frame"] != later["frame"]:
                 errors.append(f"sources.{name}: browser recording layers use different frames")
         span = group[-1]["end"] - group[0]["start"]
-        span_ms = span * 1000
-        if min_browser_ms is not None and span_ms + tolerance * 1000 < min_browser_ms:
-            errors.append(
-                f"sources.{name}: recording is {span_ms:.0f}ms, "
-                f"under min_browser_length_ms {min_browser_ms:.0f}"
-            )
-        if max_browser_ms is not None and span_ms - tolerance * 1000 > max_browser_ms:
-            errors.append(
-                f"sources.{name}: recording is {span_ms:.0f}ms, "
-                f"over max_browser_length_ms {max_browser_ms:.0f}"
-            )
+        _check_length(
+            f"sources.{name}: recording",
+            span,
+            "browser",
+            min_browser_ms,
+            max_browser_ms,
+            tolerance,
+            errors,
+        )
         ordered = sorted(
             [action for action in job if action.get("at") is not None],
             key=lambda action: action["at"],
