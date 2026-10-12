@@ -41,7 +41,6 @@ The skill asks for any of these that you have not already provided, then confirm
 | `process_audio` | No | `true` or `false` | Whether Auphonic processes the finalized movie |
 | `src` | No | A folder. Default is the working directory (`.`) | Where the raw sources live |
 | `script` | No | A file path | The planned spoken script. The skill still transcribes the sources on its own |
-| `clip_credits` | No | Free text | The creator and video of each `clip` source. Asked only when `src` has one |
 
 `create new` writes a config with the create-config skill. Graphics style guides are written for the create-graphics skill. The other new configs are written for this skill.
 
@@ -74,7 +73,7 @@ Sources in `src` are named `<source-group>-<source-type>`, for example `1-head.m
 | `detail` | Extra footage | A close-up |
 | `reaction` | Extra footage | Someone reacting |
 | `cutaway` | Extra footage | A short shot that bridges a cut |
-| `clip` | Extra footage | Another creator's footage. Credited with `clip_credits` |
+| `clip` | Extra footage | Another creator's footage. Credited by a `creator-credit` overlay graphic |
 | `voiceover` | Extra footage | Audio recorded separately from the picture |
 
 ## Config Files
@@ -232,6 +231,7 @@ A grade is an ffmpeg filter description: `eq` for contrast, brightness, and satu
 
 - Plan the cut, crops, picture-in-picture, grade, and captions.
 - Build a review page.
+- Ask you for any missing clip credit.
 - Revise from your comments until you approve the plan.
 
 ### Phase 4 — Produce Draft
@@ -328,7 +328,7 @@ Each line has a `layers` array, painted back to front. A layer's `edit_start` an
 | Split browser recording | `frame` `top` or `bottom`, `source`, `edit_start`, `edit_end` | That recording in one half of the frame. No cuts |
 | Window browser recording | `frame` `{ "x", "y", "w", "h" }`, `source`, `edit_start`, `edit_end` | That recording placed in a window. No cuts |
 
-`source` names the entry in `sources`. A graphic source has `type` `animation` or `image`, and `description`. An overlay graphic's source also has `overlay_graphic_type`, one of the style's `overlay_graphic_types`. `path` is the rendered file, relative to the working directory, omitted until the graphic exists. A generated animation that is a full graphic is `edit/graphics/<order>-graphic-<graphic-name>.mp4`. An animation that is an overlay graphic is a transparent `.webm`. An image is a `.png`. A graphic in a `{ "x", "y", "w", "h" }` box is rendered at that box's size. That path is written on the source.
+`source` names the entry in `sources`. A graphic source has `type` `animation` or `image`, and `description`, which describes its look. The words it shows are in `text_elements`, one entry per piece of text, keyed by role, such as `headline`. An overlay graphic's source also has `overlay_graphic_type`, one of the style's `overlay_graphic_types`. A `creator-credit` source has `credited_source`, which names the clip it credits. That clip has `credit`: `creator`, `title`, and `speaker` when someone other than the creator speaks. The credit graphic's `text_elements` are written from that `credit`. The plan page shows each graphic's text elements on its card, and each credit on its clip's card, with a missing creator or title marked. `path` is the rendered file, relative to the working directory, omitted until the graphic exists. A generated animation that is a full graphic is `edit/graphics/<order>-graphic-<graphic-name>.mp4`. An animation that is an overlay graphic is a transparent `.webm`. An image is a `.png`. A graphic in a `{ "x", "y", "w", "h" }` box is rendered at that box's size. That path is written on the source.
 
 A browser recording source has `type` `browser`, `description`, and `actions`. `path` is omitted until the recording exists. The file is `edit/browser/<order>-browser-<name>.mp4`. The page is recorded at that layer's size: the full video, one half, or the window. `actions` run on the recording clock, which starts at `00:00:00.00` when that browser recording starts. Every `open` has `url` and shows that page. Each page is already loaded when its `open` starts. A one-click banner is cleared before the page is on screen. A page that still covers the words is not used. A recording can `scroll` more than once. `scroll` brings `to` into view. `highlight` marks `text`. Layers that share one browser recording have to meet, with no gap. Coming back to a page after other footage is a new browser recording.
 

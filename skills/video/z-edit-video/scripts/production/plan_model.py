@@ -202,12 +202,55 @@ def load_plan(
     if not isinstance(sources, dict):
         sources = {}
     browser_jobs: dict[str, list[dict]] = {}
+    credited_names: set[str] = set()
     for source_name, record in sources.items():
         if not isinstance(record, dict):
             errors.append(f"sources.{source_name}: expected an object")
             continue
-        if record.get("type") == "clip" and not str(record.get("description") or "").strip():
-            errors.append(f"sources.{source_name}.description: required")
+        credit = record.get("credit")
+        if credit is not None:
+            if not isinstance(credit, dict):
+                errors.append(f"sources.{source_name}.credit: expected an object")
+            else:
+                for key, value in credit.items():
+                    if key not in {"creator", "title", "speaker"}:
+                        errors.append(
+                            f"sources.{source_name}.credit.{key}: "
+                            "expected creator, title, or speaker"
+                        )
+                    elif not isinstance(value, str):
+                        errors.append(f"sources.{source_name}.credit.{key}: expected text")
+        text_elements = record.get("text_elements")
+        if text_elements is not None:
+            if record.get("type") not in {"animation", "image"}:
+                errors.append(
+                    f"sources.{source_name}.text_elements: belongs on an animation or image"
+                )
+            elif not isinstance(text_elements, dict) or not text_elements:
+                errors.append(
+                    f"sources.{source_name}.text_elements: expected an object of text by role"
+                )
+            else:
+                for role, value in text_elements.items():
+                    if not isinstance(value, str) or not value.strip():
+                        errors.append(
+                            f"sources.{source_name}.text_elements.{role}: expected text"
+                        )
+        credited_source = record.get("credited_source")
+        if record.get("overlay_graphic_type") == "creator-credit":
+            if not credited_source:
+                errors.append(f"sources.{source_name}.credited_source: required")
+            elif not isinstance(sources.get(credited_source), dict):
+                errors.append(
+                    f"sources.{source_name}.credited_source: "
+                    f"{credited_source} is missing from sources"
+                )
+            else:
+                credited_names.add(credited_source)
+        elif credited_source is not None:
+            errors.append(
+                f"sources.{source_name}.credited_source: belongs on a creator-credit"
+            )
         if record.get("type") in {"animation", "image", "browser"}:
             if not str(record.get("description") or "").strip():
                 errors.append(f"sources.{source_name}.description: required")
@@ -964,6 +1007,34 @@ def load_plan(
                 if isinstance(record, dict) and isinstance(record.get("type"), str):
                     source_type = record.get("type")
 
+                # A graphic shows its text elements. A credited source shows
+                # its credit, with an empty row for a missing creator or title.
+                text_rows = []
+                if is_graphic and isinstance(record.get("text_elements"), dict):
+                    for role, value in record["text_elements"].items():
+                        text_rows.append(
+                            {
+                                "role": role,
+                                "text": value if isinstance(value, str) else "",
+                                "path": f"sources.{source_name}.text_elements.{role}",
+                            }
+                        )
+                if source_name in credited_names:
+                    credit = record.get("credit")
+                    if not isinstance(credit, dict):
+                        credit = {}
+                    for key in ("creator", "title", "speaker"):
+                        value = credit.get(key)
+                        text = value.strip() if isinstance(value, str) else ""
+                        if text or key != "speaker":
+                            text_rows.append(
+                                {
+                                    "role": key,
+                                    "text": text,
+                                    "path": f"sources.{source_name}.credit.{key}",
+                                }
+                            )
+
                 resolved = {
                     "type": (
                         "browser"
@@ -992,6 +1063,7 @@ def load_plan(
                     "browser_index": browser_index if is_browser else None,
                     "actions": record.get("actions") if is_browser else None,
                     "description": record.get("description") if is_placed else None,
+                    "text_rows": text_rows,
                     "start": card_start,
                     "end": card_end,
                     "cuts": cuts,

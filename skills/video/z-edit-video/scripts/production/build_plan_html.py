@@ -956,9 +956,12 @@ def main() -> None:
             if card["overlay_graphic_type"]:
                 kind = f"{kind} · {card['overlay_graphic_type']}"
             name = card.get("source") or card.get("graphic") or card.get("browser") or ""
-            described = bool(card["description"])
+            text_rows = card["text_rows"]
+            described = bool(card["description"] or text_rows)
             tag = "details" if described else "div"
             card_class = f"{css} layer-card" if described else css
+            if any(not row["text"] for row in text_rows):
+                card_class += " is-missing"
             out.append(
                 f'      <{tag} class="{card_class}" '
                 f'style="grid-row: {card["row_start"]} / {card["row_end"]}; '
@@ -986,6 +989,14 @@ def main() -> None:
             if described:
                 out.append("        </summary>")
             extras = []
+            for row in text_rows:
+                missing = " is-missing" if not row["text"] else ""
+                extras.append(
+                    f'<p class="layer-text{missing}" '
+                    f'data-json-path="{esc(row["path"])}">'
+                    f'<span class="layer-text-role">{esc(row["role"])}</span>'
+                    f'{esc(row["text"] or "missing")}</p>'
+                )
             if card.get("actions"):
                 action_bits = []
                 for action in card["actions"]:

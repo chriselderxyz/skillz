@@ -95,7 +95,7 @@ Example.
 - Use an `animation` when the content looks better with motion (ex. `npm install` typing on from left to right).
 - Use an `image` when nothing on it needs to move.
 - Check **A-Roll** and **B-Roll** before adding a **full graphic** or **overlay graphic**.
-- When an `animation` or `image` shows text, write that text word for word in its `description`.
+- When an `animation` or `image` shows text, write each piece of text word for word in its `text_elements`.
 - An `animation` or `image` that explains a point must be readable at 1x.
 - An `animation` or `image` at its minimum length only has to be recognizable at 1x.
 
@@ -105,7 +105,9 @@ Example.
 
 ### Overlay Graphics
 - Only add **overlay graphics** of a type listed in `video_style.overlay_graphic_types`.
-  - `creator-credit`: names the creator and video of a `clip` **source** each time it comes on screen.
+  - `creator-credit`: credits a `clip` **source** each time it comes on screen.
+    - Write its `text_elements` from the `credit` of its `credited_source`.
+    - Only write `credit` values the user gave.
   - `hook-text`: the hook, as text, in the opening seconds.
   - `context`: anything that gives context to what is on screen.
   - `text-story`: **overlay graphics** that tell a story with text.

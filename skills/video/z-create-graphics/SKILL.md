@@ -56,6 +56,8 @@ description: Create or edit an ordered set of graphics, each an animation or an 
             - `graphic_duration` (as an `HH:MM:SS.ss` string, seconds, or minutes).
                 - Omitted for an `image`.
             - `graphic_description`.
+            - `text_elements`.
+                - Each piece of text the graphic shows, keyed by its role.
             - `frame`.
                 - `full`, or `{ "x", "y", "w", "h" }` as fractions of the output frame.
         - Each graphic being edited also has `graphic_feedback`.
@@ -113,6 +115,7 @@ npx --yes hyperframes init <output_dir>/<graphic_number>-graphic-<graphic_name> 
         - Ex. `w` 0.4 on a 3840 wide output is 1536 pixels wide.
 - When other layers sit behind the graphic, it is an overlay graphic. Otherwise it is a full graphic.
 - An overlay graphic leaves pixels that should show the layers under it transparent.
+- Show each `text_elements` value word for word, as its own element styled for its role.
 - When `resolution` is `4K`, render a `full` graphic with `--resolution landscape-4k` or `portrait-4k`.
 - Treat `<output_dir>/frame.md` as the brand source.
 - Use its colors and fonts verbatim.
@@ -127,7 +130,7 @@ npx --yes hyperframes init <output_dir>/<graphic_number>-graphic-<graphic_name> 
 - Render an `image` with `--format png-sequence` to a temporary folder, move its first frame to `<graphic_number>-graphic-<graphic_name>.png`, and delete the folder.
 
 ### A. Create
-- When `mode` is `create`, write each graphic's `index.html` from its `graphic_description`.
+- When `mode` is `create`, write each graphic's `index.html` from its `graphic_description` and `text_elements`.
 - Follow `/hyperframes-cli` for lint, check and render.
 
 ### B. Edit
