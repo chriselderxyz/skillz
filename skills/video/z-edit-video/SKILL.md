@@ -247,7 +247,7 @@ uv run --no-project scripts/production/build_plan_html.py
 ## Gate
 
 ### A. Auto Grading
-- If `grading_style` is "auto".
+- If `grading_style` is "auto" and the Color Grade Subagent ran in this loop iteration.
     - Ask the user to select one of the styles.
     - Ask the user if they want to save the selected style to `configs/grading-styles`, and if yes, write the new JSON file.
     - Write the settings for the selected option to `edit/edit.json` under `grading_style`.
