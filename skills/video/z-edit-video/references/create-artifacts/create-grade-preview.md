@@ -1,16 +1,13 @@
 # Get Screenshot
-- Run `scripts/inspect/screenshot.py` to get a SINGLE screenshot of a **source** to preview grading for.
-- `edit/grading-previews/original.png` is that one frame.
-- `screenshot.py` is the only writer of `original.png`. Do not manually extract screenshots.
+- Screenshot the **source** to `edit/grading-previews/original.png`.
+- `screenshot.py` is the only writer of `original.png`.
 ```bash
 uv run --no-project scripts/inspect/screenshot.py <source> -o edit/grading-previews/original.png
 ```
 
 # Make Previews
-- Pass `edit/grading-previews/original.png` to `grade.py`.
+- Grade `edit/grading-previews/original.png` into one preview per grading style.
 - `grade.py` is the only writer of a graded preview.
-- Each graded preview is that same still.
-- ONE frame/screenshot per preview
 
 ## Named Preset
 Use `--grading-style`.

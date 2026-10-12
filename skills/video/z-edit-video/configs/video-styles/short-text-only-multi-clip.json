@@ -6,7 +6,6 @@
   "cut_breaths": true,
   "cut_keyboard": true,
   "take_selection_mode": "highest-energy",
-  "b_roll_enabled": true,
   "full_graphics_enabled": true,
   "min_full_graphic_length_ms": 500,
   "max_full_graphic_length_ms": 2500,

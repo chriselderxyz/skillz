@@ -25,9 +25,6 @@
     // last | best | highest-energy
     "take_selection_mode": "last",
 
-    // boolean, stored on the style
-    "b_roll_enabled": false,
-
     // true allows a full graphic, an animation or image that is the picture
     "full_graphics_enabled": true,
 

@@ -55,7 +55,6 @@ Read `references/shared-context/concepts.md`.
 ## Create Grading Preview
 - Read `references/create-artifacts/create-grade-preview.md`.
 - Follow the steps within to create grading previews for each look.
-- Each preview is the single `original.png` still, graded.
 - Extra sample frames stay out of `edit/grading-previews/`.
 
 ## Iterate
@@ -63,7 +62,6 @@ Read `references/shared-context/concepts.md`.
   - Read the preview image.
   - Decide if one knob should move.
   - Update the `grading_style` json and create a new preview.
-- Change one thing per iteration.
 - Stop when it looks right.
 - Do at most 3 iterations per look.
 
