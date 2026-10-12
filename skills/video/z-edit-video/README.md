@@ -231,7 +231,7 @@ A grade is an ffmpeg filter description: `eq` for contrast, brightness, and satu
 - Generate graphics.
 - A subagent records browser recordings.
 - Render a draft.
-- Check the edit transcript and the cuts.
+- Check the edit transcript and run the draft checks.
 - You review the draft.
 
 ### Phase 5 — Produce Finalized
@@ -352,7 +352,7 @@ Scripts live in `scripts/` and are run from the working directory with `uv run -
 
 | Script | What it does |
 | --- | --- |
-| `scripts/production/build_plan_html.py` | Validates `edit/edit.json` and writes `edit/plan-<hash>.html` for review. The hash is the first 8 hex digits of `edit.json`, so a stale review page is obvious. Writes nothing if validation fails |
+| `scripts/production/build_plan_html.py` | Validates `edit/edit.json`, rejects any kept cut edge that lands inside a spoken word, and writes `edit/plan-<hash>.html` for review. The hash is the first 8 hex digits of `edit.json`, so a stale review page is obvious. Writes nothing if validation fails |
 | `scripts/production/render.py` | Renders `edit.json`: extracts each range, grades talking-head picture, concatenates the ranges, composites layers in order, and burns captions last. `--draft` writes the review render with compressed audio. A finalized render writes PCM audio |
 | `scripts/production/record_browser.py` | Records each browser recording with Playwright. Opens pages, scrolls, highlights text, and writes `edit/browser/<order>-browser-<name>.mp4` plus that source's `path`. `--name` re-records one source. `--zoom` sets the page zoom. 4K uses 2 unless `--zoom` is passed |
 | `scripts/production/build_srt.py` | Builds an edit-clock `.srt` from `edit.json` and the transcripts, using `srt_style` for wrapping |
@@ -374,4 +374,4 @@ Scripts live in `scripts/` and are run from the working directory with `uv run -
 | `scripts/inspect/screenshot.py` | Grabs one frame. Defaults to the midpoint. Used for grade, crop, and caption previews |
 | `scripts/inspect/pip_crop_preview.py` | Crops a still with source-pixel `x,y,w,h` and writes a preview. Used for full-frame crops and picture-in-picture crops |
 | `scripts/inspect/caption_style_preview.py` | Overlays sample caption text on a still using a caption style. Also makes a 9:16 crop when the still is 16:9 |
-| `scripts/inspect/timeline_view.py` | Builds a filmstrip with a waveform underneath for a time range. Used to check each cut in the draft |
+| `scripts/inspect/check_draft.py` | Checks the draft against `edit/edit.json`: stream durations and audio sync, clicks at joins, one- and two-frame flashes, black frames, frozen talking-head frames, and dead air. Prints each problem with the kept_take cut it falls in |
