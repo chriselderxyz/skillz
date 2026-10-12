@@ -125,6 +125,7 @@ Create New Options.
     - A **source** with no or little transcript is not an issue, it is likely just a bad take.
     - A **source** with no audio is not an issue.
     - A **source group** with only 1 audio file is not an issue.
+- Variations between the transcript and `script` are not issues, do not mention them to the user.
 
 ## Action 5. Select Audio Sources
 - For each **source group**, select a single **source** as the **audio source**.
