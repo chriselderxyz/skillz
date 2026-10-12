@@ -75,11 +75,13 @@ uv run --no-project --with numpy --with Pillow scripts/inspect/timeline_view.py 
 - Only apply zoom cuts to a `head` **source type**.
 - Only apply zoom cuts to `full` **layers**.
 - Do not apply zoom cuts to `pip` **layers**.
+- Only apply a zoom cut when the previous **line** is also a full-frame `head` shot.
 - You can use a zoom cut for.
   - **lines** that land a point: a punchline, a number, a turn.
   - **lines** in a longer section: used as an effect to increase engagement instead of emphasis on a point, best when no other **layer** is already varying the shot.
-- You can apply a zoom cut to consecutive lines.
-- Do not overuse zoom cuts, a zoom on every other **line** loses the punch.
+- You can apply a zoom cut to consecutive **lines**, they count as one zoom cut.
+- Leave at least 2 **lines** without a zoom cut between zoom cuts.
+  - Leave more than 2 unless both zoom cuts land an important point.
 
 # Layers
 - Build every **layer** on a **line** together.

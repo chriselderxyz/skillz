@@ -974,6 +974,46 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
         )
 
     # ==============================
+    # Zoom cut placement
+    # ==============================
+    # Consecutive zoomed lines hold one zoom cut. A new zoom cut needs a
+    # full-frame head shot on the line before it and at least 2 lines
+    # without a zoom cut since the last one.
+    previous_line = None
+    previous_zoomed = False
+    lines_since_zoom = None
+    for scene in scenes:
+        for line in scene["lines"]:
+            zoom_card = next((c for c in line["layers"] if c["zoom_cut"]), None)
+            if zoom_card is not None and not previous_zoomed:
+                if previous_line is None:
+                    errors.append(
+                        f"{zoom_card['path']}.zoom_cut: the first line cannot zoom"
+                    )
+                else:
+                    before = previous_line["active"]
+                    if (
+                        before is None
+                        or before["type"] != "footage"
+                        or before["source_type"] != "head"
+                    ):
+                        errors.append(
+                            f"{zoom_card['path']}.zoom_cut: the line before is not "
+                            "a full-frame head shot"
+                        )
+                if lines_since_zoom is not None and lines_since_zoom < 2:
+                    errors.append(
+                        f"{zoom_card['path']}.zoom_cut: {lines_since_zoom} line(s) "
+                        "since the last zoom cut, leave at least 2"
+                    )
+            if zoom_card is not None:
+                lines_since_zoom = 0
+            elif lines_since_zoom is not None:
+                lines_since_zoom += 1
+            previous_zoomed = zoom_card is not None
+            previous_line = line
+
+    # ==============================
     # Graphics
     # ==============================
     min_graphic_ms, max_graphic_ms = _length_range(video_style, "graphic", errors)

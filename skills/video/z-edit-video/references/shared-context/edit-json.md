@@ -185,7 +185,6 @@
             {
               "frame": "full",
               "source": "1-head",
-              "zoom_cut": true,
               "edit_start": "00:00:00.00",
               "edit_end": "00:00:04.18",
               "cuts": [

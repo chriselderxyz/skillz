@@ -326,7 +326,7 @@ A browser recording source has `type` `browser`, `description`, and `actions`. `
 
 A crop is integer source pixels, `x`, `y`, `w`, and `h`. `full` matches the output. `pip` matches the inset. `top` and `bottom` match half the frame: 32:9 on a 16:9 landscape output, and 9:8 on a 9:16 portrait output.
 
-A full-frame `head` layer may set `zoom_cut` to true when the video style allows it. The render jumps in by `zoom_amount`, centered inside the crop. `1.15` is 15% tighter. The next line that omits `zoom_cut` is back at the crop. Consecutive lines can each set it, and the tighter view holds across them.
+A full-frame `head` layer may set `zoom_cut` to true when the video style allows it. The render jumps in by `zoom_amount`, centered inside the crop. `1.15` is 15% tighter. The next line that omits `zoom_cut` is back at the crop. Consecutive lines can each set it, and the tighter view holds across them as one zoom cut. A zoom cut needs a full-frame `head` shot on the line before it, so it never lands on the first line or on a cut back from a graphic, a screen, or a browser recording. At least 2 lines without a zoom cut sit between zoom cuts.
 
 ## Scripts
 
