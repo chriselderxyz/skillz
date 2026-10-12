@@ -1,0 +1,23 @@
+{
+  "cut_padding_ms": 100,
+  "silence_cut_threshold_ms": 300,
+  "line_gap_ms": 250,
+  "cut_fillers": true,
+  "cut_breaths": true,
+  "cut_keyboard": true,
+  "take_selection_mode": "highest-energy",
+  "b_roll_enabled": false,
+  "full_frame_graphics_enabled": true,
+  "graphic_overlays_enabled": true,
+  "min_graphic_length_ms": 1500,
+  "max_graphic_length_ms": 5000,
+  "browser_enabled": true,
+  "min_browser_length_ms": 1500,
+  "max_browser_length_ms": 4000,
+  "max_continuous_shot_length_ms": 4000,
+  "allowed_layouts": ["full", "pip"],
+  "opening_type": "cold-open",
+  "zoom_cut": true,
+  "zoom_amount": 1.15,
+  "other_instructions": "Start on the claim. Keep each line whole. The face carries the open and the payoff."
+}

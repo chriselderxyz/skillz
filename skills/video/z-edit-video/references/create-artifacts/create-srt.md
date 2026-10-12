@@ -1,0 +1,10 @@
+# Create The `.srt`
+- Run `scripts/production/build_srt.py` against `edit/edit.json` and the transcripts to create the sidecar `.srt`.
+
+```bash
+uv run --no-project scripts/production/build_srt.py -o edit/edit.srt
+```
+
+# Verify
+- Read the `.srt` end to end and fix mangled terms.
+- If you have a question or any remaining issues, flag to the user at the gate.

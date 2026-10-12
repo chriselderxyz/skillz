@@ -1,0 +1,23 @@
+{
+  "cut_padding_ms": 100,
+  "silence_cut_threshold_ms": 2000,
+  "line_gap_ms": 200,
+  "cut_fillers": false,
+  "cut_breaths": false,
+  "cut_keyboard": false,
+  "take_selection_mode": "best",
+  "b_roll_enabled": false,
+  "full_frame_graphics_enabled": false,
+  "graphic_overlays_enabled": true,
+  "min_graphic_length_ms": 800,
+  "max_graphic_length_ms": 4000,
+  "browser_enabled": false,
+  "min_browser_length_ms": 800,
+  "max_browser_length_ms": 4000,
+  "max_continuous_shot_length_ms": 60000,
+  "allowed_layouts": ["full"],
+  "opening_type": "text-card",
+  "zoom_cut": false,
+  "zoom_amount": 1.15,
+  "other_instructions": "One clip stays up for the whole short. Text overlays carry the point. Do not cut the clip to change pace. Each text overlay must be readable at a glance."
+}

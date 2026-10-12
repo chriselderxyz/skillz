@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Draft Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #F2F7F6;
+    --paper-raised: #FFFFFF;
+    --ink: #193843;
+    --ink-soft: #4B6670;
+    --muted: #93A6AC;
+    --muted-bg: #E7EDEC;
+    --highlight: #70C2AB;
+    --highlight-deep: #2B7560;
+    --highlight-wash: rgba(112, 194, 171, 0.14);
+    --graphic: #1C5368;
+    --browser: #3D3A72;
+    --border: rgba(25, 56, 67, 0.14);
+    --border-soft: rgba(25, 56, 67, 0.08);
+    --shadow: 0 1px 2px rgba(25, 56, 67, 0.06), 0 8px 24px rgba(25, 56, 67, 0.05);
+    --well: #07141A;
+
+    --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+    --font-body: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+
+    --text-body: 1rem;
+    --text-small: 0.875rem;
+    --ruler-height: 32px;
+    --lane-height: 56px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E2129;
+      --paper-raised: #142F39;
+      --ink: #E3EFEC;
+      --ink-soft: #9FB8BC;
+      --muted: #5C737B;
+      --muted-bg: #1A343D;
+      --highlight: #70C2AB;
+      --highlight-deep: #9BE0C9;
+      --highlight-wash: rgba(112, 194, 171, 0.12);
+      --graphic: #9EC6D6;
+      --browser: #C8C4EE;
+      --border: rgba(227, 239, 236, 0.14);
+      --border-soft: rgba(227, 239, 236, 0.08);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+      --well: #07141A;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0E2129;
+    --paper-raised: #142F39;
+    --ink: #E3EFEC;
+    --ink-soft: #9FB8BC;
+    --muted: #5C737B;
+    --muted-bg: #1A343D;
+    --highlight: #70C2AB;
+    --highlight-deep: #9BE0C9;
+    --highlight-wash: rgba(112, 194, 171, 0.12);
+    --graphic: #9EC6D6;
+    --browser: #C8C4EE;
+    --border: rgba(227, 239, 236, 0.14);
+    --border-soft: rgba(227, 239, 236, 0.08);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+    --well: #07141A;
+  }
+
+  * { box-sizing: border-box; }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button {
+    font: inherit;
+  }
+
+  /*==================================================
+    Editor
+  ==================================================*/
+
+  .editor {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 24px 16px;
+  }
+
+  .review-bar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .eyebrow {
+    margin: 0 0 6px;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--highlight-deep);
+  }
+
+  .review-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 0.95;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+  }
+
+  .timecode {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .timecode-dur,
+  .timecode-split {
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  /*==================================================
+    Monitor
+  ==================================================*/
+
+  .monitor {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  .monitor-column {
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    height: 100%;
+    max-width: calc(100% - 6.25rem);
+  }
+
+  .monitor-frame {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    background: var(--well);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .monitor-video {
+    display: block;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    background: transparent;
+  }
+
+  .monitor-missing {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    pointer-events: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: rgba(227, 239, 236, 0.62);
+  }
+
+  .monitor-frame.is-ready .monitor-missing {
+    display: none;
+  }
+
+  .subtitle-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 4%;
+    z-index: 2;
+    display: none;
+    width: max-content;
+    max-width: 92%;
+    margin-inline: auto;
+    padding: 3px 10px;
+    border-radius: 2px;
+    background: rgba(7, 20, 26, 0.62);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25;
+    text-align: center;
+    white-space: pre-line;
+    pointer-events: none;
+  }
+
+  .subtitle-overlay.is-on {
+    display: block;
+  }
+
+  .monitor-frame.is-subs-hidden .subtitle-overlay {
+    display: none;
+  }
+
+  .speeds {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: none;
+    gap: 8px;
+  }
+
+  .speed {
+    min-width: 4.75rem;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+
+  .speed:hover {
+    border-color: var(--highlight);
+  }
+
+  .speed[aria-pressed="true"] {
+    background: var(--highlight-wash);
+    border-color: var(--highlight);
+    color: var(--highlight-deep);
+  }
+
+  .speed:focus-visible,
+  .zoom:focus-visible {
+    outline: 2px solid var(--highlight-deep);
+    outline-offset: 2px;
+  }
+
+  .zoom-controls {
+    display: flex;
+    flex: none;
+    gap: 6px;
+  }
+
+  .zoom {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .zoom:hover {
+    border-color: var(--highlight);
+  }
+
+  /*==================================================
+    Timeline
+  ==================================================*/
+
+  .timeline {
+    flex: none;
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    background: var(--paper-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .lane-gutter {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+  }
+
+  .lane-gutter-spacer {
+    height: var(--ruler-height);
+    flex: none;
+  }
+
+  .lane-label,
+  .lane {
+    height: var(--lane-height);
+    flex: none;
+  }
+
+  .lane-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 0 10px;
+  }
+
+  .lane-label + .lane-label,
+  .lane + .lane {
+    border-top: 1px solid var(--border-soft);
+  }
+
+  .lane-index {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+  }
+
+  .lane-role {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .lane-label[data-layer="subs"],
+  .lane[data-layer="subs"] {
+    height: 72px;
+  }
+
+  .lane-label[data-layer="subs"] {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding-left: 8px;
+  }
+
+  .lane-eye {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .lane-eye svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .lane-eye[aria-pressed="true"] .lane-eye-slash {
+    display: none;
+  }
+
+  .lane-eye[aria-pressed="false"] {
+    color: var(--muted);
+  }
+
+  .lane-eye:focus-visible {
+    outline: 2px solid var(--highlight-deep);
+    outline-offset: 2px;
+  }
+
+  .timeline-scroll {
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .timeline-body {
+    position: relative;
+    min-width: 100%;
+    cursor: ew-resize;
+    user-select: none;
+  }
+
+  .ruler {
+    position: relative;
+    height: var(--ruler-height);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tick {
+    position: absolute;
+    bottom: 0;
+    width: 1px;
+    height: 8px;
+    background: var(--border);
+  }
+
+  .tick.major {
+    height: 14px;
+    background: var(--muted);
+  }
+
+  .tick span {
+    position: absolute;
+    top: -16px;
+    left: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .lanes {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lane {
+    position: relative;
+  }
+
+  /*==================================================
+    Clips
+  ==================================================*/
+
+  .clip {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    min-width: 0;
+    padding: 0 6px 0 8px;
+    overflow: hidden;
+    border-left: 4px solid var(--highlight);
+    border-radius: 0 4px 4px 0;
+    background: var(--highlight-wash);
+  }
+
+  .clip-meta,
+  .clip-name {
+    margin: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: var(--font-mono);
+    line-height: 1.3;
+  }
+
+  .clip-meta {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--highlight-deep);
+  }
+
+  .clip-name {
+    font-size: 0.5625rem;
+    font-weight: 400;
+    color: var(--ink);
+  }
+
+  .clip[data-type="graphic"] {
+    border-left-color: var(--graphic);
+    background: color-mix(in srgb, var(--graphic) 16%, var(--paper-raised));
+  }
+
+  .clip[data-type="graphic"] .clip-meta {
+    color: var(--graphic);
+  }
+
+  .clip[data-type="browser"] {
+    border-left-color: var(--browser);
+    background: color-mix(in srgb, var(--browser) 16%, var(--paper-raised));
+  }
+
+  .clip[data-type="browser"] .clip-meta {
+    color: var(--browser);
+  }
+
+  .clip[data-type="subtitle"] {
+    border-left-color: var(--ink-soft);
+    background: var(--muted-bg);
+  }
+
+  .clip[data-type="subtitle"] .clip-name {
+    color: var(--ink);
+    min-height: 0;
+    max-height: 100%;
+    white-space: normal;
+    text-overflow: unset;
+  }
+
+  .subtitle-pop {
+    position: fixed;
+    z-index: 20;
+    max-width: 18rem;
+    margin: 0;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--paper-raised);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.35;
+    white-space: pre-line;
+    pointer-events: none;
+  }
+
+  .clip.is-current {
+    box-shadow: inset 0 0 0 1px var(--highlight-deep);
+  }
+
+  /*==================================================
+    Playhead
+  ==================================================*/
+
+  .playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 4;
+    width: 2px;
+    background: var(--highlight-deep);
+    pointer-events: none;
+  }
+
+  .playhead::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--highlight-deep);
+  }
+
+</style>
+
+<!-- Draft review template. The video src is the draft file beside this page. -->
+<!-- Lanes match the plan.html stack. Lane 1 is the back layer, the same as grid column 1. Higher lanes are in front and sit above it. -->
+<!-- Each clip is one layer card. The script places it from data-edit-start and data-edit-end on the edit clock. -->
+<!-- data-json-path on a clip is its exact location in edit.json, the same as on the plan page. A merged card uses the first layer's path. data-line-ids lists every line in that card. -->
+
+<div class="editor">
+  <header class="review-bar">
+    <div class="review-heading">
+      <p class="eyebrow">Draft Review</p>
+      <h1 class="review-title">Editing Video with AI</h1>
+    </div>
+    <p class="timecode">
+      <span class="timecode-now">00:00:00.00</span>
+      <span class="timecode-split">/</span>
+      <span class="timecode-dur">00:00:42.60</span>
+    </p>
+  </header>
+
+  <div class="monitor">
+    <div class="speeds" role="group" aria-label="Playback speed">
+      <button type="button" class="speed" data-rate="1" aria-pressed="true">1.0x</button>
+      <button type="button" class="speed" data-rate="1.25" aria-pressed="false">1.25x</button>
+      <button type="button" class="speed" data-rate="1.5" aria-pressed="false">1.5x</button>
+      <button type="button" class="speed" data-rate="1.75" aria-pressed="false">1.75x</button>
+      <button type="button" class="speed" data-rate="2" aria-pressed="false">2x</button>
+    </div>
+    <div class="monitor-column">
+      <div class="monitor-frame">
+        <p class="monitor-missing">edit-draft.mp4</p>
+        <video class="monitor-video" controls playsinline preload="auto" src="edit-draft.mp4" aria-label="Draft video"></video>
+        <p class="subtitle-overlay"></p>
+      </div>
+      <div class="zoom-controls" role="group" aria-label="Timeline zoom">
+        <button type="button" class="zoom" data-zoom="out" aria-label="Zoom out">−</button>
+        <button type="button" class="zoom" data-zoom="in" aria-label="Zoom in">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <!-- review-gutter -->
+    <div class="lane-gutter">
+      <div class="lane-gutter-spacer"></div>
+      <div class="lane-label" data-layer="subs" title="Subtitles.">
+        <button type="button" class="lane-eye" aria-pressed="true" aria-label="Hide subtitles">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2"></path>
+            <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"></circle>
+            <path class="lane-eye-slash" d="M5 19 19 5" fill="none" stroke="currentColor" stroke-width="2"></path>
+          </svg>
+        </button>
+        <span class="lane-role">subs</span>
+      </div>
+      <div class="lane-label" data-layer="3" title="Front layer. Plan column 3.">
+        <span class="lane-index">3</span>
+        <span class="lane-role">front</span>
+      </div>
+      <div class="lane-label" data-layer="2" title="Plan column 2.">
+        <span class="lane-index">2</span>
+      </div>
+      <div class="lane-label" data-layer="1" title="Back layer. Plan column 1.">
+        <span class="lane-index">1</span>
+        <span class="lane-role">back</span>
+      </div>
+    </div>
+    <!-- /review-gutter -->
+
+    <div class="timeline-scroll">
+      <div class="timeline-body">
+        <div class="ruler"></div>
+        <!-- review-lanes -->
+        <div class="lanes">
+          <div class="lane" data-layer="subs">
+            <div class="clip" data-type="subtitle" data-layer="subs" data-edit-start="00:00:00.10" data-edit-end="00:00:02.80" data-subtitle="The future of automation is code." data-json-path="srt_style">
+              <p class="clip-name">The future of automation is code.</p>
+            </div>
+            <div class="clip" data-type="subtitle" data-layer="subs" data-edit-start="00:00:04.80" data-edit-end="00:00:08.40" data-subtitle="not any of the low-code or no-code&#10;nonsense" data-json-path="srt_style">
+              <p class="clip-name">not any of the low-code or no-code nonsense</p>
+            </div>
+            <div class="clip" data-type="subtitle" data-layer="subs" data-edit-start="00:00:12.60" data-edit-end="00:00:16.00" data-subtitle="this might seem a wee bit biased" data-json-path="srt_style">
+              <p class="clip-name">this might seem a wee bit biased</p>
+            </div>
+          </div>
+          <div class="lane" data-layer="3">
+            <div class="clip" data-type="footage" data-layer="3" data-scene-id="s3" data-line-id="l10" data-line-ids="l10" data-source="nod" data-edit-start="00:00:38.90" data-edit-end="00:00:42.60" data-json-path="scenes.s3.lines.l10.layers[2]" title="pip · reaction · nod · 00:00:38.90–00:00:42.60">
+              <p class="clip-meta">pip · reaction</p>
+              <p class="clip-name">nod</p>
+            </div>
+          </div>
+          <div class="lane" data-layer="2">
+            <div class="clip" data-type="footage" data-layer="2" data-scene-id="s1" data-line-id="l2" data-line-ids="l2" data-source="1-head" data-edit-start="00:00:04.80" data-edit-end="00:00:08.20" data-json-path="scenes.s1.lines.l2.layers[1]" title="pip · head · 1-head · 00:00:04.80–00:00:08.20">
+              <p class="clip-meta">pip · head</p>
+              <p class="clip-name">1-head</p>
+            </div>
+            <div class="clip" data-type="graphic" data-layer="2" data-scene-id="s1" data-line-id="l3" data-line-ids="l3" data-source="flat-clips" data-edit-start="00:00:08.20" data-edit-end="00:00:12.60" data-json-path="scenes.s1.lines.l3.layers[1]" title="full · graphic · flat-clips · 00:00:08.20–00:00:12.60">
+              <p class="clip-meta">full · graphic</p>
+              <p class="clip-name">flat-clips</p>
+            </div>
+            <div class="clip" data-type="footage" data-layer="2" data-scene-id="s2" data-line-id="l4" data-line-ids="l4" data-source="2-head" data-edit-start="00:00:12.60" data-edit-end="00:00:21.90" data-json-path="scenes.s2.lines.l4.layers[1]" title="pip · head · 2-head · 00:00:12.60–00:00:21.90">
+              <p class="clip-meta">pip · head</p>
+              <p class="clip-name">2-head</p>
+            </div>
+            <div class="clip" data-type="footage" data-layer="2" data-scene-id="s2" data-line-id="l7" data-line-ids="l7" data-source="2-head" data-edit-start="00:00:25.40" data-edit-end="00:00:29.90" data-json-path="scenes.s2.lines.l7.layers[1]" title="bottom · head · 2-head · 00:00:25.40–00:00:29.90">
+              <p class="clip-meta">bottom · head</p>
+              <p class="clip-name">2-head</p>
+            </div>
+            <div class="clip" data-type="footage" data-layer="2" data-scene-id="s3" data-line-id="l8" data-line-ids="l8" data-source="3-head" data-edit-start="00:00:29.90" data-edit-end="00:00:34.70" data-json-path="scenes.s3.lines.l8.layers[1]" title="pip · head · 3-head · 00:00:29.90–00:00:34.70">
+              <p class="clip-meta">pip · head</p>
+              <p class="clip-name">3-head</p>
+            </div>
+            <div class="clip" data-type="footage" data-layer="2" data-scene-id="s3" data-line-id="l9" data-line-ids="l9" data-source="trackpad" data-edit-start="00:00:34.70" data-edit-end="00:00:38.90" data-json-path="scenes.s3.lines.l9.layers[1]" title="custom · detail · trackpad · 00:00:34.70–00:00:38.90">
+              <p class="clip-meta">custom · detail</p>
+              <p class="clip-name">trackpad</p>
+            </div>
+            <div class="clip" data-type="footage" data-layer="2" data-scene-id="s3" data-line-id="l10" data-line-ids="l10" data-source="blank-timeline" data-edit-start="00:00:38.90" data-edit-end="00:00:42.60" data-json-path="scenes.s3.lines.l10.layers[1]" title="custom · cutaway · blank-timeline · 00:00:38.90–00:00:42.60">
+              <p class="clip-meta">custom · cutaway</p>
+              <p class="clip-name">blank-timeline</p>
+            </div>
+          </div>
+          <div class="lane" data-layer="1">
+            <div class="clip" data-type="footage" data-layer="1" data-scene-id="s1" data-line-id="l1" data-line-ids="l1" data-source="1-head" data-edit-start="00:00:00.00" data-edit-end="00:00:04.80" data-json-path="scenes.s1.lines.l1.layers[0]" title="full · head · 1-head · 00:00:00.00–00:00:04.80">
+              <p class="clip-meta">full · head</p>
+              <p class="clip-name">1-head</p>
+            </div>
+            <div class="clip" data-type="footage" data-layer="1" data-scene-id="s1" data-line-id="l2" data-line-ids="l2" data-source="1-screen" data-edit-start="00:00:04.80" data-edit-end="00:00:12.60" data-json-path="scenes.s1.lines.l2.layers[0]" title="full · screen · 1-screen · 00:00:04.80–00:00:12.60">
+              <p class="clip-meta">full · screen</p>
+              <p class="clip-name">1-screen</p>
+            </div>
+            <div class="clip" data-type="graphic" data-layer="1" data-scene-id="s2" data-line-id="l4" data-line-ids="l4" data-source="plan-stack" data-edit-start="00:00:12.60" data-edit-end="00:00:21.90" data-json-path="scenes.s2.lines.l4.layers[0]" title="full · graphic · plan-stack · 00:00:12.60–00:00:21.90">
+              <p class="clip-meta">full · graphic</p>
+              <p class="clip-name">plan-stack</p>
+            </div>
+            <div class="clip" data-type="footage" data-layer="1" data-scene-id="s2" data-line-id="l6" data-line-ids="l6" data-source="2-head" data-zoom-cut="true" data-edit-start="00:00:21.90" data-edit-end="00:00:25.40" data-json-path="scenes.s2.lines.l6.layers[0]" title="full · zoom · head · 2-head · 00:00:21.90–00:00:25.40">
+              <p class="clip-meta">full · zoom</p>
+              <p class="clip-name">2-head</p>
+            </div>
+            <div class="clip" data-type="footage" data-layer="1" data-scene-id="s2" data-line-id="l7" data-line-ids="l7" data-source="2-screen" data-edit-start="00:00:25.40" data-edit-end="00:00:29.90" data-json-path="scenes.s2.lines.l7.layers[0]" title="top · screen · 2-screen · 00:00:25.40–00:00:29.90">
+              <p class="clip-meta">top · screen</p>
+              <p class="clip-name">2-screen</p>
+            </div>
+            <div class="clip" data-type="browser" data-layer="1" data-scene-id="s3" data-line-id="l8" data-line-ids="l8" data-source="render-log" data-edit-start="00:00:29.90" data-edit-end="00:00:38.90" data-json-path="scenes.s3.lines.l8.layers[0]" title="full · browser · render-log · 00:00:29.90–00:00:38.90">
+              <p class="clip-meta">full · browser</p>
+              <p class="clip-name">render-log</p>
+            </div>
+            <div class="clip" data-type="footage" data-layer="1" data-scene-id="s3" data-line-id="l10" data-line-ids="l10" data-source="room-wide" data-edit-start="00:00:38.90" data-edit-end="00:00:42.60" data-json-path="scenes.s3.lines.l10.layers[0]" title="full · wide · room-wide · 00:00:38.90–00:00:42.60">
+              <p class="clip-meta">full · wide</p>
+              <p class="clip-name">room-wide</p>
+            </div>
+          </div>
+        </div>
+        <!-- /review-lanes -->
+        <div class="playhead"></div>
+      </div>
+    </div>
+  </div>
+  <p class="subtitle-pop" hidden></p>
+</div>
+
+<script>
+  function bindDraftReview() {
+    const video = document.querySelector(".monitor-video");
+    const frame = document.querySelector(".monitor-frame");
+    const speeds = [...document.querySelectorAll(".speed")];
+    const zooms = [...document.querySelectorAll(".zoom")];
+    const clips = [...document.querySelectorAll(".clip")];
+    const scroll = document.querySelector(".timeline-scroll");
+    const timelineBody = document.querySelector(".timeline-body");
+    const ruler = document.querySelector(".ruler");
+    const playhead = document.querySelector(".playhead");
+    const timecodeNow = document.querySelector(".timecode-now");
+    const timecodeDur = document.querySelector(".timecode-dur");
+    const eye = document.querySelector(".lane-eye");
+    const subtitleOverlay = document.querySelector(".subtitle-overlay");
+    const subtitlePop = document.querySelector(".subtitle-pop");
+
+    let durationCs = 0;
+    let fallbackSeconds = 0;
+    let scrubbing = false;
+    let holdUntilSeeked = false;
+    let timelineSeek = false;
+    let rate = 1;
+    let queuedSeconds = null;
+    let wantBytesSeek = false;
+    let resumeAfterSeek = false;
+    let suppressNextPause = false;
+    let bytesPromise = null;
+    let bytesUrl = "";
+    let bytesInstalled = false;
+    let bytesFailed = false;
+    let pixelsPerSecond = 10;
+
+    //==================================================
+    // Clock
+    //==================================================
+
+    function clockToCentiseconds(clock) {
+      const parts = clock.split(":");
+      const hours = Number(parts[0]);
+      const minutes = Number(parts[1]);
+      const seconds = parts[2];
+      const dot = seconds.indexOf(".");
+      const whole = Number(dot === -1 ? seconds : seconds.slice(0, dot));
+      const frac = dot === -1 ? "0" : seconds.slice(dot + 1);
+      const hundredths = Number((frac + "00").slice(0, 2));
+      return ((hours * 60 + minutes) * 60 + whole) * 100 + hundredths;
+    }
+
+    function formatCentiseconds(centiseconds) {
+      let value = Math.max(0, Math.round(centiseconds));
+      const hundredths = value % 100;
+      value = Math.floor(value / 100);
+      const seconds = value % 60;
+      value = Math.floor(value / 60);
+      const minutes = value % 60;
+      const hours = Math.floor(value / 60);
+      const pad = (n) => String(n).padStart(2, "0");
+      return pad(hours) + ":" + pad(minutes) + ":" + pad(seconds) + "." + pad(hundredths);
+    }
+
+    function formatRuler(centiseconds) {
+      const whole = Math.floor(Math.max(0, centiseconds) / 100);
+      const minutes = Math.floor(whole / 60);
+      const seconds = whole % 60;
+      return minutes + ":" + String(seconds).padStart(2, "0");
+    }
+
+    //==================================================
+    // Place bars from the edit clock
+    //==================================================
+
+    clips.forEach((clip) => {
+      durationCs = Math.max(durationCs, clockToCentiseconds(clip.dataset.editEnd));
+    });
+
+    function place() {
+      if (subtitlePop) subtitlePop.hidden = true;
+      const seconds = durationCs / 100;
+      const fit = seconds > 0 ? scroll.clientWidth / seconds : 10;
+      pixelsPerSecond = Math.min(160, Math.max(Math.min(fit, 10), pixelsPerSecond));
+      const width = Math.max(scroll.clientWidth, Math.round(seconds * pixelsPerSecond));
+      timelineBody.style.width = width + "px";
+
+      clips.forEach((clip) => {
+        const start = clockToCentiseconds(clip.dataset.editStart);
+        const end = clockToCentiseconds(clip.dataset.editEnd);
+        clip.dataset.startCs = String(start);
+        clip.dataset.endCs = String(end);
+        clip.style.left = "calc(" + (start / durationCs) * 100 + "% + 1px)";
+        clip.style.width = "calc(" + ((end - start) / durationCs) * 100 + "% - 2px)";
+      });
+
+      ruler.replaceChildren();
+      const pxPerSecond = seconds > 0 ? width / seconds : 0;
+      let minor = 1;
+      let major = 5;
+      if (pxPerSecond < 6) {
+        minor = 30;
+        major = 120;
+      } else if (pxPerSecond < 14) {
+        minor = 10;
+        major = 60;
+      } else if (pxPerSecond < 28) {
+        minor = 5;
+        major = 30;
+      }
+      const lastSecond = Math.floor(seconds);
+      for (let second = 0; second <= lastSecond; second += minor) {
+        const tick = document.createElement("span");
+        const isMajor = second % major === 0;
+        tick.className = isMajor ? "tick major" : "tick";
+        tick.style.left = ((second * 100) / durationCs) * 100 + "%";
+        if (isMajor) {
+          const label = document.createElement("span");
+          label.textContent = formatRuler(second * 100);
+          tick.appendChild(label);
+        }
+        ruler.appendChild(tick);
+      }
+
+      timecodeDur.textContent = formatCentiseconds(durationCs);
+    }
+
+    function playheadClientX() {
+      const rect = timelineBody.getBoundingClientRect();
+      const ratio = durationCs > 0 ? (shownSeconds() * 100) / durationCs : 0;
+      return rect.left + Math.min(Math.max(ratio, 0), 1) * rect.width;
+    }
+
+    function zoomAround(next, clientX) {
+      const seconds = durationCs / 100;
+      if (seconds <= 0) return;
+      const bodyRect = timelineBody.getBoundingClientRect();
+      const scrollRect = scroll.getBoundingClientRect();
+      const anchor = clientX == null ? playheadClientX() : clientX;
+      const ratio = bodyRect.width > 0 ? (anchor - bodyRect.left) / bodyRect.width : 0;
+      const timeRatio = Math.min(Math.max(ratio, 0), 1);
+      pixelsPerSecond = next;
+      place();
+      const x = timeRatio * timelineBody.clientWidth;
+      scroll.scrollLeft = Math.max(0, x - (anchor - scrollRect.left));
+      paint();
+    }
+
+    //==================================================
+    // Playhead, seek, speed
+    //==================================================
+
+    function mediaReady() {
+      return video.readyState >= 1 && Number.isFinite(video.duration) && video.duration > 0;
+    }
+
+    function shownSeconds() {
+      if (scrubbing || holdUntilSeeked || !mediaReady()) return fallbackSeconds;
+      return video.currentTime;
+    }
+
+    function paint() {
+      const time = shownSeconds();
+      const cs = time * 100;
+      const ratio = durationCs > 0 ? cs / durationCs : 0;
+      const span = timelineBody.clientWidth;
+      const x = Math.min(Math.max(ratio * span, 0), Math.max(span - 2, 0));
+      playhead.style.left = x + "px";
+      timecodeNow.textContent = formatCentiseconds(cs);
+
+      const subsOn = !eye || eye.getAttribute("aria-pressed") === "true";
+      let subtitleText = "";
+      clips.forEach((clip) => {
+        const start = Number(clip.dataset.startCs);
+        const end = Number(clip.dataset.endCs);
+        const atEnd = cs >= durationCs - 0.5 && end >= durationCs - 0.5;
+        const on = cs >= start - 0.5 && (cs < end - 0.01 || atEnd);
+        clip.classList.toggle("is-current", on);
+        if (subsOn && clip.dataset.type === "subtitle" && cs >= start && cs < end) {
+          subtitleText = clip.dataset.subtitle || "";
+        }
+      });
+      if (subtitleOverlay) {
+        subtitleOverlay.textContent = subtitleText;
+        subtitleOverlay.classList.toggle("is-on", subsOn && subtitleText !== "");
+      }
+
+      if (!scrubbing && mediaReady() && !video.paused) {
+        const x = ratio * timelineBody.clientWidth;
+        const left = scroll.scrollLeft;
+        const right = left + scroll.clientWidth;
+        if (x < left + 48 || x > right - 48) {
+          scroll.scrollLeft = Math.max(0, x - scroll.clientWidth * 0.35);
+        }
+      }
+
+      speeds.forEach((button) => {
+        const on = Math.abs(Number(button.dataset.rate) - rate) < 0.001;
+        button.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    }
+
+    function mediaSeekable() {
+      if (!mediaReady() || !video.seekable.length) return false;
+      return video.seekable.end(video.seekable.length - 1) >= video.duration - 0.25;
+    }
+
+    // Assigning currentTime when the browser cannot read a later point in the
+    // file clamps the picture back to the start. Hold the clock, read the whole
+    // draft into memory, then jump.
+    function prepareBytes() {
+      if (bytesInstalled || bytesFailed) return;
+      if (bytesUrl) {
+        if (wantBytesSeek) installBytes();
+        return;
+      }
+      if (bytesPromise) return;
+      const src = video.currentSrc || video.getAttribute("src");
+      if (!src || src.indexOf("blob:") === 0) return;
+      bytesPromise = fetch(src).then((response) => {
+        if (!response.ok) throw new Error(String(response.status));
+        return response.blob();
+      }).then((blob) => {
+        bytesUrl = URL.createObjectURL(blob);
+        if (wantBytesSeek) installBytes();
+      }).catch(() => {
+        bytesPromise = null;
+        bytesFailed = true;
+      });
+    }
+
+    function installBytes() {
+      if (bytesInstalled || !bytesUrl) return;
+      bytesInstalled = true;
+      const shouldPlay = resumeAfterSeek || !video.paused;
+      video.addEventListener("loadedmetadata", function onBytes() {
+        video.removeEventListener("loadedmetadata", onBytes);
+        frame.classList.add("is-ready");
+        video.playbackRate = rate;
+        wantBytesSeek = false;
+        const target = Math.min(Math.max(fallbackSeconds, 0), video.duration);
+        holdUntilSeeked = target > 0.05;
+        timelineSeek = holdUntilSeeked;
+        if (holdUntilSeeked) video.currentTime = target;
+        if (shouldPlay) {
+          const start = () => {
+            video.play().catch(() => {});
+          };
+          if (video.seeking) video.addEventListener("seeked", start, { once: true });
+          else start();
+        }
+      });
+      video.src = bytesUrl;
+    }
+
+    function resumePlayback() {
+      if (!resumeAfterSeek || scrubbing || wantBytesSeek || video.seeking) return;
+      if (holdUntilSeeked && Math.abs(video.currentTime - fallbackSeconds) > 0.4) return;
+      resumeAfterSeek = false;
+      video.play().catch(() => {});
+    }
+
+    function applyMediaTime(seconds) {
+      const next = Math.min(Math.max(seconds, 0), video.duration || seconds);
+      holdUntilSeeked = true;
+      fallbackSeconds = next;
+      if (!mediaSeekable()) {
+        queuedSeconds = next;
+        wantBytesSeek = true;
+        if (!video.paused) {
+          resumeAfterSeek = true;
+          suppressNextPause = true;
+          video.pause();
+        }
+        prepareBytes();
+        paint();
+        return;
+      }
+      if (video.seeking) {
+        queuedSeconds = next;
+        paint();
+        return;
+      }
+      queuedSeconds = null;
+      if (!video.paused) {
+        resumeAfterSeek = true;
+        suppressNextPause = true;
+        video.pause();
+      }
+      timelineSeek = true;
+      video.currentTime = next;
+      paint();
+    }
+
+    function seekTo(seconds) {
+      const maxSeconds = durationCs / 100;
+      const next = Math.min(Math.max(seconds, 0), maxSeconds);
+      fallbackSeconds = next;
+      holdUntilSeeked = true;
+      if (!mediaReady()) {
+        paint();
+        return;
+      }
+      applyMediaTime(next);
+    }
+
+    function timeFromPointer(event) {
+      const rect = timelineBody.getBoundingClientRect();
+      const ratio = rect.width > 0 ? (event.clientX - rect.left) / rect.width : 0;
+      return Math.min(Math.max(ratio, 0), 1) * (durationCs / 100);
+    }
+
+    place();
+    paint();
+
+    window.addEventListener("resize", place);
+
+    zooms.forEach((button) => {
+      button.addEventListener("click", () => {
+        const factor = button.dataset.zoom === "in" ? 1.25 : 1 / 1.25;
+        zoomAround(pixelsPerSecond * factor, playheadClientX());
+      });
+    });
+
+    scroll.addEventListener("wheel", (event) => {
+      if (!event.altKey && !event.metaKey && !event.ctrlKey) return;
+      event.preventDefault();
+      const factor = Math.exp(-event.deltaY * 0.0015);
+      zoomAround(pixelsPerSecond * factor, event.clientX);
+    }, { passive: false });
+
+    timelineBody.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      scrubbing = true;
+      seekTo(timeFromPointer(event));
+      try {
+        timelineBody.setPointerCapture(event.pointerId);
+      } catch (error) {
+        scrubbing = false;
+      }
+    });
+
+    timelineBody.addEventListener("pointermove", (event) => {
+      if (!scrubbing) return;
+      seekTo(timeFromPointer(event));
+    });
+
+    timelineBody.addEventListener("pointerup", () => {
+      scrubbing = false;
+      paint();
+      resumePlayback();
+    });
+
+    timelineBody.addEventListener("pointercancel", () => {
+      scrubbing = false;
+      paint();
+      resumePlayback();
+    });
+
+    timelineBody.addEventListener("dragstart", (event) => {
+      event.preventDefault();
+    });
+
+    speeds.forEach((button) => {
+      button.addEventListener("click", () => {
+        rate = Number(button.dataset.rate);
+        video.playbackRate = rate;
+        paint();
+      });
+    });
+
+    if (eye) {
+      eye.addEventListener("click", () => {
+        const show = eye.getAttribute("aria-pressed") !== "true";
+        eye.setAttribute("aria-pressed", show ? "true" : "false");
+        eye.setAttribute("aria-label", show ? "Hide subtitles" : "Show subtitles");
+        frame.classList.toggle("is-subs-hidden", !show);
+        paint();
+      });
+    }
+
+    timelineBody.addEventListener("pointerover", (event) => {
+      const clip = event.target.closest(".clip");
+      if (!subtitlePop || !clip || clip.dataset.type !== "subtitle") return;
+      const name = clip.querySelector(".clip-name");
+      const overflows = name && (
+        name.scrollHeight > name.clientHeight + 1 ||
+        name.scrollWidth > name.clientWidth + 1
+      );
+      if (!overflows) {
+        subtitlePop.hidden = true;
+        return;
+      }
+      subtitlePop.textContent = clip.dataset.subtitle || name.textContent;
+      subtitlePop.hidden = false;
+      const rect = clip.getBoundingClientRect();
+      const popRect = subtitlePop.getBoundingClientRect();
+      let top = rect.top - popRect.height - 6;
+      if (top < 8) top = rect.bottom + 6;
+      const left = Math.min(Math.max(rect.left, 8), window.innerWidth - popRect.width - 8);
+      subtitlePop.style.top = top + "px";
+      subtitlePop.style.left = left + "px";
+    });
+
+    timelineBody.addEventListener("pointerout", (event) => {
+      const clip = event.target.closest(".clip");
+      if (!subtitlePop || !clip || clip.dataset.type !== "subtitle") return;
+      if (event.relatedTarget && clip.contains(event.relatedTarget)) return;
+      subtitlePop.hidden = true;
+    });
+
+    scroll.addEventListener("scroll", () => {
+      if (subtitlePop) subtitlePop.hidden = true;
+    });
+
+    video.addEventListener("loadedmetadata", () => {
+      frame.classList.add("is-ready");
+      video.playbackRate = rate;
+      paint();
+    });
+
+    if (video.readyState >= 1) {
+      frame.classList.add("is-ready");
+      video.playbackRate = rate;
+    }
+
+    video.addEventListener("error", () => {
+      frame.classList.remove("is-ready");
+    });
+
+    video.addEventListener("seeking", () => {
+      if (!timelineSeek && !scrubbing && !wantBytesSeek) holdUntilSeeked = false;
+    });
+
+    video.addEventListener("timeupdate", () => {
+      if (holdUntilSeeked && mediaReady() && Math.abs(video.currentTime - fallbackSeconds) < 0.4) {
+        holdUntilSeeked = false;
+        timelineSeek = false;
+        queuedSeconds = null;
+      }
+      if (!holdUntilSeeked && !scrubbing && mediaReady()) fallbackSeconds = video.currentTime;
+      paint();
+    });
+
+    video.addEventListener("seeked", () => {
+      timelineSeek = false;
+      if (queuedSeconds != null && mediaSeekable() && Math.abs(video.currentTime - queuedSeconds) > 0.35) {
+        const next = queuedSeconds;
+        queuedSeconds = null;
+        applyMediaTime(next);
+        return;
+      }
+      if (holdUntilSeeked && Math.abs(video.currentTime - fallbackSeconds) > 0.4) {
+        if (!bytesInstalled) {
+          wantBytesSeek = true;
+          prepareBytes();
+        }
+        paint();
+        return;
+      }
+      if (mediaReady() && Math.abs(video.currentTime - fallbackSeconds) < 0.4) {
+        holdUntilSeeked = false;
+        queuedSeconds = null;
+        fallbackSeconds = video.currentTime;
+      } else if (!holdUntilSeeked && mediaReady()) {
+        fallbackSeconds = video.currentTime;
+      }
+      paint();
+      resumePlayback();
+    });
+
+    video.addEventListener("play", paint);
+    video.addEventListener("pause", () => {
+      if (suppressNextPause) suppressNextPause = false;
+      else resumeAfterSeek = false;
+      paint();
+    });
+    video.addEventListener("ratechange", () => {
+      rate = video.playbackRate;
+      paint();
+    });
+
+    function frameTick() {
+      if (!scrubbing) paint();
+      requestAnimationFrame(frameTick);
+    }
+
+    requestAnimationFrame(frameTick);
+  }
+
+  bindDraftReview();
+</script>

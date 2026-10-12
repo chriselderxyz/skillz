@@ -1,0 +1,33 @@
+# Caption Style Fields
+- Map the description to style fields.
+    - case ("upper" | "lower" | "title" | "normal").
+    - chars_per_line (int).
+    - num_lines (int).
+    - font_name (str).
+    - font_size (px).
+    - bold (bool).
+    - italic (bool).
+    - underline (bool).
+    - strike_out (bool).
+    - spacing (px between chars).
+    - angle (degrees).
+    - text_color (HEX value).
+    - stroke_color (HEX value).
+    - back_color (HEX value).
+    - border_style (1 -> outline + shadow | 3 -> opaque background box).
+    - stroke_thickness (px).
+    - shadow (px).
+    - alignment (int - number pad position).
+    - margin_v (px - best to be >= 90 to avoid cutoffs).
+    - word_highlight (bool - restyle the word being spoken. false if omitted).
+    - highlight_text_color (HEX value - spoken-word fill. used when word_highlight is true).
+    - highlight_stroke_color (HEX value - spoken-word stroke color).
+    - highlight_stroke_thickness (px - spoken-word stroke thickness).
+    - highlight_zoom (number - spoken-word scale. 1.15 is 15% larger).
+    - highlight_bold (bool - bold on the spoken word. turn on with a thicker stroke).
+
+# Verification Loop
+- Create a caption preview using steps in `references/create-artifacts/create-caption-preview.md`.
+- Show the user `edit/caption-style/preview.png`, and `edit/caption-style/preview-9x16.png` when it exists.
+- Wait for feedback.
+- Adjust the style JSON and re-run the preview until they approve.
