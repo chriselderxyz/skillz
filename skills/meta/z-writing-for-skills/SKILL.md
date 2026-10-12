@@ -3,10 +3,10 @@ name: z-writing-for-skills
 description: Use anytime you are creating or editing ANY part of a skill (including scripts) for best practices, rules and guidelines to follow.
 ---
 
-# Skill Creation and Editing Workflow
-- Before finishing any changes to a skill, check every change against each rule in this skill.
+# Verification (IMPORTANT!!)
+- Before finishing any changes to a skill, check every change against each Hard Rule and Guideline in this skill.
     - Check changes in every skill file, including scripts.
-- Fix every violation, then repeat the check until none remain.
+- Fix EVERY violation, then repeat the check until none remain.
 
 # Hard Rules (IMPORTANT!!)
 
