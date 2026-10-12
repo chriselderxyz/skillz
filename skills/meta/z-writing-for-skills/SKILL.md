@@ -3,6 +3,11 @@ name: z-writing-for-skills
 description: Use anytime you are creating or editing ANY part of a skill (including scripts) for best practices, rules and guidelines to follow.
 ---
 
+# Verifications
+- Before finishing any changes to a skill, check every change against each rule in this skill.
+    - Check changes in every skill file, including scripts.
+- Fix every violation, then repeat the check until none remain.
+
 # Skill Structure
 
 ## Skill Types
