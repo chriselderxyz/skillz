@@ -591,7 +591,7 @@ def main() -> None:
             frame = group[0]["frame"]
             if frame == "full":
                 width, height = output_w, output_h
-            elif frame in {"top", "bottom"}:
+            elif isinstance(frame, str) and frame in {"top", "bottom"}:
                 width, height = output_w, max(2, (output_h // 2) // 2 * 2)
             elif isinstance(frame, dict):
                 width = max(2, int(round(output_w * float(frame["w"]))) // 2 * 2)

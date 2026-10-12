@@ -28,15 +28,20 @@
     // boolean, stored on the style
     "b_roll_enabled": false,
 
-    // true allows a graphic as the full-frame picture
-    "full_frame_graphics_enabled": true,
+    // true allows a full graphic, an animation or image that is the picture
+    "full_graphics_enabled": true,
 
-    // true allows a graphic over other layers
-    "graphic_overlays_enabled": true,
+    // full graphic duration stays inside this range
+    "min_full_graphic_length_ms": 3000,
+    "max_full_graphic_length_ms": 20000,
 
-    // graphic duration stays inside this range
-    "min_graphic_length_ms": 3000,
-    "max_graphic_length_ms": 20000,
+    // overlay graphic types allowed on this style. empty allows no overlay graphics
+    // creator-credit | hook-text | context | text-story | cta
+    "overlay_graphic_types": ["creator-credit", "context", "cta"],
+
+    // overlay graphic duration stays inside this range
+    "min_overlay_graphic_length_ms": 1500,
+    "max_overlay_graphic_length_ms": 20000,
 
     // true allows a headless browser recording of a webpage
     "browser_enabled": true,

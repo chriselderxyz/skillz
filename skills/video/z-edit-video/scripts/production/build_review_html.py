@@ -299,7 +299,7 @@ def main() -> None:
                 )
             else:
                 extra = ""
-            if frame in {"full", "top", "bottom", "pip"}:
+            if isinstance(frame, str) and frame in {"full", "top", "bottom", "pip"}:
                 frame_label = frame
             else:
                 frame_label = "custom"
@@ -319,6 +319,8 @@ def main() -> None:
                         if "-" in source_name
                         else source_name
                     )
+            if card["overlay_graphic_type"]:
+                kind = f"{kind} · {card['overlay_graphic_type']}"
             name = card.get("source") or card.get("graphic") or card.get("browser") or ""
             start = fmt_tc(card["start"])
             end = fmt_tc(card["end"])

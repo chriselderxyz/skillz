@@ -4,7 +4,10 @@
     - `path` is the file, relative to the working directory.
     - `type`, `audio`, `duration`, `resolution`, and `fps` are the measured facts.
     - `base_crops` holds `full`, `pip`, `top`, and `bottom`.
-    - A `graphic` **source** has `description`. Omit `path` until the graphic exists.
+    - An `animation` or `image` **source** has `description`. Omit `path` until it exists.
+    - An `image` **source** has no `audio`, `duration`, or `fps`.
+    - An **overlay graphic** **source** has `overlay_graphic_type`.
+    - A `clip` **source** has `description`, naming its creator and video.
     - A browser recording **source** has `type` `browser`, `description`, and `actions`. Omit `path` until the recording exists.
         - `actions` run on the recording clock, which starts at `00:00:00.00` on the first **layer** that uses that **source**.
         - Each action has `type` and `at`.
@@ -57,6 +60,7 @@
 - Every **layer** has `source`, which names an entry in `sources`.
 - A footage **layer** has `edit_start`, `edit_end`, and `cuts`.
 - A browser recording **layer** has no `cuts`. It uses `frame` `full`, `top`, `bottom`, or `{ "x", "y", "w", "h" }`.
+- An `animation` or `image` **layer** has no `cuts`. It uses `frame` `full` or `{ "x", "y", "w", "h" }`.
 - A **layer** may have `crop` to override `base_crops`.
 - A full-frame `head` **layer** may have `zoom_cut` set to `true` when `video_style.zoom_cut` is true. That jumps the picture in by `video_style.zoom_amount`.
 - **Layers** may overlap.
@@ -87,7 +91,7 @@
       "fps": 29.97
     },
     "coffee-first": {
-      "type": "graphic",
+      "type": "animation",
       "description": "Kinetic type: COFFEE FIRST, steam particles",
       "path": "edit/graphics/1-graphic-coffee-first.mp4"
     },
@@ -102,6 +106,13 @@
         { "type": "highlight", "at": "00:00:06.20", "text": "npm install example" }
       ],
       "path": "edit/browser/1-browser-install-docs.mp4"
+    },
+    "docs-url": {
+      "type": "image",
+      "overlay_graphic_type": "context",
+      "description": "Text label: example.com/docs",
+      "path": "edit/graphics/2-graphic-docs-url.png",
+      "resolution": "576x86"
     }
   },
   "video_settings": {
@@ -118,10 +129,12 @@
     "cut_keyboard": false,
     "take_selection_mode": "last",
     "b_roll_enabled": false,
-    "full_frame_graphics_enabled": true,
-    "graphic_overlays_enabled": true,
-    "min_graphic_length_ms": 3000,
-    "max_graphic_length_ms": 20000,
+    "full_graphics_enabled": true,
+    "min_full_graphic_length_ms": 3000,
+    "max_full_graphic_length_ms": 20000,
+    "overlay_graphic_types": ["creator-credit", "context", "cta"],
+    "min_overlay_graphic_length_ms": 1500,
+    "max_overlay_graphic_length_ms": 20000,
     "browser_enabled": true,
     "min_browser_length_ms": 3000,
     "max_browser_length_ms": 20000,
@@ -251,6 +264,12 @@
               "cuts": [
                 { "audio_source_start": "00:01:20.00", "audio_source_end": "00:01:25.00" }
               ]
+            },
+            {
+              "frame": { "x": 0.04, "y": 0.05, "w": 0.3, "h": 0.08 },
+              "source": "docs-url",
+              "edit_start": "00:00:09.41",
+              "edit_end": "00:00:12.41"
             }
           ]
         }
