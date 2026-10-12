@@ -47,18 +47,6 @@ Example.
 - When `<video_style>.cut_keyboard` is true, cut keyboard clacking.
   - When keyboard clacking stays, the user will review each keyboard only section themselves.
 
-## Image Reasoning
-- Reach for `scripts/inspect/timeline_view.py` when the text alone cannot settle a question.
-  - An ambiguous pause.
-  - Two **takes** that read identically.
-  - A cut edge you do not trust.
-- It is a drill-down, not a scan: one image per decision, not one per utterance.
-
-```bash
-uv run --no-project --with numpy --with Pillow scripts/inspect/timeline_view.py <src>/<n>-head.mp4 <start> <end> \
-  -o edit/verify/<n>-head_<start>-<end>.png
-```
-
 ## Take Selection
 - This is the bulk of the cutting work.
 - An unavoidable slip is kept when no better **take** exists (write the reason down on the kept take's `reason` field so it is not "corrected" back).

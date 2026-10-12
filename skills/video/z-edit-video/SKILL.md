@@ -411,25 +411,12 @@ uv run --no-project scripts/production/build_review_html.py
     - Joined two halves into a sentence that no longer parses.
     - etc.
 
-### B. Visual Jumps
-
-- For every cut boundary in `edit/edit.json`, run the following script on `edit/edit-draft.mp4`.
-- `<start>` / `<end>` are ±1.5s around the cut on the **edit clock**.
-- Write to new verification folders for each additional verification pass that is required (ex. `verify-2`, `verify-3`).
+### B. Draft Checks
+- Run the script to check `edit/edit-draft.mp4` for issues.
 
 ```bash
-uv run --no-project --with numpy --with Pillow scripts/inspect/timeline_view.py edit/edit-draft.mp4 <start> <end> \
-  -o edit/verify-1/cut_<n>.png
+uv run --no-project --with numpy scripts/inspect/check_draft.py
 ```
-
-- Check each image for issues.
-    - A visual jump or flash at the cut.
-    - A jump in scale where a full-frame layer's `zoom_cut` starts or ends is the zoom cut, leave it.
-    - A waveform spike at the join.
-    - A waveform that cuts off.
-    - A graphic in the wrong place or showing the wrong content.
-    - A browser recording on the wrong page, missing the scroll, or missing the highlight.
-    - etc.
 
 ## Gate
 - When the render is ready for review, explicitly tell the user.
@@ -522,7 +509,6 @@ ffmpeg -y -i <source> -c:v copy -c:a aac -b:a 192k -ar 48000 -movflags +faststar
     - `edit-draft.mp4`.
     - `base-draft.mp4`.
     - `base.mp4`.
-    - `verify-<n>/`.
     - `grading-previews/`.
     - `range-cuts-draft/`.
     - `range-cuts/`.

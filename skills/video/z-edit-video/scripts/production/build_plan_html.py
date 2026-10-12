@@ -2,9 +2,10 @@
 """Compile edit.json into a hash-stamped review document.
 
 Reads `edit/edit.json`, validates the edit clock against the audio-source-clock
-cuts, and writes the whole `edit/plan-<hash>.html`. The hash is the first 8
-hex digits of the SHA-256 of `edit.json`, so a stale review document is
-visible from its file name alone.
+cuts, rejects any kept_take cut edge that lands inside a spoken word and
+outside every silence, and writes the whole `edit/plan-<hash>.html`. The hash
+is the first 8 hex digits of the SHA-256 of `edit.json`, so a stale review
+document is visible from its file name alone.
 
 Nothing is authored for this document. Everything is read from the file that
 already owns it:
@@ -51,6 +52,73 @@ def esc(value) -> str:
 
 def label_from_stem(stem: str) -> str:
     return " ".join(part.capitalize() for part in re.split(r"[-_]", str(stem)) if part)
+
+
+# ==================================================
+# Cut placement
+# ==================================================
+
+# Slack on Scribe word edges
+WORD_EDGE_TOL_S = 0.02
+
+
+def cut_placement_errors(scenes: list[dict], edit_dir: Path) -> list[str]:
+    """Kept-take cut edges that land inside a spoken word and outside every silence.
+
+    Words come from `edit/source-transcriptions/<audio_source>.json`. Silences
+    come from `edit/silences.json`. An audio source with no transcript is skipped.
+    """
+    silences_path = edit_dir / "silences.json"
+    silence_map = (
+        json.loads(silences_path.read_text()).get("sources") or {}
+        if silences_path.is_file()
+        else {}
+    )
+    words_by_source: dict[str, list[dict]] = {}
+    errors: list[str] = []
+
+    for scene in scenes:
+        for line in scene["lines"]:
+            kept = line["kept"]
+            source = kept["audio_source"]
+            if source not in words_by_source:
+                transcript_path = edit_dir / "source-transcriptions" / f"{source}.json"
+                words_by_source[source] = (
+                    [
+                        w
+                        for w in json.loads(transcript_path.read_text()).get("words") or []
+                        if w.get("type") == "word"
+                        and w.get("start") is not None
+                        and w.get("end") is not None
+                    ]
+                    if transcript_path.is_file()
+                    else []
+                )
+            words = words_by_source[source]
+            silences = silence_map.get(source) or []
+
+            for cut in kept["cuts"]:
+                for field, t in (
+                    ("audio_source_start", cut["start"]),
+                    ("audio_source_end", cut["end"]),
+                ):
+                    if any(s["start"] <= t <= s["end"] for s in silences):
+                        continue
+                    word = next(
+                        (
+                            w
+                            for w in words
+                            if w["start"] + WORD_EDGE_TOL_S < t < w["end"] - WORD_EDGE_TOL_S
+                        ),
+                        None,
+                    )
+                    if word is not None:
+                        errors.append(
+                            f"{cut['path']}.{field}: {fmt_tc(t)} cuts into "
+                            f"\"{str(word.get('text') or '').strip()}\" "
+                            f"({fmt_tc(word['start'])}-{fmt_tc(word['end'])})"
+                        )
+    return errors
 
     # ==================================================
     # Main
@@ -150,6 +218,12 @@ def main() -> None:
     # ==================================================
 
     model = load_plan(plan_path, tolerance=args.tolerance)
+    placement_errors = cut_placement_errors(model["scenes"], plan_path.parent)
+    if placement_errors:
+        print(f"{len(placement_errors)} problem(s) in {plan_path}:", file=sys.stderr)
+        for message in placement_errors:
+            print(f"  {message}", file=sys.stderr)
+        sys.exit(1)
     plan_hash = model["hash"]
     scenes = model["scenes"]
     graphic_count = model["graphic_count"]
