@@ -14,7 +14,8 @@ This skill edits numbered raw sources into one finished video. It records your f
 - Color grading.
 - Burned-in captions.
 - Subtitle file.
-- Motion graphics.
+- Full graphics and overlay graphics, as animations or still images.
+- Overlay graphics for creator credits, hook text, context, text stories, and calls to action.
 - Browser recordings.
 - Plan review.
 - Draft review.
@@ -36,11 +37,12 @@ The skill asks for any of these that you have not already provided, then confirm
 | `srt_style` | No | A file in `configs/srt-styles/`, `none`, or create new | A sidecar SubRip subtitle file (`.srt`) |
 | `pip_style` | No | A file in `configs/pip-styles/`, `none`, or create new | The picture-in-picture inset |
 | `grading_style` | No | A file in `configs/grading-styles/`, `none`, or `auto` | Color grade. `auto` generates options for you to pick |
-| `graphics_style_guide` | No | A file in the create-graphics skill `configs/`, a file path, or create new | Look of generated graphics. Skipped when the video style turns both graphics flags off |
+| `graphics_style_guide` | No | A file in the create-graphics skill `configs/`, a file path, or create new | Look of generated animations and images. Skipped when the video style allows no full graphics and no overlay graphics |
 | `generate_chapters` | No | `true` or `false` | Whether `edit/chapters.md` is written with the finalized render |
 | `process_audio` | No | `true` or `false` | Whether Auphonic processes the finalized movie |
 | `src` | No | A folder. Default is the working directory (`.`) | Where the raw sources live |
 | `script` | No | A file path | The planned spoken script. The skill still transcribes the sources on its own |
+| `clip_credits` | No | Free text | The creator and video of each `clip` source. Asked only when `src` has one |
 
 `create new` writes a config with the create-config skill. Graphics style guides are written for the create-graphics skill. The other new configs are written for this skill.
 
@@ -54,6 +56,8 @@ The skill asks for any of these that you have not already provided, then confirm
 - **Scene** -> A group of **lines** that serves one purpose in the video.
 - **Layer** -> One picture in a **line**, stacked back to front.
 - **Picture-in-picture** -> The inset **layer**, frame `pip`.
+- **Full graphic** -> An animation or image **layer** with nothing under it. It is the content that supports the audio.
+- **Overlay graphic** -> An animation or image **layer** over other **layers**.
 
 ## Source Types
 
@@ -63,13 +67,15 @@ Sources in `src` are named `<source-group>-<source-type>`, for example `1-head.m
 | --- | --- | --- |
 | `screen` | Main footage | Screen recording, often with a picture-in-picture face |
 | `head` | Main footage | Talking-head camera |
-| `graphic` | Main footage | A motion graphic you already have |
+| `animation` | Main footage | An animation you already have |
+| `image` | Main footage | A still image you already have |
 | `browser` | Main footage | A browser recording of a webpage. The skill generates it |
 | `audio` | Main footage | Audio recorded with the main footage |
 | `wide` | Extra footage | A wide shot of the place |
 | `detail` | Extra footage | A close-up |
 | `reaction` | Extra footage | Someone reacting |
 | `cutaway` | Extra footage | A short shot that bridges a cut |
+| `clip` | Extra footage | Another creator's footage. Credited with `clip_credits` |
 | `voiceover` | Extra footage | Audio recorded separately from the picture |
 
 ## Config Files
@@ -109,8 +115,8 @@ All three target −14 LUFS (loudness units relative to full scale).
 | `long-talking-head.json` | Greeting | Full frame, split, and picture-in-picture. A shot may hold up to 60 seconds |
 | `short-talking-head.json` | Cold open | Full frame and picture-in-picture. A shot may hold up to 4 seconds |
 | `short-talking-head-retention.json` | Cold open | Full frame and picture-in-picture. A shot may hold up to 2 seconds |
-| `short-text-only-single-clip.json` | Text card | One full-frame clip with text overlays |
-| `short-text-only-multi-clip.json` | Text card | Full-frame text cards and text overlays. A shot may hold up to 2.5 seconds |
+| `short-text-only-single-clip.json` | Text card | One full-frame clip with text overlay graphics |
+| `short-text-only-multi-clip.json` | Text card | Full-frame text cards and text overlay graphics. A shot may hold up to 2.5 seconds |
 
 | Field | Meaning |
 | --- | --- |
@@ -122,10 +128,12 @@ All three target −14 LUFS (loudness units relative to full scale).
 | `cut_keyboard` | Remove keyboard clacking |
 | `take_selection_mode` | `last`, `best`, or `highest-energy` |
 | `b_roll_enabled` | Stored on the style. The cut planner does not read it yet |
-| `full_frame_graphics_enabled` | A graphic may be the picture |
-| `graphic_overlays_enabled` | A graphic may sit over other layers |
-| `min_graphic_length_ms` | Shortest graphic |
-| `max_graphic_length_ms` | Longest graphic |
+| `full_graphics_enabled` | An animation or image may be the picture (a full graphic) |
+| `min_full_graphic_length_ms` | Shortest full graphic |
+| `max_full_graphic_length_ms` | Longest full graphic |
+| `overlay_graphic_types` | Overlay graphics this style allows: `creator-credit`, `hook-text`, `context`, `text-story`, `cta`. Empty allows none |
+| `min_overlay_graphic_length_ms` | Shortest overlay graphic |
+| `max_overlay_graphic_length_ms` | Longest overlay graphic |
 | `browser_enabled` | A browser recording may be a layer |
 | `min_browser_length_ms` | Shortest browser recording |
 | `max_browser_length_ms` | Longest browser recording |
@@ -228,7 +236,7 @@ A grade is an ffmpeg filter description: `eq` for contrast, brightness, and satu
 
 ### Phase 4 — Produce Draft
 
-- Generate graphics.
+- Generate animations and images.
 - A subagent records browser recordings.
 - Render a draft.
 - Check the edit transcript and run the draft checks.
@@ -315,12 +323,12 @@ Each line has a `layers` array, painted back to front. A layer's `edit_start` an
 | Picture-in-picture | `frame` `pip`, plus the same footage fields | The inset. `pip_style` places and sizes it |
 | Split | `frame` `top` or `bottom`, plus the same footage fields | One half of the frame |
 | Window | `frame` `{ "x", "y", "w", "h" }`, plus the same footage fields | A box, as fractions of the frame |
-| Graphic | `frame` `full`, `source`, `edit_start`, `edit_end` | A graphic that fills the frame. An overlay keeps transparent pixels so the layers under it show through. No cuts |
+| Animation or image | `frame` `full` or `{ "x", "y", "w", "h" }`, `source`, `edit_start`, `edit_end` | A full graphic when nothing is under it. An overlay graphic when it sits over other layers, with transparent pixels showing the layers under it. No cuts |
 | Full-frame browser recording | `frame` `full`, `source`, `edit_start`, `edit_end` | A webpage recording that fills the frame. No cuts |
 | Split browser recording | `frame` `top` or `bottom`, `source`, `edit_start`, `edit_end` | That recording in one half of the frame. No cuts |
 | Window browser recording | `frame` `{ "x", "y", "w", "h" }`, `source`, `edit_start`, `edit_end` | That recording placed in a window. No cuts |
 
-`source` names the entry in `sources`. A graphic source has `type` `graphic` and `description`. `path` is the rendered file, relative to the working directory, omitted until the graphic exists. A generated graphic that is the picture is `edit/graphics/<order>-graphic-<graphic-name>.mp4`. An overlay is that same full frame as a transparent `.webm`. That path is written on the source.
+`source` names the entry in `sources`. A graphic source has `type` `animation` or `image`, and `description`. An overlay graphic's source also has `overlay_graphic_type`, one of the style's `overlay_graphic_types`. `path` is the rendered file, relative to the working directory, omitted until the graphic exists. A generated animation that is a full graphic is `edit/graphics/<order>-graphic-<graphic-name>.mp4`. An animation that is an overlay graphic is a transparent `.webm`. An image is a `.png`. A graphic in a `{ "x", "y", "w", "h" }` box is rendered at that box's size. That path is written on the source.
 
 A browser recording source has `type` `browser`, `description`, and `actions`. `path` is omitted until the recording exists. The file is `edit/browser/<order>-browser-<name>.mp4`. The page is recorded at that layer's size: the full video, one half, or the window. `actions` run on the recording clock, which starts at `00:00:00.00` when that browser recording starts. Every `open` has `url` and shows that page. Each page is already loaded when its `open` starts. A one-click banner is cleared before the page is on screen. A page that still covers the words is not used. A recording can `scroll` more than once. `scroll` brings `to` into view. `highlight` marks `text`. Layers that share one browser recording have to meet, with no gap. Coming back to a page after other footage is a new browser recording.
 
@@ -352,7 +360,7 @@ Scripts live in `scripts/` and are run from the working directory with `uv run -
 
 | Script | What it does |
 | --- | --- |
-| `scripts/production/build_plan_html.py` | Validates `edit/edit.json`, rejects any kept cut edge that lands inside a spoken word, and writes `edit/plan-<hash>.html` for review. The hash is the first 8 hex digits of `edit.json`, so a stale review page is obvious. Writes nothing if validation fails |
+| `scripts/production/build_plan_html.py` | Validates `edit/edit.json`, rejects any kept cut edge that lands inside a spoken word, and writes `edit/plan-<hash>.html` for review. The hash is the first 8 hex digits of `edit.json`, so a stale review page is obvious. Writes nothing if validation fails. `--cuts-only` skips the crop check and writes nothing. The cut planner runs it before crops are planned |
 | `scripts/production/render.py` | Renders `edit.json`: extracts each range, grades talking-head picture, concatenates the ranges, composites layers in order, and burns captions last. `--draft` writes the review render with compressed audio. A finalized render writes PCM audio |
 | `scripts/production/record_browser.py` | Records each browser recording with Playwright. Opens pages, scrolls, highlights text, and writes `edit/browser/<order>-browser-<name>.mp4` plus that source's `path`. `--name` re-records one source. `--zoom` sets the page zoom. 4K uses 2 unless `--zoom` is passed |
 | `scripts/production/build_srt.py` | Builds an edit-clock `.srt` from `edit.json` and the transcripts, using `srt_style` for wrapping |

@@ -51,7 +51,7 @@ Prompt the user for each input if it was not already provided.
 - `grading_style`.
     - Options: File names under `configs/grading-styles/*`, "none", or "auto".
 - `graphics_style_guide`.
-    - Skip when `full_frame_graphics_enabled` and `graphic_overlays_enabled` are both false on `video_style`.
+    - Skip when `video_style.full_graphics_enabled` is false and `video_style.overlay_graphic_types` is empty.
     - Options: File names under the `/z-create-graphics` skill's `configs/*`, an explicit file path or "create new".
 - `generate_chapters`.
     - Boolean used to determine if video chapters should be generated.
@@ -62,6 +62,9 @@ Prompt the user for each input if it was not already provided.
     - Default: working directory (`.`).
 - `script`.
     - The filename or path to a Script file that has the planned script for the video (This is NOT the exact transcript).
+- `clip_credits`.
+    - Skip when no **source** in `src` is a `clip`.
+    - The creator and video of each `clip` **source**.
 
 Create New Options.
 - If the user selects "create new" for any input option.
@@ -79,7 +82,7 @@ Create New Options.
 
 ## Gate
 - Confirm all inputs and configs with the user before moving on.
-- When `video_style.full_frame_graphics_enabled` or `video_style.graphic_overlays_enabled` is true, verify Node.js 22+.
+- When `video_style.full_graphics_enabled` is true or `video_style.overlay_graphic_types` is not empty, verify Node.js 22+.
 - When `video_style.browser_enabled` is true, verify Playwright can launch Chromium.
     - Run `uv run --no-project --with playwright python -c "from playwright.sync_api import sync_playwright; p = sync_playwright().start(); b = p.chromium.launch(headless=True); b.close(); p.stop()"`.
     - If that fails, run `uv run --no-project --with playwright python -m playwright install chromium` and verify again.
@@ -97,6 +100,7 @@ Create New Options.
     - An entry in `sources` for each **source**, keyed by the **source** name (ex. "1-head").
     - `path` is the file, relative to the working directory.
     - Set `type` from the **source type** in the filename.
+    - Write `description` on each `clip` **source** from `clip_credits`.
 - Write the JSON from `configs/video-settings/<video_settings>.json` under the `video_settings` key.
 - Write the JSON from `configs/video-styles/<video_style>.json` under the `video_style` key.
 - Write the JSON from the corresponding file for each of these input variables, under the same key as the input variable.
@@ -136,7 +140,7 @@ Create New Options.
   2. `voiceover`
   3. `screen`
   4. `head`
-  5. `graphic`
+  5. `animation`
   6. Any other **B-Roll**
 - Write the selected **source** name to `audio_source` on that **source group** in `edit/edit.json`.
 
@@ -260,7 +264,7 @@ uv run --no-project scripts/production/build_plan_html.py
 
 ### C. User Feedback Loop
 - If the user gives comments/feedback, re-run the required actions from this phase with the new context.
-    - 1. Cut Subagent - If edits to the **scenes**/**lines**/**takes**/**cuts**/**layers**/**graphics**/browser recordings/PIP placement/zoom cuts.
+    - 1. Cut Subagent - If edits to the **scenes**/**lines**/**takes**/**cuts**/**layers**/**full graphics**/**overlay graphics**/browser recordings/PIP placement/zoom cuts.
     - 2. Crop Subagent - If **layers** changed or a crop needs edits.
     - 3. Color Grade Subagent - If the user requests a new auto grading run.
     - 4. Caption Preview - If the user requests to change the `caption_style`.
@@ -278,10 +282,9 @@ This phase follows the finalized plan in `edit/edit.json`.
 
 ### Action Context
 - Wait for all subagents to complete before continuing.
-- Every **source** with `type` `graphic` is one graphic.
+- Every **source** with `type` `animation` or `image` is one graphic.
 - A graphic **layer** names that **source**.
 - Read `orientation` and `resolution` from `video_settings` in `edit/edit.json`.
-- Skip graphic creation and graphic editing when `full_frame_graphics_enabled` and `graphic_overlays_enabled` are both false.
 
 ### A. Graphic Creation
 - Use this step to create NEW graphics.
@@ -299,7 +302,7 @@ Run `/z-create-graphics` with these inputs:
 - `resolution`: <resolution from edit/edit.json>.
 - `output_dir`: `edit/graphics`.
 - `graphics`.
-    - <Give every graphic source that has no `path`, in order of first appearance. graphic_number is that order. graphic_name is the source name. graphic_duration is that graphic's total duration, as HH:MM:SS.ss. graphic_description is the source description. frame is that graphic's frame. Include whether other layers sit behind it>.
+    - <Give every graphic source that has no `path`, in order of first appearance. graphic_number is that order. graphic_name is the source name. graphic_type is the source type. graphic_duration is an `animation` source's total duration, as HH:MM:SS.ss. graphic_description is the source description. frame is that graphic's frame. Include whether other layers sit behind it>.
 ```
 
 ### B. Graphic Editing
@@ -316,7 +319,7 @@ Run `/z-create-graphics` with these inputs:
 - `resolution`: <resolution from edit/edit.json>.
 - `output_dir`: `edit/graphics`.
 - `graphics`.
-    - <Give each affected graphic source with its original graphic_number, graphic_name, graphic_duration as that graphic's total duration, graphic_description from the source, graphic_feedback, frame, and whether other layers sit behind it>.
+    - <Give each affected graphic source with its original graphic_number, graphic_name, graphic_type, graphic_duration as an `animation` source's total duration, graphic_description from the source, graphic_feedback, frame, and whether other layers sit behind it>.
 ```
 
 ### C. Update the Source

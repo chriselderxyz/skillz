@@ -31,12 +31,6 @@
 - Apply `cut_padding_ms` and `line_gap_ms` to kept takes.
 - Follow the shape and rules in `references/shared-context/edit-json.md`.
 
-## Action 2. Verify
-- Confirm each **line** `edit_start` equals the previous **line** `edit_end`.
-- Confirm the sum of each `kept_take` cut durations equals that **line**'s **edit clock** duration.
-- Confirm no **line** or **take** identifier is used twice.
-- Correct `edit/edit.json` and verify again until it passes.
-
 # Phase 2: Cut Silences
 
 ## Phase Context
@@ -74,7 +68,14 @@ Execute `references/subagents/search-browser-pages.md`
 - Follow the Layers and Zoom Cuts sections in `references/shared-context/cutting.md`.
 - Write the `layers` array on the **line** in `edit/edit.json`.
 - Follow the layer shape in `references/shared-context/edit-json.md`.
-- For a new graphic, add `sources.<name>` with `type` `graphic` and `description`, and set the **layer** `source` to that name.
+- For a new `animation` or `image`, add `sources.<name>` with that `type` and `description`, and set the **layer** `source` to that name.
+- To see what an **overlay graphic** covers, grab a still of the **source** under it.
+
+```bash
+uv run --no-project scripts/inspect/screenshot.py <source-path> --time <seconds> \
+  -o edit/overlay-stills/<source-name>-<seconds>.png
+```
+
 - For a new browser recording, add `sources.<name>` with `type` `browser`, `description`, and `actions`, and set the **layer** `source` to that name.
 - Use a page that search returned.
   - Put that page's `url` on an `open` action.
@@ -83,16 +84,18 @@ Execute `references/subagents/search-browser-pages.md`
 - Follow the Browser Recordings section in `references/shared-context/cutting.md`.
 - Set `"zoom_cut": true` on each chosen full-frame `head` **layer**.
 
-## Action 3. Verify
-- Every **line** has a `layers` array.
-- A `top-bottom-split` **line** has `frame` `top` and `frame` `bottom`.
-- Each footage **layer**'s cut durations equal that **layer**'s **edit clock** duration.
-- Each graphic stays inside `min_graphic_length_ms` and `max_graphic_length_ms` when those fields are set.
-- Each browser recording stays inside `min_browser_length_ms` and `max_browser_length_ms` when those fields are set.
-- The first browser recording action is `open` at `00:00:00.00`.
-- Correct `edit/edit.json` and verify again until it passes.
+# Phase 4: Check
 
-# Phase 4: Respond
+## Action 1
+- Run the script to check `edit/edit.json`.
+
+```bash
+uv run --no-project scripts/production/build_plan_html.py --cuts-only
+```
+
+- Correct `edit/edit.json` and rerun until it reports no problems.
+
+# Phase 5: Respond
 
 ## Action 1
 - Return the **scenes**, **lines**, and **layers** you added, removed, or changed.

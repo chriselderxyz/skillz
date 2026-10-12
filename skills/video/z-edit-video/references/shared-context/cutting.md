@@ -79,10 +79,10 @@ Example.
   - `full` allows `frame` `full`.
   - `top-bottom-split` is `frame` `top` and `frame` `bottom` on the same **line**.
   - `pip` allows `frame` `pip` over the **layers** under it.
-- Each line can have at most one full-frame video layer (not including graphics which can have transparency).
+- Each line can have at most one full-frame video layer (not including **overlay graphics**).
   - Switching to a different video source partway through means splitting the line.
 - When the **line** explains something on screen, use the `screen` **source** when one is available.
-- When the **line** explains a provided `graphic`, use that `graphic` **source**.
+- When the **line** explains a provided `animation` or `image`, use that **source**.
 - When the **line** explains a webpage that no `screen` **source** already shows, use a browser recording **source**.
 - Prefer a `head` **source** for a conclusion, a punchline, or a move to a new point.
 - Avoid a flash of `head` between two shots of the same other **source**.
@@ -92,14 +92,28 @@ Example.
   - Each **line** still has its own `layers` entry, with that **line**'s `edit_start`, `edit_end`, and `cuts`.
 
 ## Graphics
-- When `video_style.full_frame_graphics_enabled` is true, a graphic may be a `frame` `full` **layer**.
-- When `video_style.graphic_overlays_enabled` is true, a graphic may sit over other **layers**.
-  - An overlay is `frame` `full`. Transparent pixels show the **layers** under it.
-- When both flags are false, do not add a graphic.
-- Check **A-Roll** and **B-Roll** before adding a graphic.
-- Keep each graphic between `video_style.min_graphic_length_ms` and `video_style.max_graphic_length_ms` when those fields are set.
-- A graphic that explains a point must be readable at 1x.
-- A graphic at `min_graphic_length_ms` only has to be recognizable at 1x.
+- Use an `animation` when the content looks better with motion (ex. `npm install` typing on from left to right).
+- Use an `image` when nothing on it needs to move.
+- Check **A-Roll** and **B-Roll** before adding a **full graphic** or **overlay graphic**.
+- When an `animation` or `image` shows text, write that text word for word in its `description`.
+- An `animation` or `image` that explains a point must be readable at 1x.
+- An `animation` or `image` at its minimum length only has to be recognizable at 1x.
+
+### Full Graphics
+- Only add a **full graphic** when `video_style.full_graphics_enabled` is true.
+- Keep each **full graphic** between `video_style.min_full_graphic_length_ms` and `video_style.max_full_graphic_length_ms` when those fields are set.
+
+### Overlay Graphics
+- Only add **overlay graphics** of a type listed in `video_style.overlay_graphic_types`.
+  - `creator-credit`: names the creator and video of a `clip` **source** each time it comes on screen.
+  - `hook-text`: the hook, as text, in the opening seconds.
+  - `context`: anything that gives context to what is on screen.
+  - `text-story`: **overlay graphics** that tell a story with text.
+  - `cta`: a call to action.
+- Place each **overlay graphic** with `frame` `{ "x", "y", "w", "h" }` sized to its content.
+  - Use `frame` `full` only when the **overlay graphic** spans the frame.
+- Keep **overlay graphics** off faces, captions, the `pip` **layer**, and what the **line** is about.
+- Keep each **overlay graphic** between `video_style.min_overlay_graphic_length_ms` and `video_style.max_overlay_graphic_length_ms` when those fields are set.
 
 ## Browser Recordings
 - A browser recording is a headless screen recording of one or more webpages.
@@ -107,7 +121,7 @@ Example.
 - When `video_style.browser_enabled` is false, do not add any browser recordings.
 - Check **A-Roll** and **B-Roll** before adding a browser recording.
 - Use a `screen` **source** when one already shows that page.
-- Use a `graphic` for a designed motion graphic.
+- Use an `animation` for designed motion.
 - Use a browser recording when the **line** is about a public webpage or the page can support a point.
 - The page has to render without an account, and the words have to be on screen.
 - A one-click banner is cleared before the page is on screen.
@@ -141,7 +155,7 @@ Example.
 ## Picture in Picture
 - Add a `pip` **layer** only when `pip` is in `video_style.allowed_layouts` and `pip_style` is set.
 - `pip` is only applied to `head` **sources**.
-- Add a `pip` **layer** when a `head` **source** is available and another **layer** on the **line** is a `screen` **source**, a full frame graphic, or a full frame browser recording.
+- Add a `pip` **layer** when a `head` **source** is available and another **layer** on the **line** is a `screen` **source**, a **full graphic**, or a full frame browser recording.
 - Do not add a `pip` **layer** when a `head` **source** is already `frame` `full`.
 
 # Line Guidelines

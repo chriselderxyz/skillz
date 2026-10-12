@@ -1343,6 +1343,9 @@ def build_final_composite(
             # (overlay keeps going until every input is exhausted).
         graphic_path = Path(graphic["file"])
         graphic_input = ["-t", f"{end - t:.3f}"]
+        # A still repeats its one frame for the whole window.
+        if graphic_path.suffix.lower() == ".png":
+            graphic_input = ["-loop", "1", *graphic_input]
         # Native vp9 drops the WebM Matroska alpha sidecar (yuv420p), so a
         # transparent graphic becomes an opaque rectangle. libvpx-vp9 keeps
         # yuva420p. This -c:v must sit immediately before this -i.

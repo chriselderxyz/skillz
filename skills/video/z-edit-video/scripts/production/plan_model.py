@@ -156,7 +156,9 @@ def _check_length(
 # ==================================================
 
 
-def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
+def load_plan(
+    plan_path: Path, tolerance: float = 0.011, check_crops: bool = True
+) -> dict:
     """Read, validate, and resolve `edit.json`.
 
     Returns `{"hash", "title", "description", "issues", "runtime", "scenes",
@@ -166,7 +168,8 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
     with grid rows. Every cut carries `edit_start` / `edit_end`. A footage
     layer's resolved `start` / `end` are seeks in that source: the audio
     source clock plus that source's sync offset. Unsynced footage
-    keeps the seek written on the layer.
+    keeps the seek written on the layer. `check_crops=False` skips the
+    required-crop check, for a plan whose crops are not planned yet.
     """
     if not plan_path.is_file():
         sys.exit(f"edit.json not found: {plan_path}")
@@ -203,7 +206,9 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
         if not isinstance(record, dict):
             errors.append(f"sources.{source_name}: expected an object")
             continue
-        if record.get("type") in {"graphic", "browser"}:
+        if record.get("type") == "clip" and not str(record.get("description") or "").strip():
+            errors.append(f"sources.{source_name}.description: required")
+        if record.get("type") in {"animation", "image", "browser"}:
             if not str(record.get("description") or "").strip():
                 errors.append(f"sources.{source_name}.description: required")
             path = record.get("path")
@@ -328,6 +333,16 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
         errors.append("video_style.zoom_amount: expected a number greater than 1")
     elif raw_zoom_amount is not None and not zoom_amount_ok:
         errors.append("video_style.zoom_amount: expected a number greater than 1")
+    raw_overlay_graphic_types = video_style.get("overlay_graphic_types", [])
+    if not isinstance(raw_overlay_graphic_types, list) or not all(
+        isinstance(name, str) for name in raw_overlay_graphic_types
+    ):
+        errors.append(
+            "video_style.overlay_graphic_types: expected an array of overlay graphic types"
+        )
+        overlay_graphic_types: set[str] = set()
+    else:
+        overlay_graphic_types = set(raw_overlay_graphic_types)
     pip_style = plan.get("pip_style")
     pip_aspect = None
     if isinstance(pip_style, dict):
@@ -595,9 +610,13 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
                         f"{card_path}.source: {source_name} is missing from sources"
                     )
                     record = {}
-                is_graphic = isinstance(record, dict) and record.get("type") == "graphic"
+                is_graphic = isinstance(record, dict) and record.get("type") in {
+                    "animation",
+                    "image",
+                }
                 is_browser = isinstance(record, dict) and record.get("type") == "browser"
                 is_placed = is_graphic or is_browser
+                is_overlay = False
                 frame = card.get("frame")
                 if is_placed:
                     if card.get("cuts"):
@@ -622,6 +641,41 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
                         )
                     if is_graphic:
                         graphic_index += 1
+                        # An overlay has an earlier layer on this line under it.
+                        is_overlay = (
+                            card_start is not None
+                            and card_end is not None
+                            and any(
+                                under["start"] is not None
+                                and under["end"] is not None
+                                and under["start"] < card_end - tolerance
+                                and card_start < under["end"] - tolerance
+                                for under in this_line["layers"]
+                            )
+                        )
+                        if (
+                            not is_overlay
+                            and video_style.get("full_graphics_enabled") is not True
+                        ):
+                            errors.append(
+                                f"{card_path}: video_style.full_graphics_enabled "
+                                "is not true"
+                            )
+                        overlay_graphic_type = record.get("overlay_graphic_type")
+                        if is_overlay and overlay_graphic_type not in overlay_graphic_types:
+                            message = (
+                                f"sources.{source_name}.overlay_graphic_type: "
+                                "expected one of video_style.overlay_graphic_types"
+                            )
+                        elif not is_overlay and overlay_graphic_type is not None:
+                            message = (
+                                f"sources.{source_name}.overlay_graphic_type: "
+                                "belongs on an overlay"
+                            )
+                        else:
+                            message = None
+                        if message and message not in errors:
+                            errors.append(message)
                     else:
                         browser_index += 1
                 else:
@@ -673,7 +727,7 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
                         has_audio = info.get("audio")
                         from_zero = (
                             source_type
-                            in {"wide", "detail", "reaction", "cutaway", "voiceover"}
+                            in {"wide", "detail", "reaction", "cutaway", "clip", "voiceover"}
                             or has_audio is False
                             or source_group != audio_group
                         )
@@ -903,7 +957,7 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
                     )
                     for cut in cuts:
                         cut["crop"] = layer_crop
-                        if layer_crop is None and needs_crop:
+                        if layer_crop is None and needs_crop and check_crops:
                             errors.append(f"{cut['path']}: crop is required")
 
                 source_type = ""
@@ -930,6 +984,10 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
                     "zoom_cut": card.get("zoom_cut") is True,
                     "graphic": source_name if is_graphic else "",
                     "graphic_index": graphic_index if is_graphic else None,
+                    "overlay": is_overlay,
+                    "overlay_graphic_type": (
+                        record.get("overlay_graphic_type") if is_overlay else None
+                    ),
                     "browser": source_name if is_browser else "",
                     "browser_index": browser_index if is_browser else None,
                     "actions": record.get("actions") if is_browser else None,
@@ -949,6 +1007,11 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
             if len(full_footage) > 1:
                 errors.append(
                     f"{line_path}: more than one layer uses frame full"
+                )
+            named = {c["frame"] for c in this_line["layers"] if isinstance(c["frame"], str)}
+            if ("top" in named) != ("bottom" in named):
+                errors.append(
+                    f"{line_path}.layers: a top-bottom split needs frame top and frame bottom"
                 )
             cover = [
                 c
@@ -1016,7 +1079,10 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
     # ==============================
     # Graphics
     # ==============================
-    min_graphic_ms, max_graphic_ms = _length_range(video_style, "graphic", errors)
+    length_ranges = {
+        kind: _length_range(video_style, kind, errors)
+        for kind in ("full_graphic", "overlay_graphic")
+    }
 
     graphic_layers: dict[str, list[dict]] = {}
     for scene in scenes:
@@ -1044,13 +1110,15 @@ def load_plan(plan_path: Path, tolerance: float = 0.011) -> dict:
                 plays.append(
                     {"start": card["start"], "end": card["end"], "frame": card["frame"]}
                 )
+        kind = "overlay_graphic" if group[0]["overlay"] else "full_graphic"
+        min_ms, max_ms = length_ranges[kind]
         for play in plays:
             _check_length(
-                f"sources.{name}: graphic at {fmt_tc(play['start'])}",
+                f"sources.{name}: {kind.replace('_', ' ')} at {fmt_tc(play['start'])}",
                 play["end"] - play["start"],
-                "graphic",
-                min_graphic_ms,
-                max_graphic_ms,
+                kind,
+                min_ms,
+                max_ms,
                 tolerance,
                 errors,
             )

@@ -1,6 +1,6 @@
 ---
 name: z-create-graphics
-description: Create or edit an ordered set of motion graphics for an existing video plan and render verified video files
+description: Create or edit an ordered set of graphics, each an animation or an image, for an existing video plan and render verified files
 ---
 
 # Global Context
@@ -9,7 +9,7 @@ description: Create or edit an ordered set of motion graphics for an existing vi
 - Run `/z-task-skill-structure`.
 
 ## Purpose
-- Create formed motion-graphics jobs for an existing video plan.
+- Create formed graphics jobs for an existing video plan.
 
 ## HyperFrames Skills
 - Load and follow these skills for their domains.
@@ -17,6 +17,7 @@ description: Create or edit an ordered set of motion graphics for an existing vi
     - `/hyperframes-animation` for motion using 2–4 rules and GSAP by default.
     - `/hyperframes-creative` for brand, house style, video composition and design adherence.
     - `/hyperframes-cli` for lint, check and render.
+- Skip `/hyperframes-animation` when every graphic is an `image`.
 - Do not run `/hyperframes`.
 - Do not run an intent interview, route table, `BRIEF.md`, Studio preview or approval gate.
 - Skip HyperFrames previews and approval gates.
@@ -24,11 +25,11 @@ description: Create or edit an ordered set of motion graphics for an existing vi
 ## Project Structure
 ```text
 <output_dir>/
-├── hyperframes.json
 ├── frame.md
-├── index.html
-├── compositions/<graphic_number>-graphic-<graphic_name>.html
-└── <graphic_number>-graphic-<graphic_name>.mp4 or .webm
+├── <graphic_number>-graphic-<graphic_name>/
+│   ├── hyperframes.json
+│   └── index.html
+└── <graphic_number>-graphic-<graphic_name>.mp4, .webm, or .png
 ```
 
 # Phase 1: Setup
@@ -50,7 +51,10 @@ description: Create or edit an ordered set of motion graphics for an existing vi
         - Each graphic has.
             - `graphic_number`.
             - `graphic_name`.
+            - `graphic_type`.
+                - Options: `animation` or `image`.
             - `graphic_duration` (as an `HH:MM:SS.ss` string, seconds, or minutes).
+                - Omitted for an `image`.
             - `graphic_description`.
             - `frame`.
                 - `full`, or `{ "x", "y", "w", "h" }` as fractions of the output frame.
@@ -74,12 +78,12 @@ description: Create or edit an ordered set of motion graphics for an existing vi
 # Phase 2: Project Setup
 
 ## Action 1. Initialize
-- Skip when `mode` is `edit`.
-- Skip if `<output_dir>/hyperframes.json` exists.
+- Create a project for each graphic.
+- Skip a graphic whose `<output_dir>/<graphic_number>-graphic-<graphic_name>/hyperframes.json` exists.
 
 ```bash
 mkdir -p <output_dir>
-npx --yes hyperframes init <output_dir> --example blank --non-interactive --skip-skills --resolution <orientation>
+npx --yes hyperframes init <output_dir>/<graphic_number>-graphic-<graphic_name> --example blank --non-interactive --skip-skills --resolution <orientation>
 ```
 
 ## Action 2. Apply Style Guide
@@ -91,48 +95,46 @@ npx --yes hyperframes init <output_dir> --example blank --non-interactive --skip
 
 ## Phase Context
 - Work on one graphic at a time in the order provided.
-- Finish authoring, checking, rendering and verification before starting the next graphic.
+- Finish authoring, checking and rendering before starting the next graphic.
 - Run HyperFrames commands from `<output_dir>`.
 
 ## Action 1. Author
 
 ### Action Context
-- Each graphic is its own composition.
-- Keep `index.html` as the unused blank scaffold.
-- A graphic fills the frame. Author that canvas at 1920×1080 for landscape or 1080×1920 for portrait.
-- When other layers sit behind the graphic, it is an overlay. An overlay is that same full frame, but leaves pixels that should show the layers under it transparent.
-- When `resolution` is `4K`, author at the HD pixel size and render with `--resolution landscape-4k` or `portrait-4k`.
-- Do not set composition dimensions to 4K.
+- Author each graphic in its project's `index.html`.
+- The output size is.
+    - Landscape HD: 1920×1080.
+    - Landscape 4K: 3840×2160.
+    - Portrait HD: 1080×1920.
+    - Portrait 4K: 2160×3840.
+- A graphic fills its `frame`.
+    - A `full` canvas is the HD output size.
+    - A `{ "x", "y", "w", "h" }` canvas is that box in pixels: `w` times the output width by `h` times the output height, each rounded to an even number.
+        - Ex. `w` 0.4 on a 3840 wide output is 1536 pixels wide.
+- When other layers sit behind the graphic, it is an overlay graphic. Otherwise it is a full graphic.
+- An overlay graphic leaves pixels that should show the layers under it transparent.
+- When `resolution` is `4K`, render a `full` graphic with `--resolution landscape-4k` or `portrait-4k`.
 - Treat `<output_dir>/frame.md` as the brand source.
 - Use its colors and fonts verbatim.
 - Do not select a frame preset or invent additional colors.
 - Never use a gradient background.
     - Fill an opaque background with one solid color from `frame.md`.
-- Set the duration to the graphic's `graphic_duration`.
-- Pass `-c compositions/<graphic_number>-graphic-<graphic_name>.html` to every composition command.
-- Render a graphic that is the picture to `<graphic_number>-graphic-<graphic_name>.mp4`.
-- Render an overlay to `<graphic_number>-graphic-<graphic_name>.webm` with transparency.
+- Set an `animation`'s duration to its `graphic_duration`.
+- An `image` has no motion, a duration of one frame, and `data-no-timeline` on its root.
+- Pass the graphic's project folder, `<graphic_number>-graphic-<graphic_name>`, to every HyperFrames command.
+- Render an `animation` that is a full graphic to `<graphic_number>-graphic-<graphic_name>.mp4`.
+- Render an `animation` that is an overlay graphic to `<graphic_number>-graphic-<graphic_name>.webm` with transparency.
+- Render an `image` with `--format png-sequence` to a temporary folder, move its first frame to `<graphic_number>-graphic-<graphic_name>.png`, and delete the folder.
 
 ### A. Create
-- When `mode` is `create`, create each composition from its `graphic_description`.
+- When `mode` is `create`, write each graphic's `index.html` from its `graphic_description`.
 - Follow `/hyperframes-cli` for lint, check and render.
 
 ### B. Edit
-- When `mode` is `edit`, update each composition from its `graphic_feedback`.
+- When `mode` is `edit`, update each graphic's `index.html` from its `graphic_feedback`.
 - Follow `/hyperframes-cli` for lint, check and render.
-
-## Action 2. Verify
-- Run `ffprobe` on each rendered graphic before starting the next.
-- Verify the rendered duration equals the graphic's `graphic_duration`.
-- Verify the graphic matches `orientation` and `resolution`.
-    - Landscape HD: 1920×1080.
-    - Landscape 4K: 3840×2160.
-    - Portrait HD: 1080×1920.
-    - Portrait 4K: 2160×3840.
-- Verify an overlay's pixel format is `yuva420p`.
-- Fix and rerender any graphic that fails verification.
 
 # Phase 4: Respond
 
 ## Action 1
-- Return each generated file path and duration to the caller.
+- Return each generated file path, and each `animation`'s duration, to the caller.

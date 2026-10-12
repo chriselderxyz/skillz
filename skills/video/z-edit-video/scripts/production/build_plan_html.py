@@ -27,6 +27,7 @@ in one editable place.
 Usage:
     python scripts/production/build_plan_html.py
     python scripts/production/build_plan_html.py --tolerance 0.02
+    python scripts/production/build_plan_html.py --cuts-only
 """
 
 from __future__ import annotations
@@ -159,6 +160,11 @@ def main() -> None:
         default=0.011,
         help="Allowed clock drift in seconds (default: 0.011)",
     )
+    ap.add_argument(
+        "--cuts-only",
+        action="store_true",
+        help="Check the cut plan before crops are planned, and write nothing",
+    )
     args = ap.parse_args()
 
     plan_path = args.plan.resolve()
@@ -217,13 +223,18 @@ def main() -> None:
     # Pass 1 - Load and validate edit.json
     # ==================================================
 
-    model = load_plan(plan_path, tolerance=args.tolerance)
+    model = load_plan(
+        plan_path, tolerance=args.tolerance, check_crops=not args.cuts_only
+    )
     placement_errors = cut_placement_errors(model["scenes"], plan_path.parent)
     if placement_errors:
         print(f"{len(placement_errors)} problem(s) in {plan_path}:", file=sys.stderr)
         for message in placement_errors:
             print(f"  {message}", file=sys.stderr)
         sys.exit(1)
+    if args.cuts_only:
+        print(f"no problems in {plan_path}")
+        return
     plan_hash = model["hash"]
     scenes = model["scenes"]
     graphic_count = model["graphic_count"]
@@ -265,7 +276,7 @@ def main() -> None:
     source_rows: dict[str, list[dict]] = {}
     grouped_sources: dict[str, list[tuple[str, dict]]] = {}
     for name, source in plan_sources.items():
-        if not isinstance(source, dict) or source.get("type") in {"graphic", "browser"}:
+        if not isinstance(source, dict) or source.get("type") in {"animation", "image", "browser"}:
             continue
         group_number = str(name).split("-", 1)[0]
         grouped_sources.setdefault(group_number, []).append((str(name), source))
@@ -742,7 +753,7 @@ def main() -> None:
                         source_name.split("-", 1)[1] if "-" in source_name else source_name
                     )
                 name = card.get("source") or ""
-                overlay = card["type"] == "graphic" and order > 1
+                overlay = card["overlay"]
                 if frame == "pip":
                     box_w = pip_width * frame_w
                     box_h = box_w / pip_aspect
@@ -922,7 +933,7 @@ def main() -> None:
             else:
                 css = "active-source"
                 extra = ""
-            if frame in {"full", "top", "bottom", "pip"}:
+            if isinstance(frame, str) and frame in {"full", "top", "bottom", "pip"}:
                 frame_label = frame
             else:
                 frame_label = "custom"
@@ -942,6 +953,8 @@ def main() -> None:
                         if "-" in source_name
                         else source_name
                     )
+            if card["overlay_graphic_type"]:
+                kind = f"{kind} · {card['overlay_graphic_type']}"
             name = card.get("source") or card.get("graphic") or card.get("browser") or ""
             described = bool(card["description"])
             tag = "details" if described else "div"
