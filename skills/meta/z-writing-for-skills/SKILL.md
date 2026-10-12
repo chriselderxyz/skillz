@@ -3,78 +3,29 @@ name: z-writing-for-skills
 description: Use anytime you are creating or editing ANY part of a skill (including scripts) for best practices, rules and guidelines to follow.
 ---
 
-# Verifications
+# Skill Creation and Editing Workflow
 - Before finishing any changes to a skill, check every change against each rule in this skill.
     - Check changes in every skill file, including scripts.
 - Fix every violation, then repeat the check until none remain.
 
-# Skill Structure
-
-## Skill Types
-
-### Task-Based Skill
-- A skill that executes a sequence of steps to accomplish a goal.
-
-### Context Only Skill
-    - A skill that just provides guidance or context useful for a separate task the agent is working on (skill or otherwise).
-
-## SKILL.md Structure
-- If the skill your working on is a **task-based skill**, run `z-task-skill-structure` to understand the SKILL.md structure.
-- **Context only skills** don't have a defined SKILL.md structure.
-    - Use top level headings for each type of context that is needed.
-
-## Skill Folders
-
-### Base Folders
-- `references/` for context `.md` files that the skill will read.
-- `assets/` for templates, boilerplate documents, icons, fonts, stylesheets, etc.
-- `scripts/` for scripts the skill will run.
-- `configs/` for user generated config files.
-
-### The Configs Folder
-- **Config Files**.
-    - User created or created by you with user assistance.
-    - Used to customize a skill for different use cases.
-    - **Config** types are defined by skills that have them.
-    - **Config** files can be any type (.md, .json, etc.).
-- **Config** files go in the `configs/` folder in the skill directory.
-
-### Subfolders
-- If there are more than 5 files in `references/`, `assets/` or `scripts`, add subfolders for organization.
-- Subfolders for assets and scripts depend on the skill and actual files, decide names yourself.
-- If there aren't more than 5 then DO NOT use subfolders.
-- Reference subfolders have some standard names, but can also vary by skill if you deem it necessary.
-
-#### References Subfolder Examples
-- `references/subagents`: For subagent tasks.
-- `references/shared-context`: For context shared by the main agent and/or multiple subagents.
-- `references/create-configs`: For context or steps used when creating a new **config file** for the user.
-- `references/create-artifacts`: For context or steps used when creating skill output files.
-
-## File Names
-- `SKILL.md` for the main .md file.
-- All other files are named with `kebab-case`.
-
-## Use Bullet Points
-- Use bullet points for every line (`-`).
-- End every bullet point with a period.
-- A new bullet point is used for each piece of information or command.
-- Use nested bullet points for related additional info.
-
-## Avoid Contractions
-- Prefer full form over contractions.
-- Example: Do Not, instead of Don't.
-
-# Hard Rules
+# Hard Rules (IMPORTANT!!)
 
 ## DO NOT Explain Why Something is Not Another Way
 - The agent only needs to know what to do, not reasons why something is done one way instead of another.
-- This is especially important when editing a skill, if the user asks for a change, do not explain in the skill why the change was made from what it was before, just do the change like you were asked.
+- This is especially important when editing a skill, if the user asks for a change:
+    - Do not explain in the skill why the change was made from what it was before, just do the change like you were asked.
+    - Do not include instructions to not do something the old way, the skill ONLY needs to know what to do now. Running the skill WILL NOT have ANY context of how it used to look, so do not include it
+
+### Bad Example
+- Before: Write text that should be included in the graphic on the 'description' property of the source object
+- Use Request: The text should not be on description, it should live on its own text_elements property
+- After: Write text that should be included in the graphic on the 'text_elements' property of the source object, not on the 'description' property
+- The Problem: The agent DOES NOT need to be told to not write on the 'description' property. That is context from the old version of the skill. When you tell the agent what to do, it automatically means don't do the other thing, no clarification is needed.
 
 ## DO NOT Explain Future Steps
 - The Global Context and Phases do not need to know what future steps will do.
 
-Bad Example: Redundant explainations for something that happens later.
+### Bad Example
 ```md
 # Global Context
 - `edit/edit.json` holds the whole video.
@@ -82,25 +33,33 @@ Bad Example: Redundant explainations for something that happens later.
     - scenes are filled in during the cut, never written in Phase 2.
 ```
 
+- The explanation of what happens in a future phase is not required
+
 ## No Extraneous Information
 - Do Not add information the agent doesn't need to know.
-- The agent doesn't need to know why something is, only what to do.
+- The agent doesn't need to know why something is, ONLY what to do.
 
 ## No Script Explainations
 - The agent does not need to know about logic handled by a script, only when and how to use it.
 - DO NOT add script explainations in markdown.
-- DO NOT add instructions for something a script does
+- DO NOT add instructions that cover something a script already does.
 
 ## Reference File Structure
-- If a file in `reference/` is used to perform a sequence of actions, and not just for context, run `/z-task-skill-structure` and use the SKILL.md structure as a model the reference file.
+- If a file in `reference/` is used to perform a sequence of actions, and not just for context, run `/z-task-skill-structure` and use the SKILL.md structure as a model for the reference file.
 
 ## Reference File Content
 - Reference files do not need information about where in the SKILL.md they were referenced, or why it wouldn't have been referenced.
-    - Bad Example: "Reached from Produce, step 3. Source Groups with no approved graphic skip this entirely".
+
+### Bad Example
+```md
+Reached from Produce, step 3. Source Groups with no approved graphic skip this entirely.
+```
+
+- It does not matter where a file was "reached" from
 
 ## Progressive Disclosure
 - The agent running a skill should get context at the exact point its needed.
-- For **task-based skills**.
+- For **task-based skills**
     - Use `# Global Context` for context used in multiple phases.
     - Use `## Phase Context` for context used in a single phase.
     - Use `### Action Context` for context used in a single action within a phase.
@@ -131,12 +90,24 @@ Bad Example: Redundant explainations for something that happens later.
 
 ## Writing Files
 - When the skill instucts an agent to write a file, it either needs a description of the file OR an example to follow.
-- Do Not use both.
+- DO NOT use both.
 
 # Guidelines
 
 ## General Prose
 - Use the least number of words required to communicate tasks or context to the agent.
+
+## Use Bullet Points
+- Use bullet points for every line (`-`).
+- End every bullet point with a period.
+- A new bullet point is used for each piece of information or command.
+- Use nested bullet points for related additional info.
+- A bullet point introducing nested items has no period:
+    - List item one.
+
+## Avoid Contractions
+- Prefer full form over contractions.
+- Example: Do Not, instead of Don't.
 
 ## Inputs
 - Inputs to the skill should be verified and/or collected in Phase 1.
@@ -167,24 +138,13 @@ Bad Example: Redundant explainations for something that happens later.
 ```
 
 ## Meta Skills
-- Skills that other skills can call and use.
-- Add modular functionality to other skills.
 - Add these to skills you are writing/editing as required.
-- Only run at the point it's needed in the skill, following progressive disclosure.
 - It is preferrable to directly call skills, rather than relying on the agent to do it automatically.
 
 ### z-session-memory
 - Adds session memory to the skill, so you can continue the same skill run from a new session.
 - Long running **task-based skills** should use this.
 - If used, this should be run as the first action in Phase 1.
-
-#### Example
-```md
-# Phase 1: Setup
-
-## Action 1
-- Run /z-session-memory.
-```
 
 ### z-checkpointing
 - Add checkpoint functionality when editing output files.
@@ -269,7 +229,7 @@ Bad Example: Redundant explainations for something that happens later.
 ## Subagents
 
 ### When to Use
-- Use subagents for Actions in a skill when any are true.
+- Use subagents for Actions in a skill when any are true:
     - It will result in less context in the main agent.
     - It facilitates parallel execution.
     - The main agent only requires a summarized result for it's task, and not full context of how the result was found or created.
@@ -308,8 +268,7 @@ Bad Example: Redundant explainations for something that happens later.
 
 ### B. Local Research
 - Run a subagent to do local research using the following prompt.
-```md
-<full-prompt>
+`<full-prompt>`
 ```
 
 ### Wait for Agents
@@ -325,3 +284,49 @@ Bad Example: Redundant explainations for something that happens later.
 - Add skill specific term definitions to Global Context under a `## Definitions` heading
 - When referencing terms in the skill or supporting skill files, use **bold**
 - Do not bold headings
+
+# Skill Structure
+
+## Skill Types
+
+### Task-Based Skill
+- A skill that executes a sequence of steps to accomplish a goal.
+
+### Context Only Skill
+- A skill that just provides guidance or context useful for a separate task the agent is working on (skill or otherwise).
+
+## SKILL.md Structure
+- If the skill your working on is a **task-based skill**, run `z-task-skill-structure` to understand the SKILL.md structure.
+- **Context only skills** don't have a defined SKILL.md structure. Use top level headings for each type of context that is needed.
+
+## Skill Folders
+
+### Base Folders
+- `references/` for context `.md` files that the skill will read.
+- `assets/` for templates, boilerplate documents, icons, fonts, stylesheets, etc.
+- `scripts/` for scripts the skill will run.
+- `configs/` for user generated config files.
+
+### The Configs Folder
+- **Config Files**.
+    - User created or created by you with user assistance.
+    - Used to customize a skill for different use cases.
+    - **Config** types are defined by skills that have them.
+    - **Config** files can be any type (.md, .json, etc.).
+- **Config** files go in the `configs/` folder in the skill directory.
+
+### Subfolders
+- If there are more than 5 files in `references/`, `assets/` or `scripts`, add subfolders for organization.
+- Subfolders for assets and scripts depend on the skill and actual files, decide names yourself.
+- If there aren't more than 5 then DO NOT use subfolders.
+- Reference subfolders have some standard names, but can also vary by skill if you deem it necessary.
+
+#### References Subfolder Examples
+- `references/subagents`: For subagent tasks.
+- `references/shared-context`: For context shared by the main agent and/or multiple subagents.
+- `references/create-configs`: For context or steps used when creating a new **config file** for the user.
+- `references/create-artifacts`: For context or steps used when creating skill output files.
+
+## File Names
+- `SKILL.md` for the main .md file.
+- All other files are named with `kebab-case`.
