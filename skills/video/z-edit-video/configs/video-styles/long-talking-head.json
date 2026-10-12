@@ -17,5 +17,6 @@
   "opening_type": "greeting",
   "zoom_cut": true,
   "zoom_amount": 1.15,
+  "generate_chapters": true,
   "other_instructions": "Keep laughs and the breath of a thought. The face can stay up for a whole line. Jump cuts stay visible. Hold through the reaction after a punchline."
 }

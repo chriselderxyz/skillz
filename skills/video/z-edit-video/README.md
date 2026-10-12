@@ -38,7 +38,6 @@ The skill asks for any of these that you have not already provided, then confirm
 | `pip_style` | No | A file in `configs/pip-styles/`, `none`, or create new | The picture-in-picture inset |
 | `grading_style` | No | A file in `configs/grading-styles/`, `none`, or `auto` | Color grade. `auto` generates options for you to pick |
 | `graphics_style_guide` | No | A file in the create-graphics skill `configs/`, a file path, or create new | Look of generated animations and images. Skipped when the video style allows no full graphics and no overlay graphics |
-| `generate_chapters` | No | `true` or `false` | Whether `edit/chapters.md` is written with the finalized render |
 | `process_audio` | No | `true` or `false` | Whether Auphonic processes the finalized movie |
 | `src` | No | A folder. Default is the working directory (`.`) | Where the raw sources live |
 | `script` | No | A file path | The planned spoken script. The skill still transcribes the sources on its own |
@@ -142,6 +141,7 @@ All three target −14 LUFS (loudness units relative to full scale).
 | `opening_type` | `cold-open`, `greeting`, `question`, `text-card`, or `mid-action` |
 | `zoom_cut` | Allow a jump to a tighter view of a full-frame `head` shot. Talking-head styles turn this on |
 | `zoom_amount` | How much tighter that jump is. `1` is the crop. `1.15` is 15% tighter |
+| `generate_chapters` | Write `edit/chapters.md` with the finalized render. Only `long-talking-head.json` turns this on |
 | `other_instructions` | Extra instructions for this style |
 
 ### Caption styles
@@ -245,7 +245,7 @@ A grade is an ffmpeg filter description: `eq` for contrast, brightness, and satu
 ### Phase 5 — Produce Finalized
 
 - Render `edit/edit.mov` with uncompressed audio.
-- Write the subtitle file, and write chapters when you asked for them.
+- Write the subtitle file, and write chapters when the video style turns them on.
 - You review the finalized render.
 
 ### Phase 6 — Process Audio
