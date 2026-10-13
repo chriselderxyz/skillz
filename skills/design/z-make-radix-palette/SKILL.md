@@ -52,12 +52,10 @@ description: Use to generate Radix-style light and dark brand and neutral color 
 
 # Phase 3: Generate
 
-## Action 1
 - Use the current working directory as `<output_directory>`.
 - Run `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/generate.ts" --brand-color "<brand_color>" --brand-color-name "<brand_color_name>" --gray-color "<gray_color>" --light-background "<light_background>" --dark-background "<dark_background>" --output-directory "<output_directory>"`.
 
 # Phase 4: Verify and Respond
 
-## Action 1
 - Report the output name.
 - Report the generated JSON path.

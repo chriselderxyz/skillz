@@ -83,7 +83,6 @@ disable-model-invocation: true
 
 # Phase 2: Pick Research Topics
 
-## Action 1
 - Given the `video_idea`, select 1-5 research topics.
 - Do not add extra research topics unless it is actually required for the video.
 

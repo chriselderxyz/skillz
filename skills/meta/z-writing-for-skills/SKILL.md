@@ -118,7 +118,6 @@ Reached from Produce, step 3. Source Groups with no approved graphic skip this e
 ```md
 # Phase 1: Setup
 
-## Action 1
 - Prompt the user for each input if it wasn't provided.
     - `video_idea` (required).
         - The subject and intent of the video.

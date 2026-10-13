@@ -40,7 +40,6 @@
 
 # Phase 2: Choose Frames
 
-## Action 1
 - For `full`, `top`, and `bottom`, use the **cuts** on the **layers** that use that source and frame.
     - Pick the midpoint of the longest cut as the primary frame.
     - Inspect up to two more frames when the source has several cuts or the subject may move.
@@ -59,7 +58,6 @@ uv run --no-project scripts/inspect/screenshot.py <source-path> --time <seconds>
 
 # Phase 3: Choose the Crop
 
-## Action 1
 - Choose each crop as integer source-pixel `x`, `y`, `w`, and `h`, inside the source bounds.
 - Give a `base_crops` entry the aspect from Phase 1, and a **layer** `crop` the aspect of that **layer**'s `frame`.
 - If a face is visible.
@@ -76,7 +74,6 @@ uv run --no-project scripts/inspect/screenshot.py <source-path> --time <seconds>
 
 # Phase 4: Preview and Iterate
 
-## Action 1
 - For each crop, write the crop into `edit/edit.json`, then render a preview from the primary frame.
 
 ```bash
@@ -95,5 +92,4 @@ uv run --no-project scripts/inspect/pip_crop_preview.py \
 
 # Phase 5: Respond
 
-## Action 1
 - Return each source, which crop was written, the coordinates, and whether the crop was face-aware or centered.
