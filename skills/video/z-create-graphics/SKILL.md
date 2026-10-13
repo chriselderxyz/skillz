@@ -139,5 +139,4 @@ npx --yes hyperframes init <output_dir>/<graphic_number>-graphic-<graphic_name> 
 
 # Phase 4: Respond
 
-## Action 1
 - Return each generated file path, and each `animation`'s duration, to the caller.

@@ -19,5 +19,4 @@ description: Use to apply checkpointing for all file edits done by a skill. Only
 
 # Phase 2: Cleanup
 
-## Action 1
 - After a task or skill execution is complete and approved, remove all temporary checkpoint copies of the related files.

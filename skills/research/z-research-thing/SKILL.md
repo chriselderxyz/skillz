@@ -28,7 +28,6 @@ Run the following research loop for each topic or question given.
 
 # Phase 2: Cross-Check
 
-## Action 1
 - Spin up a subagent.
 - Give it the information or answers that you have found, along with the sources.
 - make it run the `/z-run-cross-check` skill to verify the information.
@@ -37,12 +36,10 @@ Run the following research loop for each topic or question given.
 
 # Phase 3: Filter
 
-## Action 1
 - Discard any information that could not be verified by Phase 3.
 
 # Phase 4: Synthesize
 
-## Action 1
 - Summarize all information that has not been discarded into a single report and return it.
 - The caller should have enough information from your report to speak confidently about the research topic.
 - The report should include citations back to supporting sources.

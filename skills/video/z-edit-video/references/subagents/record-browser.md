@@ -20,5 +20,4 @@ uv run --no-project scripts/production/record_browser.py --zoom <page-zoom> --na
 
 # Phase 2: Respond
 
-## Action 1
 - Return each **source** you recorded and its `path`.

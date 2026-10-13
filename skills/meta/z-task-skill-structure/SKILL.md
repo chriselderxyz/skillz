@@ -54,7 +54,7 @@ description: Only invoked from other skills. Provides context on the different s
     - Phases: Large steps in the workflow.
     - Actions: Individual steps inside each phase.
         - Heading is `Action <n>. <action-name>`.
-        - A phase with one action uses `Action 1`.
+        - A phase with one action and no Phase Context lists its steps directly under the phase heading.
     - Subactions: Individual steps inside each Action.
 
 # Config Folder

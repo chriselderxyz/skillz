@@ -458,7 +458,6 @@ Run `/z-process-audio` with these inputs:
 
 # Phase 7: Produce MP4
 
-## Action 1
 - When Process Audio ran, convert `edit/edit-auphonic.mov`.
 - Otherwise convert `edit/edit.mov`.
 - Write `edit/edit.mp4`.
@@ -474,7 +473,6 @@ ffmpeg -y -i <source> -c:v copy -c:a aac -b:a 192k -ar 48000 -movflags +faststar
 
 # Phase 8: Cleanup
 
-## Action 1
 - Move the following folders/files in the `edit/` directory to trash.
     - `edit-draft.mp4`.
     - `base-draft.mp4`.

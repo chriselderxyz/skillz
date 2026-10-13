@@ -27,14 +27,12 @@ description: Use when creating or editing config files for any skill in it's con
 
 # Phase 2: Write Config
 
-## Action 1
 - Create the new config file in `configs/<config-type>/<config-name>`.
 - If the calling skill has no config type, create it in `configs/<config-name>`.
 - If this config was created via a user selecting "create new" as an input option in another skill, use the new config for that input for the rest of this session.
 
 # Phase 3. Review Loop
 
-## Action 1
 - Tell the user where the new document lives.
 - Ask the user for feedback or approval.
 - Address comments and review again.

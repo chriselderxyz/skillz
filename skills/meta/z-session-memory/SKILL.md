@@ -57,6 +57,5 @@ After each phase of the calling skill, write to `memory.md`.
 
 # Phase 3. Finish
 
-## Action 1
 - After the project the calling skill is working on is complete, change the finished property to `true`.
 - Do this ONLY after the full project is finished and approved by the user.

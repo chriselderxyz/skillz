@@ -40,13 +40,11 @@ description: Use to generate contrast-targeted light and dark brand and neutral 
 
 # Phase 2: Pre-Generation
 
-## Action 1
 - Choose a concise common name for the `brand_color` hue.
 - Use lowercase letters, with hyphens when the name has more than one word.
 
 # Phase 3: Generate
 
-## Action 1
 - Use the current working directory as `<output_directory>`.
 - Run `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/generate.ts" --brand-color "<brand_color>" --brand-color-name "<brand_color_name>" --light-background "<light_background>" --dark-background "<dark_background>" --output-directory "<output_directory>"`.
 - When `secondary_color` is set, include `--secondary-color "<secondary_color>"` in that command.
@@ -54,6 +52,5 @@ description: Use to generate contrast-targeted light and dark brand and neutral 
 
 # Phase 4: Respond
 
-## Action 1
 - Report the output name.
 - Report the generated JSON path.

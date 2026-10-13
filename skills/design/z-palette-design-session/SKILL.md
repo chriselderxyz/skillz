@@ -105,7 +105,6 @@ description: Use for interactive design sessions with the user to come up with a
 
 # Phase 4: Results Page
 
-## Action 1
 - Use assets/palette-results.html.
     - Its marker blocks (@@SUMMARY, @@PALETTE_DATA, @@SCHEMES).
     - The data format in the template comments.
@@ -115,7 +114,6 @@ description: Use for interactive design sessions with the user to come up with a
 
 # Phase 5: Interactive Session
 
-## Action 1
 - Open the HTML doc.
 - Tell the user to review the output.
 - Start an interactive session with the user providing feedback and requests.

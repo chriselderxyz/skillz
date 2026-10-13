@@ -88,7 +88,6 @@ Example **Scene** types/flows.
 
 # Phase 2: Cut Silences
 
-## Action 1
 - For each kept **take**, use only `edit/silences.json` `sources.<audio_source>`, where `<audio_source>` is that **take**'s `audio_source`.
 - Those `start` and `end` times are on the **audio source clock**.
 - A silence that falls inside the kept **take** splits it into separate **cuts**.
@@ -193,7 +192,6 @@ uv run --no-project scripts/inspect/screenshot.py <source-path> --time <seconds>
 
 # Phase 4: Check
 
-## Action 1
 - Run the script to check `edit/edit.json`.
 
 ```bash
@@ -204,5 +202,4 @@ uv run --no-project scripts/production/build_plan_html.py --cuts-only
 
 # Phase 5: Respond
 
-## Action 1
 - Return the **scenes**, **lines**, and **layers** you added, removed, or changed.
