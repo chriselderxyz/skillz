@@ -1,0 +1,6 @@
+{
+  "style": "solid",
+  "background_colors": ["#193843"],
+  "foreground_colors": ["#5CD6B4", "#70C2AB"],
+  "outline_color": "#193843"
+}
