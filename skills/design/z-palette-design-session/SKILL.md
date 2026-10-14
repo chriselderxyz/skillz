@@ -61,8 +61,8 @@ description: Use for interactive design sessions with the user to come up with a
             - Yellows oranges, and greens look muddy or dingy fast, so keep them lower.
         - Lightness.
             - Light mode 0.98-0.995 (typically start at 0.995).
-            - Dark mode: 0.15 to 0.25.
-    - The generator defaults: `#FFFFFF` for light mode and `#111111` for dark mode.
+            - Dark mode: 0.15 to 0.25, or 0.12 to 0.15 when `generator` is `radix`.
+    - The generator defaults: `#FFFFFF` for light mode and `#111111` for dark mode, or `#0B0B0B` for dark mode when `generator` is `radix`.
 
 ## Action 4. Make Palettes
 - Create as many palettes as the user requests.
@@ -76,8 +76,8 @@ description: Use for interactive design sessions with the user to come up with a
     - Pass `secondary_color` when the Leonardo skill calls for one.
     - Record the input brand color as `seed`.
 - Use the same generator for each signal ramp unless the user asks for a different one.
-- If the brand seed does not meet its contrast targets against white or step 12 of the light neutral ramp, then go back to step 1 and select a new seed.
-- If a signal seed does not meet its contrast targets against white or step 12 of the light neutral ramp, then go back to step 2 and select a new seed.
+- If the brand seed does not meet its minimum contrast thresholds against white or step 12 of the light neutral ramp, then go back to step 1 and select a new seed.
+- If a signal seed does not meet its minimum contrast thresholds against white or step 12 of the light neutral ramp, then go back to step 2 and select a new seed.
 
 ## Action 5. Check Neutrals
 - Confirm the neutral ramp has no steps that are too strongly tinted.
@@ -90,15 +90,15 @@ description: Use for interactive design sessions with the user to come up with a
 
 ## Action 1
 - A full set of token values is needed for both light and dark mode.
-- Get token values for each **token schema**.
-- DO NOT modify the prebuilt mappings unless asked, even if contrast targets fail.
-- If token pairs do not meet the contrast targets in `references/color-design-tokens.md` let the user know.
+- Get token values for the default **token schema**.
+- DO NOT modify the default **token schema** unless asked, even if it misses minimum contrast thresholds.
+- If the default **token schema** misses a minimum contrast threshold in `references/color-design-tokens.md`, let the user know.
 - If the user asks for it, design custom **token schema's** for this run.
 - Validate contrast with `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/contrast.ts" --text "<text>" --background "<background>"`.
     - `wcag` is the WCAG 2 contrast ratio.
     - `apca` is the signed APCA Lc.
     - Compare APCA using the absolute value of `apca`.
-- For `on-seed`, use the text color chosen in the brand ramp seed check.
+- For `seed-foreground`, use the text color chosen in the brand ramp seed check.
 - For `black-or-white`, measure `#000000` and `#FFFFFF` on that token's fill.
     - A pair passes when `wcag` is at least 4.5 and the absolute value of `apca` is at least 60.
     - When both pass, the larger absolute `apca` is the resolved text color.
@@ -107,7 +107,7 @@ description: Use for interactive design sessions with the user to come up with a
 
 ## Action 1
 - Use assets/palette-results.html.
-    - Its marker blocks (@@SUMMARY, @@PALETTE_DATA, @@SCHEMES).
+    - Its marker blocks (@@SUMMARY, @@PALETTE_DATA, @@SCHEMES, @@PAGE_STYLES, @@TOKEN_CHECKS, @@TOKEN_RESOLUTION).
     - The data format in the template comments.
     - Build it with a script that injects the data, rather than hand-editing HTML.
 - Each palette object has the seed, gray, generators, backgrounds, ramps, alpha ramps, and signals.
@@ -126,7 +126,7 @@ description: Use for interactive design sessions with the user to come up with a
 
 ## Action 1. Build the Page
 - Use assets/palette-selected.html.
-    - Its marker blocks (@@SUMMARY, @@PALETTE, @@SCHEME).
+    - Its marker blocks (@@SUMMARY, @@PALETTE, @@SCHEME, @@PAGE_STYLES, @@TOKEN_CHECKS, @@TOKEN_RESOLUTION).
     - The data format in the template comments.
     - Build it with a script that injects the data, rather than hand-editing HTML.
 - @@PALETTE is the one selected palette object.
@@ -134,7 +134,7 @@ description: Use for interactive design sessions with the user to come up with a
 - @@SCHEME is the one selected scheme object.
 - @@SUMMARY names the selected palette, the selected scheme, and the contrast result.
 - Measure that contrast result with `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/contrast.ts" --text "<text>" --background "<background>"`.
-    - Report `wcag` and the absolute value of `apca` for the selected palette's on-seed text on the brand seed.
+    - Report `wcag` and the absolute value of `apca` for the selected palette's `seed-foreground` on the brand seed.
 
 ## Action 2. Deliver
 - Tell the user to review the HTML output.

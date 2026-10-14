@@ -2,7 +2,12 @@ import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import Color from "colorjs.io";
-import { generateRadixColors } from "./generateRadixColors.js";
+import {
+  generateRadixColors,
+  getAlphaColorP3,
+  getAlphaColorSrgb,
+  toOklchString,
+} from "./generateRadixColors.js";
 
 type GenerateOptions = {
   brandColor: string;
@@ -114,6 +119,82 @@ function measureRamp(
 }
 
 //==================================================
+// HEX
+//==================================================
+
+function toLongHex(hex: string): string {
+  if (hex.length === 4) {
+    return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+  }
+
+  return hex;
+}
+
+function withLongHex(colors: ReturnType<typeof generateRadixColors>) {
+  return {
+    ...colors,
+    background: toLongHex(colors.background),
+    accentContrast: toLongHex(colors.accentContrast),
+    accentScale: colors.accentScale.map(toLongHex),
+    grayScale: colors.grayScale.map(toLongHex),
+  };
+}
+
+//==================================================
+// Dark Neutral Step 11
+//==================================================
+
+function paintOver(color: string, ground: string): string {
+  const channel = (hex: string, offset: number) =>
+    Number.parseInt(hex.slice(offset, offset + 2), 16);
+  const alpha = color.length === 9 ? channel(color, 7) / 255 : 1;
+
+  return `#${[1, 3, 5]
+    .map((offset) =>
+      Math.round(channel(color, offset) * alpha + channel(ground, offset) * (1 - alpha))
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
+}
+
+// Raises step 11 until it reaches APCA Lc 60 on steps 2 and 4, and on alpha
+// step 3 painted over the background and over step 2.
+function raiseDarkStep11(colors: ReturnType<typeof withLongHex>) {
+  const gray = colors.grayScale;
+  const surfaces = [
+    gray[1],
+    gray[3],
+    paintOver(colors.grayScaleAlpha[2], colors.background),
+    paintOver(colors.grayScaleAlpha[2], gray[1]),
+  ].map((surface) => new Color(surface));
+  const lowestContrast = (hex: string) =>
+    Math.min(...surfaces.map((surface) => Math.abs(surface.contrastAPCA(new Color(hex)))));
+  let step11Hex = gray[10];
+
+  if (lowestContrast(step11Hex) >= 60) {
+    return colors;
+  }
+
+  const step11 = new Color(step11Hex).to("oklch");
+
+  while (lowestContrast(step11Hex) < 60 && step11.coords[0] < 1) {
+    step11.coords[0] += 0.001;
+    step11Hex = toLongHex(step11.to("srgb").toString({ format: "hex" }));
+  }
+  const replaceStep11 = <T,>(values: readonly T[], value: T) =>
+    values.map((current, index) => (index === 10 ? value : current));
+
+  return {
+    ...colors,
+    grayScale: replaceStep11(gray, step11Hex),
+    grayScaleAlpha: replaceStep11(colors.grayScaleAlpha, getAlphaColorSrgb(step11Hex, colors.background)),
+    grayScaleWideGamut: replaceStep11(colors.grayScaleWideGamut, toOklchString(step11)),
+    grayScaleAlphaWideGamut: replaceStep11(colors.grayScaleAlphaWideGamut, getAlphaColorP3(step11Hex, colors.background)),
+  };
+}
+
+//==================================================
 // Entry Point for Ramp Generation
 //==================================================
 
@@ -147,14 +228,9 @@ export async function generate({
 
   const normalizedColors = Object.fromEntries(
     Object.entries(colorInputs).map(([name, value]) => {
-      let hex = new Color(value)
-        .to("srgb")
-        .toString({ format: "hex" })
-        .toUpperCase();
-
-      if (hex.length === 4) {
-        hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
-      }
+      const hex = toLongHex(
+        new Color(value).to("srgb").toString({ format: "hex" }).toUpperCase(),
+      );
 
       return [name, hex];
     }),
@@ -163,18 +239,24 @@ export async function generate({
   const outputName =
     `${normalizedBrandColorName}-${normalizedColors.brand_color.slice(1)}-${normalizedColors.gray_color.slice(1)}`.toLowerCase();
 
-  const light = generateRadixColors({
-    appearance: "light",
-    accent: normalizedColors.brand_color,
-    gray: normalizedColors.gray_color,
-    background: normalizedColors.light_background,
-  });
-  const dark = generateRadixColors({
-    appearance: "dark",
-    accent: normalizedColors.brand_color,
-    gray: normalizedColors.gray_color,
-    background: normalizedColors.dark_background,
-  });
+  const light = withLongHex(
+    generateRadixColors({
+      appearance: "light",
+      accent: normalizedColors.brand_color,
+      gray: normalizedColors.gray_color,
+      background: normalizedColors.light_background,
+    }),
+  );
+  const dark = raiseDarkStep11(
+    withLongHex(
+      generateRadixColors({
+        appearance: "dark",
+        accent: normalizedColors.brand_color,
+        gray: normalizedColors.gray_color,
+        background: normalizedColors.dark_background,
+      }),
+    ),
+  );
 
   const palette = {
     name: outputName,
