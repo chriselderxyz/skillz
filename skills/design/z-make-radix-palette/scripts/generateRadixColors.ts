@@ -493,7 +493,8 @@ function blendAlpha(foreground: number, alpha: number, background: number, round
 	return background * (1 - alpha) + foreground * alpha;
 }
 
-function getAlphaColorSrgb(targetColor: string, backgroundColor: string, targetAlpha?: number) {
+// Local change: exported for generate.ts.
+export function getAlphaColorSrgb(targetColor: string, backgroundColor: string, targetAlpha?: number) {
 	const [r, g, b, a] = getAlphaColor(
 		new Color(targetColor).to("srgb").coords,
 		new Color(backgroundColor).to("srgb").coords,
@@ -505,7 +506,8 @@ function getAlphaColorSrgb(targetColor: string, backgroundColor: string, targetA
 	return formatHex(new Color("srgb", [r, g, b], a).toString({ format: "hex" }));
 }
 
-function getAlphaColorP3(targetColor: string, backgroundColor: string, targetAlpha?: number) {
+// Local change: exported for generate.ts.
+export function getAlphaColorP3(targetColor: string, backgroundColor: string, targetAlpha?: number) {
 	const [r, g, b, a] = getAlphaColor(
 		new Color(targetColor).to("p3").coords,
 		new Color(backgroundColor).to("p3").coords,
@@ -581,7 +583,8 @@ export function transposeProgressionEnd(
 
 // Convert to OKLCH string with percentage for the lightness channel
 // https://github.com/radix-ui/themes/issues/420
-function toOklchString(color: Color) {
+// Local change: exported for generate.ts.
+export function toOklchString(color: Color) {
 	const L = +(color.coords[0] * 100).toFixed(1);
 	return color
 		.to("oklch")
