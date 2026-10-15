@@ -1,0 +1,11 @@
+{
+  "description": "Step spacing from the median of Radix's scales, so the ramps share Radix's step roles and one token mapping works for both generators.",
+  "brand": {
+    "light": [1.02, 1.05, 1.13, 1.22, 1.35, 1.54, 1.87, 2.41, 4.19, 4.82, 5.48, 11.95],
+    "dark": [1.04, 1.1, 1.26, 1.41, 1.64, 2, 2.58, 3.61, 4.45, 5.36, 10.13, 15.86]
+  },
+  "neutral": {
+    "light": [1.03, 1.06, 1.15, 1.24, 1.33, 1.44, 1.6, 1.96, 3.41, 3.92, 6.12, 15.83],
+    "dark": [1.04, 1.12, 1.25, 1.36, 1.51, 1.72, 2.12, 3.03, 3.73, 4.49, 10.2, 15.87]
+  }
+}

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deriveBackground": "tsx scripts/deriveBackground.ts",
+    "makeGray": "tsx scripts/makeGray.ts",
     "generate": "tsx scripts/generate.ts",
     "typecheck": "tsc --noEmit"
   },

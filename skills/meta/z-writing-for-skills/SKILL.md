@@ -168,30 +168,6 @@ Reached from Produce, step 3. Source Groups with no approved graphic skip this e
 - Address feedback and ask for review again.
 ```
 
-### z-create-config
-- Used when a user selects "create new" for **config** inputs.
-- This is a general skill, the calling skill still needs to know.
-    - What **config-type** to use (`configs/<config-type>/`).
-    - Guidelines for creating each **config-type** (branching path, put in `references/`).
-
-#### Example
-
-```md
-# Phase 1: Setup
-
-## Action 2. Inputs
-
-... input list
-
-- If the user selects 'create new' for any input option.
-    - Use the `/z-create-config` skill to create a new **config** for this skill.
-    - Use script-type, brand-voice, or local-research-guide as the **config-type**.
-    - For guidelines, read the following for each input.
-        - `script_type`: `references/script-type-creation-guidelines`.
-        - `brand_voice`: `references/brand-voice-creation-guidelines`.
-        - `local_research_guide`: `references/local-research-guide-creation-guidelines`.
-```
-
 ### z-task-skill-structure
 - Outlines **task-based skill** structure.
 - This should be run by all **task-based skills** at the top of Global Context.
@@ -313,6 +289,24 @@ Reached from Produce, step 3. Source Groups with no approved graphic skip this e
     - **Config** types are defined by skills that have them.
     - **Config** files can be any type (.md, .json, etc.).
 - **Config** files go in the `configs/` folder in the skill directory.
+
+### Create New Configs
+- When a user selects "create new" for a **config** input, the skill creates the **config** itself.
+- Put the creation instructions for each **config** type in `references/`.
+- Leave out the review step when the creation instructions or a later gate review the **config**.
+
+#### Example
+```md
+- If the user selects 'create new' for any input option.
+    - Read the creation instructions for the input, and use its config path.
+        - `script_type`: `references/script-type-creation-guidelines.md`, `configs/script-types/<name>.md`.
+        - `brand_voice`: `references/brand-voice-creation-guidelines.md`, `configs/brand-voices/<name>.md`.
+    - Ask the user for a name for the new config, and for any reference files to model it on.
+    - Ask clarifying questions until you can write the config.
+    - Write the config to its path.
+    - Show the user the new config, and revise it until they approve.
+    - Use the new config for that input.
+```
 
 ### Subfolders
 - If there are more than 5 files in `references/`, `assets/` or `scripts`, add subfolders for organization.

@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "contrast": "tsx scripts/contrast.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

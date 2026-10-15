@@ -1,0 +1,27 @@
+{
+  "body-text": {
+    "description": "Body text on its surface, and links in body text",
+    "wcag": 7,
+    "apca": 75
+  },
+  "seed-text": {
+    "description": "Text on the brand seed",
+    "wcag": 4.5,
+    "apca": 75
+  },
+  "other-text": {
+    "description": "All other text, including placeholder, badge, button, and selected row labels",
+    "wcag": 4.5,
+    "apca": 60
+  },
+  "disabled-text": {
+    "description": "Disabled text",
+    "wcag": null,
+    "apca": 30
+  },
+  "non-text": {
+    "description": "Control borders, checked glyphs, focus indicators, icon glyphs, other control marks, and chart data series",
+    "wcag": 3,
+    "apca": 45
+  }
+}

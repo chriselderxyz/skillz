@@ -41,12 +41,15 @@ disable-model-invocation: true
     - `thumbnail_guidelines` (required):
         - Options: File names under `configs/thumbnail-guidelines/*` or "create new".
 - If `thumbnail_style`, `font_style`, or `thumbnail_guidelines` is "create new":
-    - Use the `/z-create-config` skill to create a new config for this skill.
-    - Use `thumbnail-styles`, `font-styles`, or `thumbnail-guidelines` as the config type.
-    - For creation instructions, read the following for each input:
-        - `thumbnail_style`: `references/create-configs/create-thumbnail-style.md`.
-        - `font_style`: `references/create-configs/create-font-style.md`.
-        - `thumbnail_guidelines`: `references/create-configs/create-thumbnail-guidelines.md`.
+    - Read the creation instructions for the input, and use its config path:
+        - `thumbnail_style`: `references/create-configs/create-thumbnail-style.md`, `configs/thumbnail-styles/<name>.json`.
+        - `font_style`: `references/create-configs/create-font-style.md`, `configs/font-styles/<name>.json`.
+        - `thumbnail_guidelines`: `references/create-configs/create-thumbnail-guidelines.md`, `configs/thumbnail-guidelines/<name>.md`.
+    - Ask the user for a name for the new config, and for any reference files to model it on.
+    - Ask clarifying questions until you can write the config.
+    - Write the config to its path.
+    - Show the user the new config, and revise it until they approve.
+    - Use the new config for that input.
 
 ## Action 4. Thumbnail File
 - Skip when `<project_folder>/thumbnails/thumbnail.af` exists.

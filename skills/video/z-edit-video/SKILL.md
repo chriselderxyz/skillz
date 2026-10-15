@@ -68,17 +68,17 @@ Prompt the user for each input if it was not already provided.
 
 Create New Options.
 - If the user selects "create new" for any input option.
-    - Use the `/z-create-config` skill to create a new config.
-    - For `graphics_style_guide`, create the config for the `/z-create-graphics` skill.
-    - For all other inputs, create the config for this skill.
-    - Use video-settings, video-styles, caption-styles, srt-styles, or pip-styles as the config type.
-    - For guidelines, read the following for each input.
-        - `video_settings`: `references/create-configs/create-video-settings.md`.
-        - `video_style`: `references/create-configs/create-video-style.md`.
-        - `caption_style`: `references/create-configs/create-captions-style.md`.
-        - `srt_style`: `references/create-configs/create-srt-style.md`.
-        - `pip_style`: `references/create-configs/create-pip-style.md`.
-        - `graphics_style_guide`: `references/create-graphics-style-guide.md` from `/z-create-graphics`.
+    - Read the creation instructions for the input, and use its config path.
+        - `video_settings`: `references/create-configs/create-video-settings.md`, `configs/video-settings/<name>.json`.
+        - `video_style`: `references/create-configs/create-video-style.md`, `configs/video-styles/<name>.json`.
+        - `caption_style`: `references/create-configs/create-captions-style.md`, `configs/caption-styles/<name>.json`.
+        - `srt_style`: `references/create-configs/create-srt-style.md`, `configs/srt-styles/<name>.json`.
+        - `pip_style`: `references/create-configs/create-pip-style.md`, `configs/pip-styles/<name>.json`.
+        - `graphics_style_guide`: `references/create-graphics-style-guide.md` and `configs/<name>.md`, both in the `/z-create-graphics` skill folder.
+    - Ask the user for a name for the new config, and for any reference files to model it on.
+    - Ask clarifying questions until you can write the config.
+    - Write the config to its path.
+    - Use the new config for that input.
 
 ## Gate
 - Confirm all inputs and configs with the user before moving on.

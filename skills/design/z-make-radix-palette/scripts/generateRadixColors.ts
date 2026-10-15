@@ -76,7 +76,7 @@ export const generateRadixColors = ({
 	const [accent9Color, accentContrastColor] = getStep9Colors(accentScaleColors, accentBaseColor);
 
 	accentScaleColors[8] = accent9Color;
-	accentScaleColors[9] = getButtonHoverColor(accent9Color, [accentScaleColors]);
+	accentScaleColors[9] = getButtonHoverColor(accent9Color, [accentScaleColors], accentContrastColor);
 
 	// Limit saturation of the text colors
 	accentScaleColors[10].coords[1] = Math.min(
@@ -171,10 +171,13 @@ function getStep9Colors(scale: ArrayOf12<Color>, accentBaseColor: Color): [Color
 	return [accentBaseColor, getTextColor(accentBaseColor)];
 }
 
-function getButtonHoverColor(source: Color, scales: ArrayOf12<Color>[]) {
+function getButtonHoverColor(source: Color, scales: ArrayOf12<Color>[], textColor: Color) {
 	const [L, C, H] = source.coords;
-	const newL = L > 0.4 ? L - 0.03 / (L + 0.1) : L + 0.03 / (L + 0.1);
-	const newC = L > 0.4 && !isNaN(H) ? C * 0.93 + 0 : C;
+	// Local change: the hover darkens under white text and lightens under dark text.
+	// Upstream darkens when L > 0.4.
+	const darken = textColor.to("oklch").coords[0] > 0.5;
+	const newL = darken ? L - 0.03 / (L + 0.1) : L + 0.03 / (L + 0.1);
+	const newC = darken && !isNaN(H) ? C * 0.93 + 0 : C;
 	const buttonHoverColor = new Color("oklch", [newL, newC, H]);
 
 	// Find closest in-scale color to donate the chroma and hue.
@@ -309,12 +312,20 @@ function getScaleFromColor(
 	// Get the closest color from the pre-mixed scale we created
 	const baseColor = scale.slice().sort((a, b) => source.deltaEOK(a) - source.deltaEOK(b))[0];
 
+	// Local change: when the base color has no chroma and the source color does, each step takes
+	// its chroma from the closest tinted scale.
+	const chromaScale =
+		baseColor.coords[1] < 0.001 && source.coords[1] >= 0.001
+			? scales[closestColors.find((color) => color.scale !== "gray")!.scale]
+			: scale;
+	const chromaBaseColor = chromaScale.slice().sort((a, b) => source.deltaEOK(a) - source.deltaEOK(b))[0];
+
 	// Note the chroma difference between the source color and the base color
-	const ratioC = source.coords[1] / baseColor.coords[1];
+	const ratioC = source.coords[1] / chromaBaseColor.coords[1];
 
 	// Modify hue and chroma of the scale to match the source color
-	scale.forEach((color) => {
-		color.coords[1] = Math.min(source.coords[1] * 1.5, color.coords[1] * ratioC);
+	scale.forEach((color, i) => {
+		color.coords[1] = Math.min(source.coords[1] * 1.5, chromaScale[i].coords[1] * ratioC);
 		color.coords[2] = source.coords[2];
 	});
 
@@ -430,7 +441,17 @@ function getAlphaColor(
 
 	const clampRgb = (n: number) => (isNaN(n) ? 0 : Math.min(rgbPrecision, Math.max(0, n)));
 	const clampA = (n: number) => (isNaN(n) ? 0 : Math.min(alphaPrecision, Math.max(0, n)));
-	const maxAlpha = targetAlpha ?? Math.max(alphaR, alphaG, alphaB);
+	// Local change: each channel also needs the alpha that reaches it from the background in its own
+	// direction, so a target that is lighter in one channel and darker in another is reproduced.
+	const reachAlpha = (target: number, background: number) =>
+		target > background
+			? (target - background) / (rgbPrecision - background)
+			: target < background
+				? (background - target) / background
+				: 0;
+	const maxAlpha =
+		targetAlpha ??
+		Math.max(alphaR, alphaG, alphaB, reachAlpha(tr, br), reachAlpha(tg, bg), reachAlpha(tb, bb));
 
 	const A = clampA(Math.ceil(maxAlpha * alphaPrecision)) / alphaPrecision;
 	let R = clampRgb(((br * (1 - A) - tr) / A) * -1);

@@ -67,8 +67,11 @@ description: Create or edit an ordered set of graphics, each an animation or an 
 ## Action 2. Graphics Style Guide
 - Skip this action when `mode` is `edit`.
 - If `graphics_style_guide` is "create new".
-    - Use the `/z-create-config` skill to create a new config for this skill.
-    - Read `references/create-graphics-style-guide.md` for guidelines.
+    - Read `references/create-graphics-style-guide.md` for creation instructions.
+    - Ask the user for a name for the new config, and for any reference files to model it on.
+    - Ask clarifying questions until you can write the config.
+    - Write the config following the creation instructions.
+    - Show the user the new config, and revise it until they approve.
     - Use the new config name as `graphics_style_guide`.
 - If `graphics_style_guide` is a file name, resolve it from `configs/<graphics_style_guide>.md`.
 - If `graphics_style_guide` is an explicit path, use it as written.

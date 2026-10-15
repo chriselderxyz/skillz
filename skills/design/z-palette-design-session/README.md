@@ -1,26 +1,116 @@
-# Ramp inputs
+# What is This?
 
-`light_background` defaults to `#FFFFFF`. `dark_background` defaults to `#111111`.
+An interactive session for designing app color palettes.
+Gives you a full set of ramps and a default design token mapping.
 
-Leonardo background lightness is 0–100. Generated grays and Radix lightness use OKLCH (lightness, chroma, hue), lightness 0–1.
+Use this to get app colors that:
 
-Signal ramps follow the brand rows, with the signal color as `brand_color`.
+- You like.
+- Don't look like shit.
+- Pass all contrast requirements (for **BOTH** WCAG v2 & APAC).
 
-| Ramp | Leonardo | Radix |
-| --- | --- | --- |
-| Brand light | `brand_color`: hue and chroma of the ramp. Curve runs white, through this color, to black. Later steps are picked from that curve by contrast.<br><br>`secondary_color`: when set, a second color on the curve, so hue can shift from `brand_color` toward it along the ramp.<br><br>`light_background`: contrast target. Each step is the curve point that hits that step's contrast ratio against this color. Background lightness ≥ 50: steps run darker. Below 50: steps run lighter. | `brand_color`: closest built-in scales are mixed, then this hue and chroma are applied to the 12 steps. Step 9 is replaced with this exact color. Step 10 is a hover of step 9: slightly darker when brand lightness is above 0.4, slightly lighter when it is 0.4 or below.<br><br>`light_background`: shifts lightness of steps 1–8 and 11–12 so the light end moves toward this color. Step 12 stays at the built-in dark end. Steps 9 and 10 keep the brand color's lightness.<br><br>`#000000` / `#FFFFFF` brand: steps other than 9 are copied from neutral light, so they take the gray tint. Step 9 is then set back to black or white. |
-| Brand dark | `brand_color` and `secondary_color`: same curve as brand light.<br><br>Dark brand contrast ratios, higher than the light set.<br><br>`dark_background`: same contrast placement as brand light. On a dark background (lightness below 50) the steps run lighter than this color. | `brand_color`: same hue, chroma, step 9, and step 10 as brand light, starting from the dark built-in scales.<br><br>`dark_background`: step 1's lightness is set to this color. Steps 2–8 and 11–12 ease toward it. Step 12 stays at the built-in end. If this color is lighter than the dark scale's first step, that ease flattens toward a straight line. Steps 9 and 10 still follow `brand_color`.<br><br>`#000000` / `#FFFFFF` brand: other steps copied from neutral dark, then step 9 set back to black or white. |
-| Brand alpha light | Brand light colors, so `brand_color` and any `secondary_color` are already in those solids.<br><br>`light_background`: blending surface. Each step becomes transparent black or white that reproduces the solid step on this color. | Brand light colors, including the black/white copy from neutral light.<br><br>`light_background`: blending surface. Each step becomes transparent black or white that reproduces the solid step on this color. |
-| Brand alpha dark | Brand dark colors, so `brand_color` and any `secondary_color` are already in those solids.<br><br>`dark_background`: blending surface. Each step becomes transparent black or white that reproduces the solid step on this color. | Brand dark colors, including the black/white copy from neutral dark.<br><br>`dark_background`: blending surface. Each step becomes transparent black or white that reproduces the solid step on this color. |
-| Brand wide gamut light | No ramp. | Same step colors as brand light, stored so saturated colors are not clipped to standard red, green, and blue. Same inputs as brand light. |
-| Brand wide gamut dark | No ramp. | Same step colors as brand dark, in that wider format. Same inputs as brand dark. |
-| Brand wide gamut alpha light | No ramp. | Same transparent steps as brand alpha light, in that wider format. Same inputs as brand alpha light. |
-| Brand wide gamut alpha dark | No ramp. | Same transparent steps as brand alpha dark, in that wider format. Same inputs as brand alpha dark. |
-| Neutral light | `gray_color`: hue and chroma of the neutral ramp. Curve runs white, through this color, to black.<br><br>Empty `gray_color`: a gray is built from the brand hue at lightness 0.55 and chroma 0.012, and that gray becomes the curve color.<br><br>`light_background`: same contrast placement as brand light, using the neutral contrast ratios. | `gray_color`: closest of gray, mauve, slate, sage, olive, sand are mixed, then this hue and chroma are applied to every step. Steps stay generated colors.<br><br>Empty `gray_color`: a gray is built from the brand hue at lightness 0.55, chroma 12% of the brand chroma, capped at 0.025.<br><br>`light_background`: shifts lightness of all 12 steps so the ramp starts toward this color. Step 12 stays at the built-in end. |
-| Neutral dark | Same gray key as neutral light, including the gray built from `brand_color` when `gray_color` is empty.<br><br>Dark neutral contrast ratios.<br><br>`dark_background`: same contrast placement as brand dark, using those neutral ratios. | Same gray key as neutral light, from the dark gray scales.<br><br>`dark_background`: step 1's lightness is set to this color. The other steps ease toward it. Step 12 stays. If this color is lighter than the dark scale's first step, that ease flattens toward a straight line. |
-| Neutral alpha light | Neutral light colors, so `gray_color` or the gray built from `brand_color` is already in those solids.<br><br>`light_background`: blending surface. Each step becomes transparent black or white that reproduces the solid step on this color. | Neutral light colors, so `gray_color` or the gray built from `brand_color` is already in those solids.<br><br>`light_background`: blending surface. Each step becomes transparent black or white that reproduces the solid step on this color. |
-| Neutral alpha dark | Neutral dark colors, so `gray_color` or the gray built from `brand_color` is already in those solids.<br><br>`dark_background`: blending surface. Each step becomes transparent black or white that reproduces the solid step on this color. | Neutral dark colors, so `gray_color` or the gray built from `brand_color` is already in those solids.<br><br>`dark_background`: blending surface. Each step becomes transparent black or white that reproduces the solid step on this color. |
-| Neutral wide gamut light | No ramp. | Same step colors as neutral light, in the wider format. Same inputs as neutral light. |
-| Neutral wide gamut dark | No ramp. | Same step colors as neutral dark, in the wider format. Same inputs as neutral dark. |
-| Neutral wide gamut alpha light | No ramp. | Same transparent steps as neutral alpha light, in the wider format. Same inputs as neutral alpha light. |
-| Neutral wide gamut alpha dark | No ramp. | Same transparent steps as neutral alpha dark, in the wider format. Same inputs as neutral alpha dark. |
+# Setup
+
+## Install the Skills
+
+The session uses both generator skills. Install them together:
+
+```sh
+npx skills add chriselderxyz/skillz --skill z-palette-design-session --skill z-make-radix-palette --skill z-make-leonardo-palette
+```
+
+## Install Dependencies
+
+### Auto
+
+- Each skill installs its npm dependencies the first time it runs.
+- Just ensure Node.js 18 or newer.
+
+### Manual
+
+- Run `npm install` in each of `z-palette-design-session`, `z-make-radix-palette`, and `z-make-leonardo-palette`.
+- `npm run typecheck` to verify the TypeScript scripts.
+
+# How it Works
+
+- Tell the agent
+  - What generators you want to use (radix, leonardo, or both).
+  - What design token mapping to (AKA -> Ramps to CSS Variables).
+  - What type of color palettes you want to try out.
+- Agent picks 
+  - An OKLCH hue for the brand.
+  - A hue for destructive, warning, and success signals.
+  - A light and dark seed for each hue (used to build light and dark mode ramps)
+  - A gray light and dark seed for neutral ramps (Derived from the the light and dark brand seeds)
+  - The background color for each mode
+- Agent generates all the palettes you asked for
+- Results are put in `design-session.html` (use this to iterate).
+- Final selection is exported to `export.html`
+
+# Inputs
+
+
+| Input           | Options                                                  | Default                | Description                                                                                                              |
+| --------------- | -------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `generators`    | `radix`, `leonardo`                                      | `radix` and `leonardo` | Generators that make every palette, all from the same inputs. A palette can use different generators when the user asks. |
+| `token_mapping` | File names in `configs/token-mappings/`, or "create new" | `default`              | Maps each token to a ramp step and lists the token's contrast checks. "Create new" builds one with you.                  |
+
+
+The request can also include:
+
+- The brand, as a description, a hue, or a color.
+- How many palettes to make.
+- Grays to use in place of the selected ones.
+
+# Guarantees
+
+These minimums hold in both modes, for the brand, neutral, and signal ramps from either generator. `makeSeeds.ts` checks the seeds, and the generators move steps 8, 11, and 12 until they meet theirs.
+
+
+| Color                         | Against                                          | WCAG 2        | APCA          |
+| ----------------------------- | ------------------------------------------------ | ------------- | ------------- |
+| Light and dark seeds          | The background of their mode                     | 3:1           | Lc 45         |
+| Text on a seed, white or dark | The seed                                         | 4.5:1         | Lc 75         |
+| Brand step 8                  | The background, steps 1–3, and neutral steps 1–3 | 3:1           | Lc 45         |
+| Step 11                       | The background and steps 1–5 of its ramp         | 4.5:1         | Lc 60         |
+| Step 12                       | The background and steps 1–5 of its ramp         | 7:1           | Lc 75         |
+| Brand steps 11 and 12         | Neutral steps 1–5                                | Same as above | Same as above |
+
+
+Token mapping checks use the minimums in `assets/contrast-thresholds.json`, and the design session reports any that fail.
+
+# Generator Changes
+
+The design session runs both generator skills with the same inputs. 
+Both have some small changes from their published behaviour.
+
+## Radix
+
+Changes in `z-make-radix-palette/scripts/generateRadixColors.ts` are marked `Local change` in the code.
+The rest are in `z-make-radix-palette/scripts/generate.ts`.
+
+
+| The Problem                                                                                                                                                                                                                            | Fix                                                                                                                                                                                                                                        |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| When the seed is close to step 1, step 9 is swapped for a generated color, so `primary` is no longer the seed that was picked and checked.                                                                                             | Step 9 is always the seed passed in.                                                                                                                                                                                                       |
+| Step 10, the hover for step 9, darkens whenever the seed's lightness is above 0.4. On a light seed with dark text, darkening takes the text below the minimum contrast for some hues.                                                  | Step 10 darkens under white text and lightens under dark text.                                                                                                                                                                             |
+| A gray input that matches the untinted `gray` scale has its chroma scaled against zero, so every step hits the chroma cap and the "neutral" ramp gets way too tinted.                                                                  | In that case, the neutral ramp takes its chroma curve from the closest tinted gray scale.                                                                                                                                                  |
+| Alpha steps lighten or darken in one direction for all three channels, so a step lighter than the background in one channel and darker in another renders the wrong color.                                                             | Each channel sets the alpha it needs to reach the target from the background in its own direction.                                                                                                                                         |
+| Radix only guarantees contrast for steps 11 and 12 against step 1 and 2. Steps 3-5 are also used for surfaces, and contrast can fall below minimums. Radix also makes no guarantees between the brand color ramp and the neutral ramp. | Steps 11 and 12 move darker in light mode, or lighter in dark mode, until step 11 meets 4.5:1 and APCA Lc 60, and step 12 meets 7:1 and Lc 75, on the background and steps 1–5. Brand steps 11 and 12 also meet them on neutral steps 1–5. |
+| Step 8 is meant for strong borders and focus rings, but falls below the non-text minimums, so charts and focus rings have to use text steps.                                                                                           | Brand step 8 moves darker in light mode, or lighter in dark mode, until it meets 3:1 and APCA Lc 45 on the background, steps 1–3, and neutral steps 1–3.                                                                                   |
+| Radix uses one accent color to build both light and dark modes. No single color can meet the minimum contrast requirement against both backgrounds.                                                                                    | `light_seed` and `dark_seed`: each mode's brand ramps are built from their own seed.                                                                                                                                                       |
+
+
+## Leonardo
+
+Changes are in `z-make-leonardo-palette/scripts/generate.ts`. Adobe's Leonardo library is unchanged.
+
+
+| The Problem                                                                                                                                                                                                                  | Fix                                                                                                                                                                                                                    |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Steps 11 and 12 are placed by contrast against the background only, so they can fail contrast against steps 1-5.                                                                                                             | Steps 11 and 12 are adjusted until step 11 meets 4.5:1 and APCA Lc 60, and step 12 meets 7:1 and Lc 75, on the background and steps 1–5. Brand steps 11 and 12 also meet them on neutral steps 1–5.                    |
+| With the default contrast targets, step 8 falls below the non-text minimums, so charts and focus rings have to use text steps.                                                                                               | Brand step 8 is adjusted until it meets 3:1 and APCA Lc 45 on the background, steps 1–3, and neutral steps 1–3.                                                                                                        |
+| Every step is placed by its contrast ratio, so step 9 is a lighter or darker version of the seed, and no step is its hover.                                                                                                  | Steps 9 and 10 are replaced with the seed and its hover, using the same hover rule as Radix.                                                                                                                           |
+| Chroma fades evenly toward white and black along the curve, so pale steps and dark mode text steps come out close to gray with little tint.                                                                                  | `vibrant`: each brand step's chroma is a ratio of the seed's chroma, from a table of 10 hue groups averaged from Radix generator ramps. Basically an adjustment to make Leonardo palettes less dingy. Can toggle this. |
+| Leonardo has no alpha ramps.                                                                                                                                                                                                 | Alpha ramps use a copy of Radix's alpha solve, where each channel sets the alpha it needs to reach the target from the background in its own direction.                                                                |
+| Leonardo makes dark mode by re-rendering the same theme at a lower lightness, so one set of color keys builds both light and dark modes. No single color can meet the minimum contrast requirement against both backgrounds. | `light_seed` and `dark_seed`: each mode's brand ramps are built from their own seed.                                                                                                                                   |

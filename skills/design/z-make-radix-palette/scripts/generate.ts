@@ -10,9 +10,11 @@ import {
 } from "./generateRadixColors.js";
 
 type GenerateOptions = {
-  brandColor: string;
+  lightSeed: string;
+  darkSeed?: string;
   brandColorName: string;
-  grayColor: string;
+  lightGray: string;
+  darkGray: string;
   lightBackground?: string;
   darkBackground?: string;
   outputDirectory?: string;
@@ -37,17 +39,17 @@ type RampStep = {
 };
 
 const roles = [
-  "subtle-surface",
-  "surface",
-  "normal-interactive-component",
-  "hover-interactive-component",
-  "active-interactive-component",
+  "app-background",
+  "subtle-background",
+  "component-fill",
+  "component-fill-hover",
+  "component-fill-active",
   "subtle-border",
   "border",
   "strong-border",
-  "primary-fill",
-  "primary-hover",
-  "medium-contrast-text",
+  "solid-fill",
+  "solid-fill-hover",
+  "low-contrast-text",
   "high-contrast-text",
 ] as const;
 
@@ -141,57 +143,98 @@ function withLongHex(colors: ReturnType<typeof generateRadixColors>) {
 }
 
 //==================================================
-// Dark Neutral Step 11
+// Step Minimums
 //==================================================
 
-function paintOver(color: string, ground: string): string {
-  const channel = (hex: string, offset: number) =>
-    Number.parseInt(hex.slice(offset, offset + 2), 16);
-  const alpha = color.length === 9 ? channel(color, 7) / 255 : 1;
+// Step 11 meets 4.5:1 and APCA Lc 60, and step 12 meets 7:1 and Lc 75, on the background and on
+// steps 1–5 of their ramp. Brand step 8 meets 3:1 and Lc 45 on the background and on steps 1–2.
+// Brand steps also meet their minimums on the same neutral steps.
+const stepMinimums = [
+  { index: 7, wcag: 3, apca: 45, surfaceSteps: 3, brandOnly: true },
+  { index: 10, wcag: 4.5, apca: 60, surfaceSteps: 5, brandOnly: false },
+  { index: 11, wcag: 7, apca: 75, surfaceSteps: 5, brandOnly: false },
+];
 
-  return `#${[1, 3, 5]
-    .map((offset) =>
-      Math.round(channel(color, offset) * alpha + channel(ground, offset) * (1 - alpha))
-        .toString(16)
-        .padStart(2, "0"),
-    )
-    .join("")}`;
+// WCAG 2 contrast ratio, from the relative luminance of each six-digit HEX color.
+function contrastRatio(a: string, b: string) {
+  const luminance = (hex: string) => {
+    const [red, green, blue] = [1, 3, 5].map((offset) => {
+      const channel = Number.parseInt(hex.slice(offset, offset + 2), 16) / 255;
+
+      return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    });
+
+    return 0.2126 * (red as number) + 0.7152 * (green as number) + 0.0722 * (blue as number);
+  };
+  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+
+  return ((high as number) + 0.05) / ((low as number) + 0.05);
 }
 
-// Raises step 11 until it reaches APCA Lc 60 on steps 2 and 4, and on alpha
-// step 3 painted over the background and over step 2.
-function raiseDarkStep11(colors: ReturnType<typeof withLongHex>) {
-  const gray = colors.grayScale;
-  const surfaces = [
-    gray[1],
-    gray[3],
-    paintOver(colors.grayScaleAlpha[2], colors.background),
-    paintOver(colors.grayScaleAlpha[2], gray[1]),
-  ].map((surface) => new Color(surface));
-  const lowestContrast = (hex: string) =>
-    Math.min(...surfaces.map((surface) => Math.abs(surface.contrastAPCA(new Color(hex)))));
-  let step11Hex = gray[10];
+function meetsStepMinimum(hex: string, surfaces: string[], minimum: (typeof stepMinimums)[number]) {
+  const step = new Color(hex);
 
-  if (lowestContrast(step11Hex) >= 60) {
-    return colors;
+  return surfaces.every(
+    (surface) =>
+      contrastRatio(hex, surface) >= minimum.wcag &&
+      Math.abs(new Color(surface).contrastAPCA(step)) >= minimum.apca,
+  );
+}
+
+// Moves each step that falls short darker in light mode, or lighter in dark mode, keeping its hue
+// and chroma, then rebuilds its alpha and wide gamut values.
+function applyStepMinimums(colors: ReturnType<typeof withLongHex>, appearance: "light" | "dark") {
+  const scales = [
+    ["accentScale", "accentScaleAlpha", "accentScaleWideGamut", "accentScaleAlphaWideGamut"],
+    ["grayScale", "grayScaleAlpha", "grayScaleWideGamut", "grayScaleAlphaWideGamut"],
+  ] as const;
+  const result = { ...colors };
+
+  for (const [solidKey, alphaKey, wideGamutKey, wideGamutAlphaKey] of scales) {
+    const solid = [...result[solidKey]];
+    const alpha = [...result[alphaKey]];
+    const wideGamut = [...result[wideGamutKey]];
+    const wideGamutAlpha = [...result[wideGamutAlphaKey]];
+    const brand = solidKey === "accentScale";
+
+    for (const minimum of stepMinimums) {
+      if (minimum.brandOnly && !brand) {
+        continue;
+      }
+
+      const surfaces = [
+        colors.background,
+        ...solid.slice(0, minimum.surfaceSteps),
+        ...(brand ? colors.grayScale.slice(0, minimum.surfaceSteps) : []),
+      ] as string[];
+      let hex = solid[minimum.index] as string;
+
+      if (meetsStepMinimum(hex, surfaces, minimum)) {
+        continue;
+      }
+
+      const step = new Color(hex).to("oklch");
+
+      while (!meetsStepMinimum(hex, surfaces, minimum) && step.coords[0] > 0 && step.coords[0] < 1) {
+        step.coords[0] += appearance === "light" ? -0.001 : 0.001;
+        hex = toLongHex(step.to("srgb").toString({ format: "hex" }));
+      }
+
+      solid[minimum.index] = hex;
+      alpha[minimum.index] = getAlphaColorSrgb(hex, colors.background);
+      wideGamut[minimum.index] = toOklchString(step);
+      wideGamutAlpha[minimum.index] = getAlphaColorP3(hex, colors.background);
+    }
+
+    Object.assign(result, {
+      [solidKey]: solid,
+      [alphaKey]: alpha,
+      [wideGamutKey]: wideGamut,
+      [wideGamutAlphaKey]: wideGamutAlpha,
+    });
   }
 
-  const step11 = new Color(step11Hex).to("oklch");
-
-  while (lowestContrast(step11Hex) < 60 && step11.coords[0] < 1) {
-    step11.coords[0] += 0.001;
-    step11Hex = toLongHex(step11.to("srgb").toString({ format: "hex" }));
-  }
-  const replaceStep11 = <T,>(values: readonly T[], value: T) =>
-    values.map((current, index) => (index === 10 ? value : current));
-
-  return {
-    ...colors,
-    grayScale: replaceStep11(gray, step11Hex),
-    grayScaleAlpha: replaceStep11(colors.grayScaleAlpha, getAlphaColorSrgb(step11Hex, colors.background)),
-    grayScaleWideGamut: replaceStep11(colors.grayScaleWideGamut, toOklchString(step11)),
-    grayScaleAlphaWideGamut: replaceStep11(colors.grayScaleAlphaWideGamut, getAlphaColorP3(step11Hex, colors.background)),
-  };
+  return result;
 }
 
 //==================================================
@@ -199,9 +242,11 @@ function raiseDarkStep11(colors: ReturnType<typeof withLongHex>) {
 //==================================================
 
 export async function generate({
-  brandColor,
+  lightSeed,
+  darkSeed = lightSeed,
   brandColorName,
-  grayColor,
+  lightGray,
+  darkGray,
   lightBackground = "#FFFFFF",
   darkBackground = "#111111",
   outputDirectory = process.cwd(),
@@ -214,8 +259,10 @@ export async function generate({
     );
   }
   const colorInputs = {
-    brand_color: brandColor,
-    gray_color: grayColor,
+    light_seed: lightSeed,
+    dark_seed: darkSeed,
+    light_gray: lightGray,
+    dark_gray: darkGray,
     light_background: lightBackground,
     dark_background: darkBackground,
   };
@@ -236,26 +283,40 @@ export async function generate({
     }),
   ) as Record<keyof typeof colorInputs, string>;
 
-  const outputName =
-    `${normalizedBrandColorName}-${normalizedColors.brand_color.slice(1)}-${normalizedColors.gray_color.slice(1)}`.toLowerCase();
+  const seedNames =
+    normalizedColors.dark_seed === normalizedColors.light_seed
+      ? [normalizedColors.light_seed]
+      : [normalizedColors.light_seed, normalizedColors.dark_seed];
+  const grayNames =
+    normalizedColors.dark_gray === normalizedColors.light_gray
+      ? [normalizedColors.light_gray]
+      : [normalizedColors.light_gray, normalizedColors.dark_gray];
+  const outputName = [normalizedBrandColorName, ...seedNames, ...grayNames]
+    .map((part) => part.replace("#", ""))
+    .join("-")
+    .toLowerCase();
 
-  const light = withLongHex(
-    generateRadixColors({
-      appearance: "light",
-      accent: normalizedColors.brand_color,
-      gray: normalizedColors.gray_color,
-      background: normalizedColors.light_background,
-    }),
+  const light = applyStepMinimums(
+    withLongHex(
+      generateRadixColors({
+        appearance: "light",
+        accent: normalizedColors.light_seed,
+        gray: normalizedColors.light_gray,
+        background: normalizedColors.light_background,
+      }),
+    ),
+    "light",
   );
-  const dark = raiseDarkStep11(
+  const dark = applyStepMinimums(
     withLongHex(
       generateRadixColors({
         appearance: "dark",
-        accent: normalizedColors.brand_color,
-        gray: normalizedColors.gray_color,
+        accent: normalizedColors.dark_seed,
+        gray: normalizedColors.dark_gray,
         background: normalizedColors.dark_background,
       }),
     ),
+    "dark",
   );
 
   const palette = {
@@ -331,18 +392,22 @@ const isEntryPoint =
 
 if (isEntryPoint) {
   const args = process.argv.slice(2);
-  const brandColorIndex = args.indexOf("--brand-color");
-  const grayColorIndex = args.indexOf("--gray-color");
+  const lightSeedIndex = args.indexOf("--light-seed");
+  const darkSeedIndex = args.indexOf("--dark-seed");
+  const lightGrayIndex = args.indexOf("--light-gray");
+  const darkGrayIndex = args.indexOf("--dark-gray");
   const lightBackgroundIndex = args.indexOf("--light-background");
   const darkBackgroundIndex = args.indexOf("--dark-background");
   const brandColorNameIndex = args.indexOf("--brand-color-name");
   const outputDirectoryIndex = args.indexOf("--output-directory");
 
   const generatedPath = await generate({
-    brandColor: brandColorIndex === -1 ? "" : args[brandColorIndex + 1],
+    lightSeed: lightSeedIndex === -1 ? "" : args[lightSeedIndex + 1],
+    darkSeed: darkSeedIndex === -1 ? undefined : args[darkSeedIndex + 1],
     brandColorName:
       brandColorNameIndex === -1 ? "" : args[brandColorNameIndex + 1],
-    grayColor: grayColorIndex === -1 ? "" : args[grayColorIndex + 1],
+    lightGray: lightGrayIndex === -1 ? "" : args[lightGrayIndex + 1],
+    darkGray: darkGrayIndex === -1 ? "" : args[darkGrayIndex + 1],
     lightBackground:
       lightBackgroundIndex === -1 ? undefined : args[lightBackgroundIndex + 1],
     darkBackground:
