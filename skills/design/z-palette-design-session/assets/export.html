@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Selected Palette</title>
+		<style>
+			/* Replace the block between the PAGE_STYLES markers with the contents of assets/pageStyles.css. */
+			/* @@PAGE_STYLES_START */
+			/* @@PAGE_STYLES_END */
+
+			.palette-section {
+				scroll-margin-top: 40px;
+			}
+
+			.eyebrow {
+				margin: 0 0 8px;
+				color: var(--muted-foreground);
+				font-size: 0.72rem;
+				font-weight: 760;
+				letter-spacing: 0.12em;
+				text-transform: uppercase;
+			}
+
+			.page-header {
+				align-items: flex-start;
+			}
+
+			.palette-description {
+				max-width: 760px;
+				margin: 14px 0 0;
+				color: var(--muted-foreground);
+				font-size: 1.02rem;
+				line-height: 1.5;
+			}
+
+			.palette-meta {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 10px;
+				align-items: center;
+				margin-top: 18px;
+			}
+
+			.selection-badge {
+				display: grid;
+				flex: 0 0 auto;
+				gap: 2px;
+				min-width: 140px;
+				padding: 12px 18px;
+				border-radius: 16px;
+				background: var(--page-foreground);
+				box-shadow: 0 8px 24px rgb(23 23 20 / 16%);
+				color: #ffffff;
+			}
+
+			.selection-badge span {
+				font-size: 0.66rem;
+				font-weight: 760;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+				opacity: 0.72;
+			}
+
+			.selection-badge strong {
+				font-size: 1.05rem;
+				font-weight: 760;
+				letter-spacing: -0.02em;
+			}
+
+			.token-mapping-detail h2 {
+				margin-bottom: 8px;
+				font-size: clamp(1.6rem, 3vw, 2.4rem);
+				letter-spacing: -0.04em;
+			}
+
+			.token-mapping-detail p {
+				max-width: 900px;
+				margin-bottom: 0;
+				color: var(--muted-foreground);
+				line-height: 1.55;
+			}
+
+			#token-mapping,
+			#ramps,
+			#tokens,
+			#examples {
+				scroll-margin-top: 40px;
+			}
+
+			.matrix.mapping {
+				min-width: 480px;
+			}
+
+			.matrix.checks {
+				min-width: 720px;
+			}
+
+			#check-summary {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 12px;
+				align-items: center;
+				margin-bottom: 12px;
+			}
+
+			.check-note {
+				margin: 0;
+				color: var(--muted-foreground);
+				line-height: 1.5;
+			}
+
+			#ramps.palette-section {
+				margin-top: 8px;
+				padding-top: 8px;
+				border-top: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<main class="page">
+			<header class="page-header">
+				<div>
+					<p class="eyebrow">Selected Palette</p>
+					<h1 id="palette-title"></h1>
+					<p class="palette-description" id="palette-description"></p>
+					<div class="palette-meta" id="palette-meta"></div>
+				</div>
+				<div class="selection-badge" id="selection-badge"></div>
+			</header>
+			<!-- @@SUMMARY_START -->
+			<!-- @@SUMMARY_END -->
+
+			<nav class="palette-tabs" aria-label="Selected Palette Sections">
+				<div class="palette-tabs-list">
+					<a class="palette-tab" href="#token-mapping">Token Mapping</a>
+					<a class="palette-tab" href="#ramps">Ramps</a>
+					<a class="palette-tab" href="#tokens">Tokens</a>
+					<a class="palette-tab" href="#examples">Examples</a>
+				</div>
+			</nav>
+
+			<section class="overview" id="token-mapping">
+				<div class="token-mapping-detail" id="token-mapping-detail"></div>
+				<h3 class="overview-subhead">Contrast Checks · Light + Dark</h3>
+				<div id="check-summary"></div>
+				<div id="check-failures"></div>
+				<h3 class="overview-subhead">Step Mapping · Light / Dark</h3>
+				<div class="matrix-shell">
+					<table class="matrix mapping" id="token-mapping-matrix"></table>
+				</div>
+			</section>
+
+			<div class="palette-section" id="ramps"></div>
+			<div id="tokens"></div>
+			<div id="examples"></div>
+		</main>
+
+		<script>
+			//==================================================
+			// Selected Palette
+			//==================================================
+
+			// scripts/pages/buildPage.ts fills each block between @@ markers.
+			// @@PALETTE_START
+			// @@PALETTE_END
+
+			// @@TOKEN_MAPPING_START
+			// @@TOKEN_MAPPING_END
+
+			// @@CONTRAST_THRESHOLDS_START
+			// @@CONTRAST_THRESHOLDS_END
+
+			// @@TOKEN_RESOLUTION_START
+			// @@TOKEN_RESOLUTION_END
+
+			// Wide gamut colors (oklch() and color(display-p3 ... / alpha)). Each color is converted to
+			// display-p3, composited over its ground (a HEX color) in display-p3, then measured:
+			// WCAG 2 uses relative luminance (display-p3 primaries), APCA uses its display-p3 coefficients.
+			// lumOf returns { y, ya } (WCAG luminance, APCA luminance) for HEX or wide gamut colors.
+			const toLinear = (value) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+			const toEncoded = (value) =>
+				Math.sign(value) * (Math.abs(value) <= 0.0031308 ? Math.abs(value) * 12.92 : 1.055 * Math.abs(value) ** (1 / 2.4) - 0.055);
+			const linearSrgbToLinearP3 = ([r, g, b]) => [
+				0.8224621 * r + 0.177538 * g,
+				0.0331941 * r + 0.9668058 * g,
+				0.0170827 * r + 0.0723974 * g + 0.9105199 * b,
+			];
+			const hexToP3 = (hex) =>
+				linearSrgbToLinearP3([1, 3, 5].map((offset) => toLinear(Number.parseInt(hex.slice(offset, offset + 2), 16) / 255))).map(toEncoded);
+			const oklchToP3 = (lightness, chroma, hue) => {
+				const radians = ((Number.isNaN(hue) ? 0 : hue) * Math.PI) / 180;
+				const a = chroma * Math.cos(radians);
+				const b = chroma * Math.sin(radians);
+				const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+				const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+				const s = (lightness - 0.0894841775 * a - 1.291485548 * b) ** 3;
+				const linearSrgb = [
+					4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+					-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+					-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+				];
+				return linearSrgbToLinearP3(linearSrgb).map(toEncoded);
+			};
+			const parseAlpha = (value) => (value === undefined ? 1 : value.endsWith("%") ? Number.parseFloat(value) / 100 : Number(value));
+			const wideToP3 = (color, ground) => {
+				let channels;
+				let alpha = 1;
+				const oklch = color.match(/oklch\(\s*([\d.]+)%\s+([\d.]+)\s+([\d.]+|none)(?:\s*\/\s*([\d.]+%?))?\s*\)/i);
+				const p3 = color.match(/color\(display-p3\s+([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)(?:\s*\/\s*([\d.]+%?))?\s*\)/i);
+				if (oklch) {
+					channels = oklchToP3(Number(oklch[1]) / 100, Number(oklch[2]), Number(oklch[3]));
+					alpha = parseAlpha(oklch[4]);
+				} else if (p3) {
+					channels = [p3[1], p3[2], p3[3]].map(Number);
+					alpha = parseAlpha(p3[4]);
+				} else {
+					throw new Error(`Unsupported wide gamut color ${color}`);
+				}
+				const base = hexToP3(ground);
+				return channels.map((value, index) => Math.min(1, Math.max(0, value * alpha + base[index] * (1 - alpha))));
+			};
+			const lumHex = (hex) => ({ y: luminance(hex), ya: apcaY(hex) });
+			const lumOf = (color, ground) => {
+				if (color.startsWith("#")) return lumHex(overHex(color, ground));
+				const p3 = wideToP3(color, ground);
+				const linear = p3.map(toLinear);
+				return {
+					y: 0.2289746 * linear[0] + 0.6917385 * linear[1] + 0.0792869 * linear[2],
+					ya: 0.228982959480578 * p3[0] ** 2.4 + 0.691749262585238 * p3[1] ** 2.4 + 0.0792677779341829 * p3[2] ** 2.4,
+				};
+			};
+			const ratioOfLum = (a, b) => {
+				const [high, low] = [a.y, b.y].sort((x, y) => y - x);
+				return (high + 0.05) / (low + 0.05);
+			};
+
+			// Text on the seed (seed-foreground): white, or light neutral step 12.
+			palette.seedForeground = seedForegroundText(palette, contrastThresholds);
+
+			//==================================================
+			// Ramp Tables
+			//==================================================
+
+			// Each contrast cell shows "WCAG 2 ratio | APCA Lc". Steps are measured as text on the
+			// mode background and on brand step 2; black and white are measured as text on the step.
+			const formatPair = (ratio, lc) =>
+				`<span class="cx-v2">${ratio.toFixed(2)}</span><span class="cx-sep">|</span><span class="cx-v3">${Math.round(lc)}</span>`;
+
+			// A swatch badge: label, color, and optional detail.
+			const badge = (label, color, detail = "") =>
+				`<span class="seed" style="--seed-color:${color}"><span class="seed-swatch" aria-hidden="true"></span>${label} ${color}${detail}</span>`;
+
+			// Badges for a ramp table: each mode's seed, and each mode's background.
+			const seedBadges = (seed) =>
+				seed.light === seed.dark ? [["Seed", seed.light]] : [["Light Seed", seed.light], ["Dark Seed", seed.dark]];
+			const backgroundBadges = (backgrounds) =>
+				["light", "dark"].map((mode) => [
+					`${mode === "light" ? "Light" : "Dark"} Background`,
+					backgrounds[mode].color,
+					` · OKLCH Lightness ${backgrounds[mode].lightness}`,
+				]);
+			const grayBadges = (palette) =>
+				palette.gray.light === palette.gray.dark
+					? [["Gray Seed", palette.gray.light, ` · Chroma ${palette.grayChroma.light}`]]
+					: ["light", "dark"].map((mode) => [
+							`${mode === "light" ? "Light" : "Dark"} Gray Seed`,
+							palette.gray[mode],
+							` · Chroma ${palette.grayChroma[mode]}`,
+						]);
+
+			const renderRampTable = ({ title, badges, columns, tableClass, kind = "solid" }) => {
+				const rgb = (hex) => {
+					let value = hex.slice(1);
+					if (value.length === 3 || value.length === 4) value = [...value].map((char) => char + char).join("");
+					const channel = (offset) => Number.parseInt(value.slice(offset, offset + 2), 16);
+					return {
+						r: channel(0),
+						g: channel(2),
+						b: channel(4),
+						a: value.length >= 8 ? channel(6) / 255 : 1,
+					};
+				};
+				const compositeHex = (color, ground) => {
+					const foreground = rgb(color);
+					const background = rgb(ground);
+					const blend = (fg, bg) => Math.round(bg * (1 - foreground.a)) + Math.round(fg * foreground.a);
+					const byte = (n) => Math.min(255, Math.max(0, n)).toString(16).padStart(2, "0");
+					return `#${byte(blend(foreground.r, background.r))}${byte(blend(foreground.g, background.g))}${byte(blend(foreground.b, background.b))}`.toUpperCase();
+				};
+				const textOn = (color, ground) => {
+					if (color.startsWith("#")) {
+						return blackOrWhite(compositeHex(color, ground), contrastThresholds) === "white" ? "#FFFFFF" : "#000000";
+					}
+					if (/oklch\(|display-p3/i.test(color)) {
+						const lum = lumOf(color, ground);
+						return ratioOfLum(lum, lumHex("#000000")) >= ratioOfLum(lum, lumHex("#FFFFFF")) ? "#000000" : "#FFFFFF";
+					}
+					const oklch = color.match(/oklch\(\s*([\d.]+)%/i);
+					if (oklch) return Number(oklch[1]) >= 65 ? "#000000" : "#FFFFFF";
+					const p3 = color.match(/color\(display-p3\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\)/i);
+					if (p3) {
+						const alpha = p3[4] === undefined ? 1 : Number(p3[4]);
+						const y = 0.2126 * Number(p3[1]) + 0.7152 * Number(p3[2]) + 0.0722 * Number(p3[3]);
+						const blended = luminance(ground) * (1 - alpha) + y * alpha;
+						return blended > 0.35 ? "#000000" : "#FFFFFF";
+					}
+					return "#111111";
+				};
+				// Every table shows contrast. Each step is measured through lumOf: alpha steps composited
+				// over the mode background, wide gamut steps converted to display-p3 first.
+				const showContrast = true;
+				const measures = [
+					["Vs. Background", (lum, column) => [ratioOfLum(lum, lumHex(column.background)), apcaFromY(lum.ya, apcaY(column.background))]],
+					["Vs. Brand Step 2", (lum, column) => [ratioOfLum(lum, lumHex(column.brandStep2)), apcaFromY(lum.ya, apcaY(column.brandStep2))]],
+					["Vs. Black", (lum) => [ratioOfLum(lum, lumHex("#000000")), apcaFromY(apcaY("#000000"), lum.ya)]],
+					["Vs. White", (lum) => [ratioOfLum(lum, lumHex("#FFFFFF")), apcaFromY(apcaY("#FFFFFF"), lum.ya)]],
+				];
+				const headers = columns
+					.map(
+						(column) => `
+							<th class="color-column">${column.label}</th>
+							${column.alphaValues ? `<th class="color-column">${column.label} Alpha</th>` : ""}
+							${showContrast ? measures.map(([label]) => `<th class="contrast-column">${label}<br /><small>v2 | v3</small></th>`).join("") : ""}
+						`,
+					)
+					.join("");
+				// Alpha steps sit next to their solid step. Painted over the mode background they match it,
+				// so the contrast cells cover both.
+				const alphaSwatch = (color, column) =>
+					`<td class="swatch ${kind === "wide" ? "is-wide" : "is-alpha"}" style="background:linear-gradient(${color}, ${color}), ${column.background};color:${textOn(color, column.background)}">${color}</td>`;
+				const rows = Array.from({ length: 12 }, (_, index) => {
+					const renderedCells = columns
+						.map((column) => {
+							const color = column.values[index];
+							const measured = color.startsWith("#") ? lumHex(compositeHex(color, column.background)) : lumOf(color, column.background);
+							const textColor = textOn(color, column.background);
+							const swatchClass = kind === "solid" ? "swatch" : `swatch is-${kind}`;
+							return `
+								<td class="${swatchClass}" style="background:linear-gradient(${color}, ${color}), ${column.background};color:${textColor}">${color}</td>
+								${column.alphaValues ? alphaSwatch(column.alphaValues[index], column) : ""}
+								${showContrast ? measures.map(([, measure]) => `<td class="contrast">${formatPair(...measure(measured, column))}</td>`).join("") : ""}
+							`;
+						})
+						.join("");
+					return `<tr><td class="step">${index + 1}</td>${renderedCells}</tr>`;
+				}).join("");
+
+				return `
+					<div class="ramp-table-group">
+						<div class="ramp-table-header"><h3>${title}</h3></div>
+						<div class="seed-list ramp-table-badges">${badges.map(([label, color, detail]) => badge(label, color, detail)).join("")}</div>
+						<div class="table-shell">
+							<table class="${tableClass}">
+								<thead><tr><th>Step</th>${headers}</tr></thead>
+								<tbody>${rows}</tbody>
+							</table>
+						</div>
+					</div>
+				`;
+			};
+
+			const rampColumns = (values, palette, backgrounds, alphaValues) =>
+				["light", "dark"].map((mode) => ({
+					label: mode === "light" ? "Light" : "Dark",
+					values: values[mode],
+					alphaValues: alphaValues?.[mode],
+					background: backgrounds[mode].color,
+					brandStep2: palette.ramps[`${mode}Brand`][1],
+				}));
+
+			//==================================================
+			// Token Table
+			//==================================================
+
+			// Contrast colour coding by token role. Each value is green at or above the first
+			// threshold, yellow at or above the second, red below. Pairing cells always use the
+			// text scale because they measure text on its surface.
+			const contrastScales = {
+				text: { v2: [4.5, 3], v3: [75, 60], label: "Text" },
+				nonText: { v2: [3, 2], v3: [45, 30], label: "UI Marks (Input, Ring, Chart)" },
+				border: { v2: [1.5, 1.2], v3: [20, 10], label: "Borders" },
+				surface: { v2: [1.15, 1.03], v3: [10, 4], label: "Surfaces and Fills" },
+			};
+
+			const tokenRole = (token) => {
+				if (["input", "ring", "sidebar-ring", "chart-primary"].includes(token)) return "nonText";
+				if (["border", "sidebar-border"].includes(token)) return "border";
+				if (token === "foreground" || token.endsWith("-foreground") || ["destructive", "warning", "success"].includes(token))
+					return "text";
+				return "surface";
+			};
+
+			// Specific pairs: each surface with the text that sits on it.
+			const pairOf = { background: "foreground", foreground: "background" };
+			for (const token of tokenMapping.groups.flatMap((group) => group.tokens)) {
+				if (token === "foreground" || !token.endsWith("-foreground")) continue;
+				const surface = token.replace(/-foreground$/, "");
+				pairOf[token] = surface;
+				pairOf[surface] = token;
+			}
+
+			const tone = (value, [good, ok]) => (value >= good ? "good" : value >= ok ? "ok" : "bad");
+
+			const contrastCell = (textHex, backgroundHex, role) => {
+				const scale = contrastScales[role];
+				const ratio = contrast(textHex, backgroundHex);
+				const lc = apca(textHex, backgroundHex);
+				return `<td class="cx"><span class="cx-v2 ${tone(ratio, scale.v2)}">${ratio.toFixed(2)}</span><span class="cx-sep">|</span><span class="cx-v3 ${tone(lc, scale.v3)}">${Math.round(lc)}</span></td>`;
+			};
+
+			const emptyCell = `<td class="cx cx-empty">—</td>`;
+			const comparisonTokens = ["background", "card", "popover", "sidebar"];
+
+			const renderContrastLegend = () =>
+				`<div class="cx-legend">
+					<span class="cx-legend-title">Each Cell: WCAG 2 Ratio | APCA Lc</span>
+					${Object.values(contrastScales)
+						.map(
+							(scale) =>
+								`<span class="cx-legend-item"><b>${scale.label}</b> <span class="good">≥ ${scale.v2[0]} | ${scale.v3[0]}</span> <span class="ok">≥ ${scale.v2[1]} | ${scale.v3[1]}</span> <span class="bad">below</span></span>`,
+						)
+						.join("")}
+				</div>`;
+
+			const renderTokenTable = (palette) => {
+				const byMode = Object.fromEntries(
+					["light", "dark"].map((mode) => [mode, resolveMapping(palette, tokenMapping, mode, contrastThresholds)]),
+				);
+				const modeCells = (token, mode) => {
+					const resolved = byMode[mode];
+					const { hex, css, ref } = resolved[token];
+					const role = tokenRole(token);
+					const textColor = contrast(hex, "#000000") >= contrast(hex, "#FFFFFF") ? "#000000" : "#FFFFFF";
+					const comparisons = comparisonTokens
+						// Alpha tokens are painted over each surface they are compared with.
+						.map((against) =>
+							against === token ? emptyCell : contrastCell(overHex(css, resolved[against].hex), resolved[against].hex, role),
+						)
+						.join("");
+					const pair = pairOf[token];
+					let pairing = emptyCell;
+					if (pair && resolved[pair]) {
+						const [text, surface] =
+							tokenRole(token) === "text"
+								? [overHex(css, resolved[pair].hex), resolved[pair].hex]
+								: [overHex(resolved[pair].css, hex), hex];
+						pairing = contrastCell(text, surface, "text").replace(
+							'<td class="cx">',
+							`<td class="cx" title="${token} vs ${pair}">`,
+						);
+					}
+					const alphaNote = css.length > 7 ? ` title="alpha ${css}, shown on ${groundOf(token, Object.keys(resolved))}"` : "";
+					return `<td class="token-fill" style="background:${hex};color:${textColor}"${alphaNote}>${ref} - ${hex}</td>${comparisons}${pairing}`;
+				};
+				const columnHeads = ["Color", "Vs. Background", "Vs. Card", "Vs. Popover", "Vs. Sidebar", "Vs. Pairing"]
+					.map((label, index) => `<th class="${index === 0 ? "token-fill-head" : "cx-head"}">${label}</th>`)
+					.join("");
+				const rows = tokenMapping.groups
+					.map((group) => {
+						const groupRows = group.tokens
+							.map((token) => `<tr><td class="token-name">${token}</td>${modeCells(token, "light")}${modeCells(token, "dark")}</tr>`)
+							.join("");
+						return `<tr class="group-row"><td colspan="13">${group.label}</td></tr>${groupRows}`;
+					})
+					.join("");
+				return `
+					${renderContrastLegend()}
+					<div class="table-shell">
+						<table class="token-table">
+							<colgroup>
+								<col style="width:164px" />
+								${'<col style="width:160px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" />'.repeat(2)}
+							</colgroup>
+							<thead>
+								<tr><th rowspan="2" class="token-name-head">Token</th><th colspan="6" class="mode-head">Light</th><th colspan="6" class="mode-head">Dark</th></tr>
+								<tr>${columnHeads}${columnHeads}</tr>
+							</thead>
+							<tbody>${rows}</tbody>
+						</table>
+					</div>`;
+			};
+
+			//==================================================
+			// Mockups
+			//==================================================
+
+			const cssVars = (tokens, mode) =>
+				Object.entries(tokens)
+					.map(([token, hex]) => `--${token}:${hex}`)
+					.concat(
+						`--mock-shadow:${
+							mode === "light"
+								? "0 1px 2px rgb(0 0 0 / 6%), 0 12px 32px rgb(0 0 0 / 10%)"
+								: "0 1px 2px rgb(0 0 0 / 40%), 0 16px 40px rgb(0 0 0 / 55%)"
+						}`,
+					)
+					.join(";");
+
+			const bars = [38, 52, 44, 68, 57, 81, 63, 92, 74, 86, 70, 97];
+
+			const webMockup = () => `
+				<div class="mock web-app" data-tok="background foreground border">
+					<aside class="web-sidebar" data-tok="sidebar sidebar-foreground sidebar-border">
+						<div class="web-workspace" data-tok="sidebar-foreground"><span class="web-logo" data-tok="sidebar-primary sidebar-primary-foreground">A</span>Acme Inc</div>
+						<button class="btn sb-cta" data-tok="sidebar-primary sidebar-primary-foreground"><span class="icon">＋</span>New Report</button>
+						<div class="sb-label" data-tok="sidebar-foreground">Workspace</div>
+						<div class="sb-item" data-tok="sidebar-foreground"><span class="icon">⌂</span>Home</div>
+						<div class="sb-item is-active" data-tok="sidebar-accent sidebar-accent-foreground"><span class="icon">▦</span>Dashboard</div>
+						<div class="sb-item is-focus" data-tok="sidebar-foreground sidebar-ring"><span class="icon">◎</span>Projects<span class="sb-count">12</span></div>
+						<div class="sb-item" data-tok="sidebar-foreground"><span class="icon">✉</span>Inbox<span class="sb-count">3</span></div>
+						<div class="sb-divider" data-tok="sidebar-border"></div>
+						<div class="sb-label" data-tok="sidebar-foreground">Teams</div>
+						<div class="sb-item" data-tok="sidebar-foreground"><span class="icon">●</span>Design</div>
+						<div class="sb-item" data-tok="sidebar-foreground"><span class="icon">●</span>Engineering</div>
+						<div class="sb-footer" data-tok="sidebar-foreground sidebar-border"><span class="avatar" data-tok="secondary secondary-foreground">JD</span>Jo Doe</div>
+					</aside>
+					<div class="web-main">
+						<div class="web-top" data-tok="border">
+							<h4 data-tok="foreground">Dashboard</h4>
+							<div class="search" data-tok="background input muted-foreground"><span class="icon">⌕</span>Search<span class="kbd" data-tok="muted muted-foreground border">⌘K</span></div>
+							<button class="btn btn-secondary" data-tok="secondary secondary-foreground">Export</button>
+							<button class="btn btn-primary" data-tok="primary primary-foreground">Create Report</button>
+						</div>
+						<div class="banner" data-tok="warning-fill warning-fill-foreground"><span class="icon">⚠</span>Your trial ends in 3 days.<span class="banner-link">Upgrade</span></div>
+						<div class="stats">
+							<div class="card stat" data-tok="card card-foreground border">
+								<div class="stat-label" data-tok="muted-foreground">Revenue</div>
+								<div class="stat-value" data-tok="card-foreground">$48.2k <span class="badge badge-success" data-tok="success-fill success-fill-foreground">▲ 12.4%</span></div>
+								<div class="stat-note" data-tok="success">On track for Q3 target</div>
+							</div>
+							<div class="card stat" data-tok="card card-foreground border">
+								<div class="stat-label" data-tok="muted-foreground">Active Users</div>
+								<div class="stat-value" data-tok="card-foreground">2,318 <span class="badge badge-muted" data-tok="muted muted-foreground">0.0%</span></div>
+							</div>
+							<div class="card stat" data-tok="card card-foreground border">
+								<div class="stat-label" data-tok="muted-foreground">Churn</div>
+								<div class="stat-value" data-tok="card-foreground">3.1% <span class="badge badge-destructive" data-tok="destructive-fill destructive-fill-foreground">▼ 0.8%</span></div>
+							</div>
+						</div>
+						<div class="web-panels">
+							<div class="card" data-tok="card card-foreground border">
+								<div class="panel-head" data-tok="border card-foreground">Weekly Volume <span class="badge badge-primary" data-tok="primary primary-foreground">Live</span></div>
+								<div class="chart" data-tok="border">${bars.map((height) => `<span class="chart-bar" data-tok="chart-primary" style="height:${height}%"></span>`).join("")}</div>
+								<div class="chart-axis" data-tok="muted-foreground"><span>Jan</span><span>Apr</span><span>Jul</span><span>Oct</span></div>
+							</div>
+							<div class="card" data-tok="card card-foreground border">
+								<div class="panel-head" data-tok="border card-foreground">
+									Recent Invoices
+									<div class="menu-anchor">
+										<button class="btn btn-outline menu-trigger is-open" data-tok="background foreground input ring">⋯</button>
+										<div class="popover" data-tok="popover popover-foreground border">
+											<div class="menu-label" data-tok="muted-foreground">Invoice #1042</div>
+											<div class="menu-item" data-tok="popover-foreground"><span class="icon">✎</span>Edit<span class="menu-shortcut" data-tok="muted-foreground">⌘E</span></div>
+											<div class="menu-item is-selected" data-tok="accent accent-foreground"><span class="icon">⧉</span>Duplicate<span class="menu-shortcut" data-tok="muted-foreground">⌘D</span></div>
+											<div class="menu-item" data-tok="popover-foreground"><span class="icon">↓</span>Download</div>
+											<div class="menu-sep" data-tok="border"></div>
+											<div class="menu-item is-danger" data-tok="destructive"><span class="icon">✕</span>Delete</div>
+										</div>
+									</div>
+								</div>
+								<div class="rows">
+									<div class="row" data-tok="border card-foreground"><span>Northwind Ltd</span><span class="badge badge-success" data-tok="success-fill success-fill-foreground">Paid</span><span class="row-amount">$840</span></div>
+									<div class="row is-selected" data-tok="accent accent-foreground border"><span>Globex Corp</span><span class="badge badge-warning" data-tok="warning-fill warning-fill-foreground">Due</span><span class="row-amount">$1.2k</span></div>
+									<div class="row" data-tok="border card-foreground"><span>Initech</span><span class="badge badge-destructive" data-tok="destructive-fill destructive-fill-foreground">Overdue</span><span class="row-amount">$310</span></div>
+									<div class="row" data-tok="card-foreground"><span>Umbrella</span><span class="badge badge-muted" data-tok="muted muted-foreground">Draft</span><span class="row-amount">$95</span></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>`;
+
+			const mobileMockup = () => `
+				<div class="mock phone" data-tok="background foreground border">
+					<div class="phone-status" data-tok="foreground"><span>9:41</span><span>●●● ▮</span></div>
+					<div class="phone-body">
+						<div class="phone-head">
+							<div><h4 data-tok="foreground">Good Morning</h4><p data-tok="muted-foreground">Here's your week at a glance</p></div>
+							<span class="avatar" data-tok="secondary secondary-foreground">JD</span>
+						</div>
+						<div class="segmented" data-tok="muted muted-foreground"><span class="is-on" data-tok="background foreground">Week</span><span>Month</span><span>Year</span></div>
+						<div class="card goal" data-tok="card card-foreground border">
+							<div class="goal-top" data-tok="card-foreground">Savings Goal <span>68%</span></div>
+							<div class="progress" data-tok="muted"><i data-tok="chart-primary"></i></div>
+							<div class="text-muted" data-tok="muted-foreground">$3,400 of $5,000 · 21 days left</div>
+						</div>
+						<div class="toast" data-tok="success-fill success-fill-foreground"><span class="icon">✓</span>Transfer of $250 sent</div>
+						<div class="field">
+							<label data-tok="foreground">Recipient</label>
+							<div class="input is-placeholder" data-tok="background input muted-foreground">Name or email</div>
+						</div>
+						<div class="field">
+							<label data-tok="foreground">Amount</label>
+							<div class="input is-focus" data-tok="background foreground ring">$ 1,200.00</div>
+							<div class="field-warning" data-tok="warning">Transfers over $1,000 need approval</div>
+						</div>
+						<div class="field">
+							<label data-tok="foreground">Reference</label>
+							<div class="input is-error" data-tok="background foreground destructive">INV-10</div>
+							<div class="field-error" data-tok="destructive">Reference must be 8 characters</div>
+						</div>
+						<div class="alert" data-tok="destructive-fill destructive-fill-foreground"><span class="icon">!</span><div><strong>Card Declined</strong><span>Update your payment method to continue.</span></div></div>
+						<div class="phone-actions">
+							<button class="btn btn-primary" data-tok="primary primary-foreground">Send Money</button>
+							<button class="btn btn-secondary" data-tok="secondary secondary-foreground">Save Draft</button>
+							<button class="btn btn-destructive" data-tok="destructive-fill destructive-fill-foreground">Cancel</button>
+						</div>
+					</div>
+					<div class="tabbar" data-tok="card border muted-foreground">
+						<span class="is-on" data-tok="foreground"><b data-tok="foreground"></b>Home</span><span><b data-tok="muted"></b>Cards</span><span><b data-tok="muted"></b>Pay</span><span><b data-tok="muted"></b>Me</span>
+					</div>
+				</div>`;
+
+			const renderLegend = (palette, mode) => {
+				const resolved = resolveMapping(palette, tokenMapping, mode, contrastThresholds);
+				return tokenMapping.groups
+					.flatMap((group) => group.tokens)
+					.map(
+						(token) =>
+							`<span class="legend-chip" data-legend="${token}"><i style="background:${resolved[token].hex}"></i>${token} <b>${resolved[token].ref}</b></span>`,
+					)
+					.join("");
+			};
+
+			const renderExamples = (palette) =>
+				["light", "dark"]
+					.map((mode) => {
+						const tokens = resolveCss(palette, tokenMapping, mode, contrastThresholds);
+						return `
+							<div class="mode-group" data-mode="${mode}">
+								<div class="mode-label">${mode === "light" ? "Light" : "Dark"} Mode · ${tokenMapping.title}</div>
+								<div class="example-grid" style="${cssVars(tokens, mode)}">
+									${mobileMockup()}
+									<div class="web-scroll">${webMockup()}</div>
+								</div>
+								<div class="token-legend">${renderLegend(palette, mode)}</div>
+							</div>`;
+					})
+					.join("");
+
+			//==================================================
+			// Page
+			//==================================================
+
+			// The Suggested Brand seed, each mode's seed with its text color and contrast, then the gray seeds.
+			const seedSummary = (palette) => `<div class="seed-list">${badge("Suggested Brand", palette.seed[palette.suggestedBrand])}${["light", "dark"]
+				.map((mode) => {
+					const seed = palette.seed[mode];
+					const text = palette.seedForeground[mode];
+					return badge(
+						`${mode === "light" ? "Light" : "Dark"} Seed`,
+						seed,
+						` · ${text === "#FFFFFF" ? "White" : "N12"} Text (${contrast(seed, text).toFixed(2)} | Lc ${Math.round(apca(text, seed))})`,
+					);
+				})
+				.join("")}${grayBadges(palette)
+				.map((args) => badge(...args))
+				.join("")}</div>`;
+
+			const renderPage = () => {
+				const source = palette;
+				document.title = `${source.name} · ${tokenMapping.title}`;
+				document.querySelector("#palette-title").textContent = source.name;
+				document.querySelector("#palette-description").textContent = source.description;
+				document.querySelector("#palette-meta").innerHTML = seedSummary(source);
+				document.querySelector("#selection-badge").innerHTML = `<span>Token Mapping</span><strong>${tokenMapping.title}</strong>`;
+
+				document.querySelector("#token-mapping-detail").innerHTML = `
+					<h2>${tokenMapping.title}</h2>
+					<p>${tokenMapping.description}</p>
+				`;
+
+				const failures = [];
+				let passed = 0;
+				let total = 0;
+				for (const mode of ["light", "dark"]) {
+					const results = runChecks(resolveMapping(source, tokenMapping, mode, contrastThresholds), tokenMapping, contrastThresholds);
+					for (const [token, checks] of Object.entries(results)) {
+						for (const check of checks) {
+							if (check.pass === null) continue;
+							total += 1;
+							if (check.pass) {
+								passed += 1;
+								continue;
+							}
+							failures.push({ token, mode, ...check });
+						}
+					}
+				}
+				const failed = total - passed;
+				const tone = failed === 0 ? "good" : failed <= 3 ? "ok" : "bad";
+				const note =
+					failed === 0
+						? "All required checks passed in light and dark mode."
+						: `${failed} required ${failed === 1 ? "check" : "checks"} failed.`;
+				document.querySelector("#check-summary").innerHTML = `
+					<span class="score ${tone}">${passed}/${total}</span>
+					<p class="check-note">${note}</p>
+				`;
+				const failureMount = document.querySelector("#check-failures");
+				if (failed === 0) {
+					failureMount.innerHTML = "";
+				} else {
+					const failureRows = failures
+						.map((check) => {
+							const required = [check.minimum === null ? "" : `${check.minimum}:1`, `Lc ${check.apcaMinimum}`]
+								.filter(Boolean)
+								.join(" · ");
+							return `<tr><td>${check.token}</td><td>${check.mode}</td><td>${check.against}</td><td>${check.ratio.toFixed(2)}</td><td>${Math.round(check.lc)}</td><td>${required}</td></tr>`;
+						})
+						.join("");
+					failureMount.innerHTML = `
+						<div class="matrix-shell">
+							<table class="matrix checks">
+								<thead><tr><th>Token</th><th>Mode</th><th>Against</th><th>WCAG 2</th><th>APCA Lc</th><th>Required</th></tr></thead>
+								<tbody>${failureRows}</tbody>
+							</table>
+						</div>
+					`;
+				}
+
+				// Each cell is painted in the resolved color for that mode (alpha steps as seen on their
+				// ground), with the ref and the HEX value.
+				const mappingByMode = Object.fromEntries(
+					["light", "dark"].map((mode) => [mode, resolveMapping(source, tokenMapping, mode, contrastThresholds)]),
+				);
+				const mappingCell = (token, mode) => {
+					const { ref, css, hex } = mappingByMode[mode][token];
+					const textColor = contrast(hex, "#000000") >= contrast(hex, "#FFFFFF") ? "#000000" : "#FFFFFF";
+					const alpha = css.length > 7 ? `<small class="ref-alpha">alpha ${css.toUpperCase()}</small>` : "";
+					return `<td class="ref-pair ref-color" style="background:${hex};color:${textColor}"><b>${ref}</b><span class="ref-hex">${hex}</span>${alpha}</td>`;
+				};
+				const mappingRows = tokenMapping.groups
+					.map((group) => {
+						const groupRows = group.tokens
+							.map((token) => `<tr><td>${token}</td>${mappingCell(token, "light")}${mappingCell(token, "dark")}</tr>`)
+							.join("");
+						return `<tr class="group-row"><td colspan="3">${group.label}</td></tr>${groupRows}`;
+					})
+					.join("");
+				document.querySelector("#token-mapping-matrix").innerHTML = `
+					<thead><tr><th>Token</th><th>Light</th><th>Dark</th></tr></thead>
+					<tbody>${mappingRows}</tbody>
+				`;
+
+				const rampTables = (title, badges, backgrounds, solid, alpha, wide, wideAlpha) => {
+					let tables = renderRampTable({
+						title,
+						badges,
+						tableClass: "ramp-table",
+						columns: rampColumns(solid, source, backgrounds, alpha),
+					});
+
+					if (wide && wideAlpha) {
+						tables += renderRampTable({
+							title: `${title} Wide Gamut`,
+							badges,
+							tableClass: "ramp-table",
+							kind: "wide",
+							columns: rampColumns(wide, source, backgrounds, wideAlpha),
+						});
+					}
+
+					return tables;
+				};
+				// Wide gamut ramps by mode, when the generator produced them.
+				const wideModes = (ramps, name) => ramps && { light: ramps[`light${name}`], dark: ramps[`dark${name}`] };
+				const brandTable = rampTables(
+					"Brand Ramp",
+					[
+						["Suggested Brand", source.seed[source.suggestedBrand]],
+						...seedBadges(source.seed),
+						...backgroundBadges(source.backgrounds),
+					],
+					source.backgrounds,
+					{ light: source.ramps.lightBrand, dark: source.ramps.darkBrand },
+					{ light: source.alphaRamps.lightBrand, dark: source.alphaRamps.darkBrand },
+					wideModes(source.wideGamutRamps, "Brand"),
+					wideModes(source.wideGamutAlphaRamps, "Brand"),
+				);
+				const neutralTable = rampTables(
+					"Neutral Ramp",
+					[...grayBadges(source), ...backgroundBadges(source.backgrounds)],
+					source.backgrounds,
+					{ light: source.ramps.lightNeutral, dark: source.ramps.darkNeutral },
+					{ light: source.alphaRamps.lightNeutral, dark: source.alphaRamps.darkNeutral },
+					wideModes(source.wideGamutRamps, "Neutral"),
+					wideModes(source.wideGamutAlphaRamps, "Neutral"),
+				);
+				const signalTables = source.signals
+					.map((signal) =>
+						rampTables(
+							`${signal.name} Ramp`,
+							[...seedBadges(signal.seed), ...backgroundBadges(signal.backgrounds)],
+							signal.backgrounds,
+							signal.ramps,
+							signal.alphaRamps,
+							signal.wideGamutRamps,
+							signal.wideGamutAlphaRamps,
+						),
+					)
+					.join("");
+				document.querySelector("#ramps").innerHTML = `${brandTable}${neutralTable}${signalTables}`;
+
+				document.querySelector("#tokens").innerHTML = `
+					<div class="ramp-table-group token-table-shell">
+						<div class="ramp-table-header"><h3>Token Selection · ${tokenMapping.title}</h3></div>
+						${renderTokenTable(source)}
+					</div>
+				`;
+				document.querySelector("#examples").innerHTML = `
+					<div class="examples">
+						<div class="examples-header">
+							<h3>Application Examples</h3>
+							<p class="legend-hint">Hover a token chip to outline where it is used.</p>
+						</div>
+						<div class="mode-examples">${renderExamples(source)}</div>
+					</div>
+				`;
+			};
+
+
+			document.addEventListener("mouseover", (event) => {
+				const chip = event.target.closest("[data-legend]");
+				document.querySelectorAll(".is-highlighted").forEach((element) => element.classList.remove("is-highlighted"));
+				if (!chip) return;
+				const group = chip.closest(".mode-group");
+				group
+					.querySelectorAll(`[data-tok~="${chip.dataset.legend}"]`)
+					.forEach((element) => element.classList.add("is-highlighted"));
+			});
+
+			renderPage();
+		</script>
+	</body>
+</html>

@@ -1,6 +1,6 @@
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   BackgroundColor,
   Color as LeonardoColor,
@@ -9,15 +9,19 @@ import {
   type CssColor,
 } from "@adobe/leonardo-contrast-colors";
 import Color from "colorjs.io";
-import { deriveBackground } from "./deriveBackground.js";
+import { makeGray } from "./makeGray.js";
 
 type GenerateOptions = {
-  brandColor: string;
+  lightSeed: string;
+  darkSeed?: string;
   brandColorName: string;
   secondaryColor?: string;
-  grayColor?: string;
+  lightGray?: string;
+  darkGray?: string;
   lightBackground?: string;
   darkBackground?: string;
+  vibrant?: boolean;
+  contrastTargets?: string;
   outputDirectory?: string;
 };
 
@@ -39,81 +43,51 @@ type RampStep = {
   contrast: StepContrast;
 };
 
-// Steps 1–10 follow Radix's median spacing, with dark step 1 one step off the page.
-// Steps 11 and 12 reach APCA Lc 60 on step 4 and Lc 90 on step 2.
-// Dark neutral step 11 also reaches Lc 60 on alpha step 3 painted over step 2.
-const brandLightRatios = {
-  b1: 1.02,
-  b2: 1.05,
-  b3: 1.13,
-  b4: 1.22,
-  b5: 1.35,
-  b6: 1.54,
-  b7: 1.87,
-  b8: 2.41,
-  b9: 4.19,
-  b10: 4.82,
-  b11: 5.48,
-  b12: 11.95,
-};
+//==================================================
+// Contrast Targets
+//==================================================
 
-const brandDarkRatios = {
-  b1: 1.04,
-  b2: 1.1,
-  b3: 1.26,
-  b4: 1.41,
-  b5: 1.64,
-  b6: 2,
-  b7: 2.58,
-  b8: 3.61,
-  b9: 4.45,
-  b10: 5.36,
-  b11: 10.13,
-  b12: 15.86,
-};
+// A configs/contrast-targets/*.json file: 12 WCAG 2 contrast ratios against the background, steps 1
+// to 12, for each ramp and mode.
+type ContrastTargets = Record<"brand" | "neutral", Record<"light" | "dark", number[]>>;
 
-const neutralLightRatios = {
-  n1: 1.03,
-  n2: 1.06,
-  n3: 1.15,
-  n4: 1.24,
-  n5: 1.33,
-  n6: 1.44,
-  n7: 1.6,
-  n8: 1.96,
-  n9: 3.41,
-  n10: 3.92,
-  n11: 6.12,
-  n12: 15.83,
-};
+const defaultContrastTargets = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../configs/contrast-targets/default.json",
+);
 
-const neutralDarkRatios = {
-  n1: 1.04,
-  n2: 1.12,
-  n3: 1.25,
-  n4: 1.36,
-  n5: 1.51,
-  n6: 1.72,
-  n7: 2.12,
-  n8: 3.03,
-  n9: 3.73,
-  n10: 4.49,
-  n11: 10.2,
-  n12: 15.87,
-};
+async function readContrastTargets(file: string): Promise<ContrastTargets> {
+  const targets = JSON.parse(await readFile(file, "utf8"));
+
+  for (const ramp of ["brand", "neutral"] as const) {
+    for (const mode of ["light", "dark"] as const) {
+      const ratios = targets[ramp]?.[mode];
+
+      if (!Array.isArray(ratios) || ratios.length !== 12 || !ratios.every((ratio) => typeof ratio === "number" && ratio >= 1)) {
+        throw new Error(`${file}: ${ramp}.${mode} must be 12 contrast ratios of at least 1`);
+      }
+    }
+  }
+
+  return targets;
+}
+
+// Leonardo names each step after its ratio key.
+const ratioKeys = (prefix: string, ratios: number[]) =>
+  Object.fromEntries(ratios.map((ratio, index) => [`${prefix}${index + 1}`, ratio]));
 
 const roles = [
-  "subtle-surface",
-  "surface",
-  "normal-interactive-component",
-  "hover-interactive-component",
-  "active-interactive-component",
+  "app-background",
+  "subtle-background",
+  "component-fill",
+  "component-fill-hover",
+  "component-fill-active",
   "subtle-border",
   "border",
   "strong-border",
-  "primary-fill",
-  "primary-hover",
-  "medium-contrast-text",
+  "solid-fill",
+  "solid-fill-hover",
+  "low-contrast-text",
   "high-contrast-text",
 ] as const;
 
@@ -261,7 +235,11 @@ function alphaRamp(steps: RampStep[], background: string): string[] {
         isNaN(value) ? 0 : Math.min(rgbPrecision, Math.max(0, value));
       const clampAlpha = (value: number) =>
         isNaN(value) ? 0 : Math.min(alphaPrecision, Math.max(0, value));
-      const maxAlpha = Math.max(alphaR, alphaG, alphaB);
+      // Each channel also needs the alpha that reaches it from the background in its own direction,
+      // so a target that is lighter in one channel and darker in another is reproduced.
+      const reachAlpha = (target: number, ground: number) =>
+        target > ground ? (target - ground) / (rgbPrecision - ground) : target < ground ? (ground - target) / ground : 0;
+      const maxAlpha = Math.max(alphaR, alphaG, alphaB, reachAlpha(tr, br), reachAlpha(tg, bg), reachAlpha(tb, bb));
 
       alpha = clampAlpha(Math.ceil(maxAlpha * alphaPrecision)) / alphaPrecision;
       red = Math.ceil(clampRgb(((br * (1 - alpha) - tr) / alpha) * -1));
@@ -353,16 +331,200 @@ function brandForeground(fill: string): string {
 }
 
 //==================================================
+// Vibrant
+//==================================================
+
+// The lightness at which this chroma and hue reach the target WCAG 2 luminance.
+function lightnessFor(chroma: number, hue: number, targetLuminance: number): number {
+  let low = 0;
+  let high = 1;
+
+  for (let step = 0; step < 40; step += 1) {
+    const lightness = (low + high) / 2;
+    const color = new Color("oklch", [lightness, chroma, hue]).toGamut({ space: "srgb" });
+
+    if (color.luminance < targetLuminance) {
+      low = lightness;
+    } else {
+      high = lightness;
+    }
+  }
+
+  return (low + high) / 2;
+}
+
+// Each brand step's chroma over the seed's chroma, averaged over Radix generator ramps for
+// sample seeds in each hue group. Step 9 is the seed.
+const vibrantRatios: Record<string, Record<"light" | "dark", number[]>> = {
+  red: { light: [0.02, 0.06, 0.15, 0.26, 0.36, 0.46, 0.58, 0.75, 1, 1, 1, 0.54], dark: [0.2, 0.29, 0.87, 1.12, 1.15, 1.18, 1.23, 1.29, 1, 0.96, 1.34, 0.8] },
+  orange: { light: [0.02, 0.09, 0.21, 0.35, 0.48, 0.61, 0.76, 0.98, 1, 1, 0.95, 0.31], dark: [0.17, 0.26, 0.69, 0.94, 1.02, 1.09, 1.16, 1.25, 1, 0.97, 1.33, 0.82] },
+  yellow: { light: [0.03, 0.16, 0.46, 0.7, 0.9, 0.94, 0.96, 1.12, 1, 1.05, 1.02, 0.42], dark: [0.11, 0.15, 0.32, 0.45, 0.54, 0.62, 0.73, 0.89, 1, 1, 1.06, 0.64] },
+  lime: { light: [0.03, 0.09, 0.34, 0.53, 0.67, 0.76, 0.84, 1.02, 1, 1.01, 0.89, 0.42], dark: [0.11, 0.13, 0.25, 0.37, 0.45, 0.53, 0.61, 0.73, 1, 0.98, 0.98, 0.59] },
+  green: { light: [0.05, 0.1, 0.25, 0.39, 0.51, 0.63, 0.77, 1, 1, 1.03, 0.99, 0.48], dark: [0.14, 0.17, 0.37, 0.55, 0.62, 0.68, 0.77, 0.9, 1, 0.91, 1.04, 0.71] },
+  mint: { light: [0.07, 0.13, 0.38, 0.6, 0.79, 0.95, 1.15, 1.3, 1, 1, 1.11, 0.65], dark: [0.13, 0.19, 0.42, 0.58, 0.64, 0.7, 0.77, 0.9, 1, 1, 1.08, 0.67] },
+  blue: { light: [0.05, 0.09, 0.21, 0.33, 0.43, 0.54, 0.67, 0.9, 1, 1.01, 1, 0.56], dark: [0.19, 0.21, 0.46, 0.64, 0.71, 0.77, 0.85, 1, 1, 0.96, 1, 0.49] },
+  sky: { light: [0.08, 0.17, 0.4, 0.62, 0.84, 1.01, 1.21, 1.38, 1, 1.16, 1.35, 0.99], dark: [0.34, 0.4, 0.83, 1, 1.07, 1.12, 1.2, 1.3, 1, 1.03, 1.25, 0.73] },
+  purple: { light: [0.02, 0.05, 0.12, 0.22, 0.31, 0.42, 0.56, 0.75, 1, 0.99, 0.97, 0.63], dark: [0.41, 0.53, 1.1, 1.23, 1.25, 1.26, 1.29, 1.34, 1, 0.96, 1.33, 0.76] },
+  pink: { light: [0.02, 0.05, 0.16, 0.24, 0.32, 0.4, 0.51, 0.66, 1, 0.99, 0.98, 0.71], dark: [0.24, 0.42, 0.87, 1.17, 1.2, 1.21, 1.23, 1.28, 1, 0.97, 1.33, 0.77] },
+};
+
+// The seed's hue group. Seeds at lightness 0.8 or above use the light-seed group for their hue
+// where one exists (mint, sky).
+function vibrantGroup(lightness: number, hue: number): string {
+  if (hue >= 350 || hue < 40) return "red";
+  if (hue < 75) return "orange";
+  if (hue < 110) return "yellow";
+  if (hue < 135) return "lime";
+  if (hue < 200) return lightness >= 0.8 ? "mint" : "green";
+  if (hue < 260) return lightness >= 0.8 ? "sky" : "blue";
+  if (hue < 315) return "purple";
+  return "pink";
+}
+
+// Sets each brand step's chroma to its group ratio × the seed's chroma, reduced to fit sRGB.
+// Each step keeps its WCAG 2 luminance, so it keeps its contrast ratio target.
+function applyVibrant(values: ContrastColorValue[], seed: string, mode: "light" | "dark"): ContrastColorValue[] {
+  const [seedLightness, seedChroma, seedHue] = new Color(seed).to("oklch").coords;
+
+  if (seedChroma < 0.001) {
+    return values;
+  }
+
+  const ratios = vibrantRatios[vibrantGroup(seedLightness, seedHue)][mode];
+
+  return values.map((value, index) => {
+    const color = new Color(value.value);
+    const [, chroma, hue] = color.to("oklch").coords;
+    const stepHue = chroma >= 0.01 && !Number.isNaN(hue) ? hue : seedHue;
+    const targetChroma = ratios[index] * seedChroma;
+    const lightness = lightnessFor(targetChroma, stepHue, color.luminance);
+    const adjusted = new Color("oklch", [lightness, targetChroma, stepHue]).toGamut({
+      space: "srgb",
+    });
+
+    return { ...value, value: adjusted.to("srgb").toString({ format: "hex", collapse: false }).toUpperCase() as CssColor };
+  });
+}
+
+//==================================================
+// Solid Steps
+//==================================================
+
+// Step 9 is the seed. Step 10 is its hover, moved by the same amount as Radix's step 10:
+// darker under white text, lighter under dark text.
+function applySolidSteps(values: ContrastColorValue[], seed: string): ContrastColorValue[] {
+  const [lightness, chroma, hue] = new Color(seed).to("oklch").coords;
+  const darken = brandForeground(seed) === "#FFFFFF";
+  const shift = 0.03 / (lightness + 0.1);
+  const hover = new Color("oklch", [
+    darken ? lightness - shift : lightness + shift,
+    darken ? chroma * 0.93 : chroma,
+    Number.isNaN(hue) ? 0 : hue,
+  ]).toGamut({ space: "srgb" });
+  const hoverHex = hover.to("srgb").toString({ format: "hex", collapse: false }).toUpperCase() as CssColor;
+
+  return values.map((value, index) => {
+    if (index === 8) return { ...value, value: seed as CssColor };
+    if (index === 9) return { ...value, value: hoverHex };
+    return value;
+  });
+}
+
+//==================================================
+// Step Minimums
+//==================================================
+
+// Step 11 meets 4.5:1 and APCA Lc 60, and step 12 meets 7:1 and Lc 75, on the background and on
+// steps 1–5 of their ramp. Brand step 8 meets 3:1 and Lc 45 on the background and on steps 1–2.
+// Brand steps also meet their minimums on the same neutral steps.
+const stepMinimums = [
+  { index: 7, wcag: 3, apca: 45, surfaceSteps: 3, brandOnly: true },
+  { index: 10, wcag: 4.5, apca: 60, surfaceSteps: 5, brandOnly: false },
+  { index: 11, wcag: 7, apca: 75, surfaceSteps: 5, brandOnly: false },
+];
+
+// WCAG 2 contrast ratio, from the relative luminance of each six-digit HEX color.
+function contrastRatio(a: string, b: string) {
+  const luminance = (hex: string) => {
+    const [red, green, blue] = [1, 3, 5].map((offset) => {
+      const channel = Number.parseInt(hex.slice(offset, offset + 2), 16) / 255;
+
+      return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    });
+
+    return 0.2126 * (red as number) + 0.7152 * (green as number) + 0.0722 * (blue as number);
+  };
+  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+
+  return ((high as number) + 0.05) / ((low as number) + 0.05);
+}
+
+function meetsStepMinimum(hex: string, surfaces: string[], minimum: (typeof stepMinimums)[number]) {
+  const step = new Color(hex);
+
+  return surfaces.every(
+    (surface) =>
+      contrastRatio(hex, surface) >= minimum.wcag &&
+      Math.abs(new Color(surface).contrastAPCA(step)) >= minimum.apca,
+  );
+}
+
+// Moves each step that falls short darker in light mode, or lighter in dark mode, keeping its hue
+// and chroma. neutralValues is the neutral ramp for a brand ramp, or null for the neutral ramp.
+function applyStepMinimums(
+  values: ContrastColorValue[],
+  background: string,
+  mode: "light" | "dark",
+  neutralValues: ContrastColorValue[] | null,
+): ContrastColorValue[] {
+  const toHex = (color: Color) => color.to("srgb").toString({ format: "hex", collapse: false }).toUpperCase();
+  const adjusted = [...values];
+
+  for (const minimum of stepMinimums) {
+    if (minimum.brandOnly && neutralValues === null) {
+      continue;
+    }
+
+    const surfaces = [
+      background,
+      ...[...values.slice(0, minimum.surfaceSteps), ...(neutralValues ?? []).slice(0, minimum.surfaceSteps)].map(
+        (value) => toHex(new Color(value.value)),
+      ),
+    ];
+    const value = adjusted[minimum.index] as ContrastColorValue;
+    const step = new Color(value.value).to("oklch");
+    let hex = toHex(step);
+
+    if (meetsStepMinimum(hex, surfaces, minimum)) {
+      continue;
+    }
+
+    while (!meetsStepMinimum(hex, surfaces, minimum) && step.coords[0] > 0 && step.coords[0] < 1) {
+      step.coords[0] += mode === "light" ? -0.001 : 0.001;
+      hex = toHex(step);
+    }
+
+    adjusted[minimum.index] = { ...value, value: hex as CssColor };
+  }
+
+  return adjusted;
+}
+
+//==================================================
 // Entry Point for Palette Generation
 //==================================================
 
 export async function generate({
-  brandColor,
+  lightSeed,
+  darkSeed = lightSeed,
   brandColorName,
   secondaryColor,
-  grayColor,
+  lightGray,
+  darkGray,
   lightBackground = "#FFFFFF",
   darkBackground = "#111111",
+  vibrant = false,
+  contrastTargets = defaultContrastTargets,
   outputDirectory = process.cwd(),
 }: GenerateOptions): Promise<string> {
   const normalizedBrandColorName = brandColorName.toLowerCase();
@@ -373,8 +535,12 @@ export async function generate({
     );
   }
 
-  if (!/^#[\da-f]{6}$/i.test(brandColor)) {
-    throw new Error("brandColor must be a six-digit HEX color");
+  if (!/^#[\da-f]{6}$/i.test(lightSeed)) {
+    throw new Error("lightSeed must be a six-digit HEX color");
+  }
+
+  if (!/^#[\da-f]{6}$/i.test(darkSeed)) {
+    throw new Error("darkSeed must be a six-digit HEX color");
   }
 
   if (
@@ -384,11 +550,12 @@ export async function generate({
     throw new Error("secondaryColor must be a six-digit HEX color");
   }
 
-  if (
-    grayColor !== undefined &&
-    !/^#[\da-f]{6}$/i.test(grayColor)
-  ) {
-    throw new Error("grayColor must be a six-digit HEX color");
+  if (lightGray !== undefined && !/^#[\da-f]{6}$/i.test(lightGray)) {
+    throw new Error("lightGray must be a six-digit HEX color");
+  }
+
+  if (darkGray !== undefined && !/^#[\da-f]{6}$/i.test(darkGray)) {
+    throw new Error("darkGray must be a six-digit HEX color");
   }
 
   if (!/^#[\da-f]{6}$/i.test(lightBackground)) {
@@ -400,51 +567,60 @@ export async function generate({
   }
 
   const normalizedSecondaryColor = secondaryColor?.toUpperCase();
-  const neutralTint =
-    grayColor?.toUpperCase() ??
-    deriveBackground(brandColor.toUpperCase());
+  const neutralTints = {
+    light: lightGray?.toUpperCase() ?? makeGray(lightSeed.toUpperCase()),
+    dark: darkGray?.toUpperCase() ?? makeGray(darkSeed.toUpperCase()),
+  };
   const normalizedLightBackground = lightBackground.toUpperCase();
   const normalizedDarkBackground = darkBackground.toUpperCase();
   const normalizedColors = {
-    brand_color: brandColor.toUpperCase(),
+    light_seed: lightSeed.toUpperCase(),
+    dark_seed: darkSeed.toUpperCase(),
     ...(normalizedSecondaryColor
       ? { secondary_color: normalizedSecondaryColor }
       : {}),
-    gray_color: neutralTint,
+    light_gray: neutralTints.light,
+    dark_gray: neutralTints.dark,
     light_background: normalizedLightBackground,
     dark_background: normalizedDarkBackground,
   };
-  const outputName =
-    `${normalizedBrandColorName}-${normalizedColors.brand_color.slice(1)}-${neutralTint.slice(1)}`.toLowerCase();
-  const brandColorKeys = [
-    normalizedColors.brand_color,
-    ...(normalizedSecondaryColor ? [normalizedSecondaryColor] : []),
-  ] as CssColor[];
-  const neutralColorKey = neutralTint as CssColor;
+  const seedNames =
+    normalizedColors.dark_seed === normalizedColors.light_seed
+      ? [normalizedColors.light_seed]
+      : [normalizedColors.light_seed, normalizedColors.dark_seed];
+  const grayNames =
+    neutralTints.dark === neutralTints.light ? [neutralTints.light] : [neutralTints.light, neutralTints.dark];
+  const outputName = [normalizedBrandColorName, ...seedNames, ...grayNames]
+    .map((part) => part.replace("#", ""))
+    .join("-")
+    .toLowerCase();
+  const targets = await readContrastTargets(contrastTargets);
+  const brandColorKeys = (seed: string) =>
+    [seed, ...(normalizedSecondaryColor ? [normalizedSecondaryColor] : [])] as CssColor[];
 
   const lightBrand = new LeonardoColor({
     name: "brand",
-    colorKeys: brandColorKeys,
+    colorKeys: brandColorKeys(normalizedColors.light_seed),
     colorSpace: "CAM02p",
-    ratios: brandLightRatios,
+    ratios: ratioKeys("b", targets.brand.light),
   });
   const darkBrand = new LeonardoColor({
     name: "brand",
-    colorKeys: brandColorKeys,
+    colorKeys: brandColorKeys(normalizedColors.dark_seed),
     colorSpace: "CAM02p",
-    ratios: brandDarkRatios,
+    ratios: ratioKeys("b", targets.brand.dark),
   });
   const lightNeutral = new BackgroundColor({
     name: "neutral",
-    colorKeys: [neutralColorKey],
+    colorKeys: [neutralTints.light as CssColor],
     colorSpace: "CAM02p",
-    ratios: neutralLightRatios,
+    ratios: ratioKeys("n", targets.neutral.light),
   });
   const darkNeutral = new BackgroundColor({
     name: "neutral",
-    colorKeys: [neutralColorKey],
+    colorKeys: [neutralTints.dark as CssColor],
     colorSpace: "CAM02p",
-    ratios: neutralDarkRatios,
+    ratios: ratioKeys("n", targets.neutral.dark),
   });
 
   // Leonardo's types only list a BackgroundColor here. A hex string is the
@@ -492,42 +668,62 @@ export async function generate({
     return background;
   });
 
-  const lightBrandRamp = formatRamp(
-    lightBrandOutput.values,
+  const lightBrandValues = applyStepMinimums(
+    applySolidSteps(
+      vibrant ? applyVibrant(lightBrandOutput.values, normalizedColors.light_seed, "light") : lightBrandOutput.values,
+      normalizedColors.light_seed,
+    ),
     resolvedLightBackground,
-    lightBrandOutput.values,
+    "light",
     lightNeutralOutput.values,
+  );
+  const darkBrandValues = applyStepMinimums(
+    applySolidSteps(
+      vibrant ? applyVibrant(darkBrandOutput.values, normalizedColors.dark_seed, "dark") : darkBrandOutput.values,
+      normalizedColors.dark_seed,
+    ),
+    resolvedDarkBackground,
+    "dark",
+    darkNeutralOutput.values,
+  );
+  const lightNeutralValues = applyStepMinimums(lightNeutralOutput.values, resolvedLightBackground, "light", null);
+  const darkNeutralValues = applyStepMinimums(darkNeutralOutput.values, resolvedDarkBackground, "dark", null);
+  const lightBrandRamp = formatRamp(
+    lightBrandValues,
+    resolvedLightBackground,
+    lightBrandValues,
+    lightNeutralValues,
   );
   const darkBrandRamp = formatRamp(
-    darkBrandOutput.values,
+    darkBrandValues,
     resolvedDarkBackground,
-    darkBrandOutput.values,
-    darkNeutralOutput.values,
+    darkBrandValues,
+    darkNeutralValues,
   );
   const lightNeutralRamp = formatRamp(
-    lightNeutralOutput.values,
+    lightNeutralValues,
     resolvedLightBackground,
-    lightBrandOutput.values,
-    lightNeutralOutput.values,
+    lightBrandValues,
+    lightNeutralValues,
   );
   const darkNeutralRamp = formatRamp(
-    darkNeutralOutput.values,
+    darkNeutralValues,
     resolvedDarkBackground,
-    darkBrandOutput.values,
-    darkNeutralOutput.values,
+    darkBrandValues,
+    darkNeutralValues,
   );
-  const lightPrimaryFill = lightBrandRamp.find((step) => step.role === "primary-fill");
-  const darkPrimaryFill = darkBrandRamp.find((step) => step.role === "primary-fill");
+  const lightSolidFill = lightBrandRamp.find((step) => step.role === "solid-fill");
+  const darkSolidFill = darkBrandRamp.find((step) => step.role === "solid-fill");
 
-  if (lightPrimaryFill === undefined || darkPrimaryFill === undefined) {
-    throw new Error("Brand ramp is missing the primary fill");
+  if (lightSolidFill === undefined || darkSolidFill === undefined) {
+    throw new Error("Brand ramp is missing the solid fill");
   }
 
   const lightMode = {
     background: resolvedLightBackground,
     lightness: lightTheme.lightness,
     brand: {
-      brand_foreground: brandForeground(lightPrimaryFill.color),
+      brand_foreground: brandForeground(lightSolidFill.color),
       base_ramp: lightBrandRamp,
       alpha_ramp: alphaRamp(lightBrandRamp, resolvedLightBackground),
     },
@@ -540,7 +736,7 @@ export async function generate({
     background: resolvedDarkBackground,
     lightness: darkTheme.lightness,
     brand: {
-      brand_foreground: brandForeground(darkPrimaryFill.color),
+      brand_foreground: brandForeground(darkSolidFill.color),
       base_ramp: darkBrandRamp,
       alpha_ramp: alphaRamp(darkBrandRamp, resolvedDarkBackground),
     },
@@ -552,7 +748,7 @@ export async function generate({
 
   const palette = {
     name: outputName,
-    inputs: normalizedColors,
+    inputs: { ...normalizedColors, vibrant, contrast_targets: path.basename(contrastTargets, ".json") },
     light: lightMode,
     dark: darkMode,
   };
@@ -573,28 +769,32 @@ const isEntryPoint =
 
 if (isEntryPoint) {
   const args = process.argv.slice(2);
-  const brandColorIndex = args.indexOf("--brand-color");
+  const lightSeedIndex = args.indexOf("--light-seed");
+  const darkSeedIndex = args.indexOf("--dark-seed");
   const brandColorNameIndex = args.indexOf("--brand-color-name");
   const secondaryColorIndex = args.indexOf("--secondary-color");
-  const grayColorIndex = args.indexOf("--gray-color");
+  const lightGrayIndex = args.indexOf("--light-gray");
+  const darkGrayIndex = args.indexOf("--dark-gray");
   const lightBackgroundIndex = args.indexOf("--light-background");
   const darkBackgroundIndex = args.indexOf("--dark-background");
   const outputDirectoryIndex = args.indexOf("--output-directory");
+  const contrastTargetsIndex = args.indexOf("--contrast-targets");
 
   const generatedPath = await generate({
-    brandColor: brandColorIndex === -1 ? "" : args[brandColorIndex + 1],
+    lightSeed: lightSeedIndex === -1 ? "" : args[lightSeedIndex + 1],
+    darkSeed: darkSeedIndex === -1 ? undefined : args[darkSeedIndex + 1],
     brandColorName:
       brandColorNameIndex === -1 ? "" : args[brandColorNameIndex + 1],
     secondaryColor:
       secondaryColorIndex === -1 ? undefined : args[secondaryColorIndex + 1],
-    grayColor:
-      grayColorIndex === -1
-        ? undefined
-        : args[grayColorIndex + 1],
+    lightGray: lightGrayIndex === -1 ? undefined : args[lightGrayIndex + 1],
+    darkGray: darkGrayIndex === -1 ? undefined : args[darkGrayIndex + 1],
     lightBackground:
       lightBackgroundIndex === -1 ? undefined : args[lightBackgroundIndex + 1],
     darkBackground:
       darkBackgroundIndex === -1 ? undefined : args[darkBackgroundIndex + 1],
+    vibrant: args.includes("--vibrant"),
+    contrastTargets: contrastTargetsIndex === -1 ? undefined : args[contrastTargetsIndex + 1],
     outputDirectory:
       outputDirectoryIndex === -1 ? undefined : args[outputDirectoryIndex + 1],
   });

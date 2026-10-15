@@ -1,0 +1,308 @@
+{
+  "description": "Selected background for the page, with the sidebar, cards and popovers raised to N2.",
+  "groups": [
+    {
+      "name": "Normal",
+      "tokens": {
+        "background": {
+          "description": "Background color",
+          "ref": "selected-background",
+          "checks": []
+        },
+        "foreground": {
+          "description": "Text color contrasting `background`",
+          "ref": "N12",
+          "checks": [
+            {"against": ["background"], "element": "body-text"},
+            {"against": ["card"], "element": "body-text"},
+            {"against": ["popover"], "element": "body-text"}
+          ]
+        },
+        "primary": {
+          "description": "High emphasis actions and brand surfaces",
+          "ref": "seed",
+          "checks": [
+            {"against": ["background"], "element": "non-text"},
+            {"against": ["card"], "element": "non-text"},
+            {"against": ["popover"], "element": "non-text"}
+          ]
+        },
+        "primary-foreground": {
+          "description": "Text color contrasting `primary`",
+          "ref": "seed-foreground",
+          "checks": [
+            {"against": ["primary"], "element": "seed-text"},
+            {"against": ["primary-hover"], "element": "seed-text"}
+          ]
+        },
+        "primary-hover": {
+          "description": "Hover state of `primary`",
+          "ref": "B10",
+          "checks": []
+        },
+        "secondary": {
+          "description": "Lower emphasis for lesser actions and supporting surfaces",
+          "ref": "seed",
+          "checks": [
+            {"against": ["background"], "element": "non-text"},
+            {"against": ["card"], "element": "non-text"},
+            {"against": ["popover"], "element": "non-text"},
+            {"against": ["sidebar"], "element": "non-text"}
+          ]
+        },
+        "secondary-foreground": {
+          "description": "Text color contrasting `secondary`",
+          "ref": "seed-foreground",
+          "checks": [
+            {"against": ["background", "secondary"], "element": "other-text"},
+            {"against": ["card", "secondary"], "element": "other-text"},
+            {"against": ["popover", "secondary"], "element": "other-text"},
+            {"against": ["sidebar", "secondary"], "element": "other-text"}
+          ]
+        },
+        "accent": {
+          "description": "Interactive hover, focus, active surfaces",
+          "ref": "N3",
+          "checks": []
+        },
+        "accent-foreground": {
+          "description": "Text color contrasting `accent`",
+          "ref": "N12",
+          "checks": [
+            {"against": ["background", "accent"], "element": "other-text"},
+            {"against": ["card", "accent"], "element": "other-text"},
+            {"against": ["popover", "accent"], "element": "other-text"}
+          ]
+        },
+        "muted": {
+          "description": "Subtle fill for low-emphasis elements on a surface: tab bars, shortcut keys, avatar fallbacks",
+          "ref": "N3",
+          "checks": []
+        },
+        "muted-foreground": {
+          "description": "Text color contrasting `muted`",
+          "ref": "N11",
+          "checks": [
+            {"against": ["background"], "element": "other-text"},
+            {"against": ["card"], "element": "other-text"},
+            {"against": ["popover"], "element": "other-text"},
+            {"against": ["background", "muted"], "element": "other-text"},
+            {"against": ["card", "muted"], "element": "other-text"},
+            {"against": ["popover", "muted"], "element": "other-text"},
+            {"against": ["popover", "accent"], "element": "other-text"}
+          ]
+        },
+        "border": {
+          "description": "Default border color used for cards, menus, tables, separators and layout dividers",
+          "ref": {"light": "NA6", "dark": "NA7"},
+          "checks": []
+        },
+        "input": {
+          "description": "Form control borders, including checkbox, radio and switch boxes, and input surface treatment",
+          "ref": {"light": "N10", "dark": "N11"},
+          "checks": [
+            {"against": ["background"], "element": "non-text"},
+            {"against": ["card"], "element": "non-text"},
+            {"against": ["popover"], "element": "non-text"},
+            {"against": ["sidebar"], "element": "non-text"}
+          ]
+        },
+        "ring": {
+          "description": "Focus rings and outlines",
+          "ref": "B8",
+          "checks": [
+            {"against": ["background"], "element": "non-text"},
+            {"against": ["card"], "element": "non-text"},
+            {"against": ["popover"], "element": "non-text"},
+            {"against": ["card", "accent"], "element": "non-text"},
+            {"against": ["popover", "accent"], "element": "non-text"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Sidebar",
+      "tokens": {
+        "sidebar": {
+          "description": "The base sidebar surface - can match other backgrounds if appropriate",
+          "ref": "N2",
+          "checks": []
+        },
+        "sidebar-foreground": {
+          "description": "Sidebar text color - can match other text if appropriate",
+          "ref": "N12",
+          "checks": [
+            {"against": ["sidebar"], "element": "other-text"}
+          ]
+        },
+        "sidebar-primary": {
+          "description": "High emphasis actions in the sidebar",
+          "ref": "seed",
+          "checks": [
+            {"against": ["sidebar"], "element": "non-text"}
+          ]
+        },
+        "sidebar-primary-foreground": {
+          "description": "Text color contrasting `sidebar-primary`",
+          "ref": "seed-foreground",
+          "checks": [
+            {"against": ["sidebar-primary"], "element": "seed-text"},
+            {"against": ["sidebar-primary-hover"], "element": "seed-text"}
+          ]
+        },
+        "sidebar-primary-hover": {
+          "description": "Hover state of `sidebar-primary`",
+          "ref": "B10",
+          "checks": []
+        },
+        "sidebar-accent": {
+          "description": "Hover and selected states in the sidebar",
+          "ref": "N3",
+          "checks": []
+        },
+        "sidebar-accent-foreground": {
+          "description": "Text color contrasting `sidebar-accent`",
+          "ref": "N12",
+          "checks": [
+            {"against": ["sidebar", "sidebar-accent"], "element": "other-text"}
+          ]
+        },
+        "sidebar-border": {
+          "description": "Sidebar specific borders and separators",
+          "ref": {"light": "NA6", "dark": "NA7"},
+          "checks": []
+        },
+        "sidebar-ring": {
+          "description": "Sidebar specific focus rings",
+          "ref": "B8",
+          "checks": [
+            {"against": ["sidebar"], "element": "non-text"},
+            {"against": ["sidebar", "sidebar-accent"], "element": "non-text"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cards",
+      "tokens": {
+        "card": {
+          "description": "Elevated surfaces",
+          "ref": "N2",
+          "checks": []
+        },
+        "card-foreground": {
+          "description": "Text color contrasting `card`",
+          "ref": "N12",
+          "checks": [
+            {"against": ["card"], "element": "body-text"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Popovers",
+      "tokens": {
+        "popover": {
+          "description": "Floating surfaces",
+          "ref": "N2",
+          "checks": []
+        },
+        "popover-foreground": {
+          "description": "Text color on popovers",
+          "ref": "N12",
+          "checks": [
+            {"against": ["popover"], "element": "body-text"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Charts",
+      "tokens": {
+        "chart-primary": {
+          "description": "Primary data series inside charts (bars, lines, rings, progress)",
+          "ref": "B8",
+          "checks": [
+            {"against": ["background"], "element": "non-text"},
+            {"against": ["card"], "element": "non-text"},
+            {"against": ["card", "muted"], "element": "non-text"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Signals",
+      "tokens": {
+        "destructive": {
+          "description": "Destructive and error text on the page: error messages, destructive menu items, error input borders",
+          "ref": {"light": "D11", "dark": "D12"},
+          "checks": [
+            {"against": ["background"], "element": "other-text"},
+            {"against": ["card"], "element": "other-text"},
+            {"against": ["popover"], "element": "other-text"}
+          ]
+        },
+        "destructive-fill": {
+          "description": "Fill for destructive badges, buttons, banners and alerts",
+          "ref": {"light": "DA4", "dark": "D12"},
+          "checks": []
+        },
+        "destructive-fill-foreground": {
+          "description": "Text and icons on `destructive-fill`",
+          "ref": {"light": "D12", "dark": "D6"},
+          "checks": [
+            {"against": ["background", "destructive-fill"], "element": "other-text"},
+            {"against": ["card", "destructive-fill"], "element": "other-text"},
+            {"against": ["popover", "destructive-fill"], "element": "other-text"}
+          ]
+        },
+        "warning": {
+          "description": "Warning and caution text on the page",
+          "ref": "W12",
+          "checks": [
+            {"against": ["background"], "element": "other-text"},
+            {"against": ["card"], "element": "other-text"},
+            {"against": ["popover"], "element": "other-text"}
+          ]
+        },
+        "warning-fill": {
+          "description": "Fill for warning badges, banners and alerts",
+          "ref": {"light": "WA4", "dark": "W12"},
+          "checks": []
+        },
+        "warning-fill-foreground": {
+          "description": "Text and icons on `warning-fill`",
+          "ref": {"light": "W12", "dark": "W6"},
+          "checks": [
+            {"against": ["background", "warning-fill"], "element": "other-text"},
+            {"against": ["card", "warning-fill"], "element": "other-text"},
+            {"against": ["popover", "warning-fill"], "element": "other-text"}
+          ]
+        },
+        "success": {
+          "description": "Success and positive text on the page",
+          "ref": {"light": "S11", "dark": "S12"},
+          "checks": [
+            {"against": ["background"], "element": "other-text"},
+            {"against": ["card"], "element": "other-text"},
+            {"against": ["popover"], "element": "other-text"}
+          ]
+        },
+        "success-fill": {
+          "description": "Fill for success badges, toasts and alerts",
+          "ref": {"light": "SA4", "dark": "S12"},
+          "checks": []
+        },
+        "success-fill-foreground": {
+          "description": "Text and icons on `success-fill`",
+          "ref": {"light": "S12", "dark": "S6"},
+          "checks": [
+            {"against": ["background", "success-fill"], "element": "other-text"},
+            {"against": ["card", "success-fill"], "element": "other-text"},
+            {"against": ["popover", "success-fill"], "element": "other-text"}
+          ]
+        }
+      }
+    }
+  ]
+}

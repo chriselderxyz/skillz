@@ -5,13 +5,16 @@ import Color from "colorjs.io";
 //==================================================
 
 const args = process.argv.slice(2);
-const brandColorIndex = args.indexOf("--brand-color");
+const lightSeedIndex = args.indexOf("--light-seed");
+const darkSeedIndex = args.indexOf("--dark-seed");
 const chromaRatioIndex = args.indexOf("--chroma-ratio");
 const maxChromaIndex = args.indexOf("--max-chroma");
 const lightnessIndex = args.indexOf("--lightness");
 
-const brandColor =
-  brandColorIndex === -1 ? undefined : args[brandColorIndex + 1];
+const seeds = {
+  light: lightSeedIndex === -1 ? undefined : args[lightSeedIndex + 1],
+  dark: darkSeedIndex === -1 ? undefined : args[darkSeedIndex + 1],
+};
 const chromaRatio =
   chromaRatioIndex === -1 ? 0.12 : Number(args[chromaRatioIndex + 1]);
 const maxChroma =
@@ -19,8 +22,10 @@ const maxChroma =
 const lightness =
   lightnessIndex === -1 ? 0.55 : Number(args[lightnessIndex + 1]);
 
-if (!brandColor || !/^#[\da-f]{6}$/i.test(brandColor)) {
-  throw new Error("--brand-color must be a six-digit HEX color");
+for (const [mode, seed] of Object.entries(seeds)) {
+  if (!seed || !/^#[\da-f]{6}$/i.test(seed)) {
+    throw new Error(`--${mode}-seed must be a six-digit HEX color`);
+  }
 }
 
 if (!Number.isFinite(chromaRatio) || chromaRatio < 0 || chromaRatio > 1) {
@@ -39,23 +44,19 @@ if (!Number.isFinite(lightness) || lightness < 0 || lightness > 1) {
 // Gray Selection
 //==================================================
 
-const brand = new Color(brandColor).to("oklch");
-const brandHue = Number.isNaN(brand.coords[2]) ? 0 : brand.coords[2];
-const grayChroma = Math.min(brand.coords[1] * chromaRatio, maxChroma);
-const gray = new Color("oklch", [lightness, grayChroma, brandHue]).to("srgb");
+// Each mode's gray has its seed's hue, and a share of its seed's chroma.
+function makeGray(seed: string): string {
+  const color = new Color(seed).to("oklch");
+  const hue = Number.isNaN(color.coords[2]) ? 0 : color.coords[2];
+  const grayChroma = Math.min(color.coords[1] * chromaRatio, maxChroma);
+  const grayHex = new Color("oklch", [lightness, grayChroma, hue])
+    .to("srgb")
+    .toString({ format: "hex" })
+    .toUpperCase();
 
-let normalizedBrandHex = new Color(brandColor)
-  .to("srgb")
-  .toString({ format: "hex" })
-  .toUpperCase();
-let grayHex = gray.toString({ format: "hex" }).toUpperCase();
-
-if (normalizedBrandHex.length === 4) {
-  normalizedBrandHex = `#${normalizedBrandHex[1]}${normalizedBrandHex[1]}${normalizedBrandHex[2]}${normalizedBrandHex[2]}${normalizedBrandHex[3]}${normalizedBrandHex[3]}`;
-}
-
-if (grayHex.length === 4) {
-  grayHex = `#${grayHex[1]}${grayHex[1]}${grayHex[2]}${grayHex[2]}${grayHex[3]}${grayHex[3]}`;
+  return grayHex.length === 4
+    ? `#${grayHex[1]}${grayHex[1]}${grayHex[2]}${grayHex[2]}${grayHex[3]}${grayHex[3]}`
+    : grayHex;
 }
 
 //==================================================
@@ -65,8 +66,8 @@ if (grayHex.length === 4) {
 process.stdout.write(
   `${JSON.stringify(
     {
-      brand_color: normalizedBrandHex,
-      gray_color: grayHex,
+      light_gray: makeGray(seeds.light as string),
+      dark_gray: makeGray(seeds.dark as string),
       knobs: {
         chroma_ratio: chromaRatio,
         max_chroma: maxChroma,
