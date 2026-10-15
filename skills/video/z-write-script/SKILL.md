@@ -66,12 +66,15 @@ disable-model-invocation: true
         - Options: Files in `configs/local-research-guides/*`, 'create new' or none.
 
 - If the user selects 'create new' for any input option.
-    - Use the `/z-create-config` skill to create a new config for this skill.
-    - Use script-type, brand-voice, or local-research-guide as the config type.
-    - For guidelines, read the following for each input.
-        - `script_type`: `references/script-type-creation-guidelines`.
-        - `brand_voice`: `references/brand-voice-creation-guidelines`.
-        - `local_research_guide`: `references/local-research-guide-creation-guidelines`.
+    - Read the creation instructions for the input, and use its config path.
+        - `script_type`: `references/script-type-creation-guidelines.md`, `configs/script-types/<name>.md`.
+        - `brand_voice`: `references/brand-voice-creation-guidelines.md`, `configs/brand-voices/<name>.md`.
+        - `local_research_guide`: `references/local-research-guide-creation-guidelines.md`, `configs/local-research-guides/<name>.md`.
+    - Ask the user for a name for the new config, and for any reference files to model it on.
+    - Ask clarifying questions until you can write the config.
+    - Write the config to its path.
+    - Show the user the new config, and revise it until they approve.
+    - Use the new config for that input.
 
 ## Action 3. Read Config
 - Read the `configs/*` for `script_type` and `brand_voice` (if they were not just created).

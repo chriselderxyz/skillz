@@ -42,7 +42,7 @@ The skill asks for any of these that you have not already provided, then confirm
 | `src` | No | A folder. Default is the working directory (`.`) | Where the raw sources live |
 | `script` | No | A file path | The planned spoken script. The skill still transcribes the sources on its own |
 
-`create new` writes a config with the create-config skill. Graphics style guides are written for the create-graphics skill. The other new configs are written for this skill.
+`create new` writes a new config with you. Graphics style guides are written for the create-graphics skill. The other new configs are written for this skill.
 
 ## Definitions
 - **Source** -> A raw video file.
