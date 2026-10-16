@@ -55,22 +55,22 @@ description: Use for interactive design sessions with the user to come up with a
 - Also consider how the signal hues will look aesthetically against the brand hue.
 
 ## Action 3. Select Seeds
-- For the brand hue and each signal hue, select a lightness and a relative chroma for each seed:
-    - The light seed is a deep color that carries white text.
-    - The dark seed is a light color that carries dark text.
-    - Relative chroma, from 0 to 1, is the share of the most chroma sRGB holds at a seed's lightness and hue.
-    - Start the dark seed's relative chroma at the light seed's.
-- When the user gives a color:
-    - Use it as the light brand seed when it is deep, or the dark brand seed when it is light.
-    - Start the other brand seed's relative chroma at the color's.
+- For the brand hue and each signal hue, select:
+    - A relative chroma, from 0 to 1, the seeds' chroma as a share of the most chroma sRGB holds.
+    - A lightness for the light seed, a deep color that carries white text.
+    - A lightness for the dark seed, a light color that carries dark text.
+- When the user gives a color, use it as the light brand seed when it is deep, or the dark brand seed when it is light.
 
-## Action 4. Select Background Colors
+## Action 4. Make Seeds
+- Make the seeds for each hue with `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/colors/makeSeeds.ts" --hue "<hue>" --relative-chroma "<relative_chroma>" --light-seed-lightness "<light_seed_lightness>" --dark-seed-lightness "<dark_seed_lightness>"`.
+    - For the user's color, pass `--light-seed "<color>"` or `--dark-seed "<color>"` in place of `--hue`, `--relative-chroma`, and that mode's seed lightness.
+
+## Action 5. Select Background Colors
 - Select a background color for both light and dark modes.
 - Options
     - Hue Match
         - Hue is the brand hue.
-        - Chroma roughly 2-8% of the mode's brand seed chroma.
-            - Get each brand seed's `chroma` from `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/colors/oklch.ts" --lightness "<seed_lightness>" --relative-chroma "<seed_relative_chroma>" --hue "<hue>"`, or `--color "<color>"` for the user's color.
+        - Chroma roughly 2-8% of the `chroma` of the mode's brand seed
             - Tint shows up quickly on near-white, so lower end for light mode.
             - Dark mode can tolerate higher chroma.
             - Blues and purples tolerate the high end.
@@ -80,28 +80,24 @@ description: Use for interactive design sessions with the user to come up with a
             - Dark mode: 0.15 to 0.25, or 0.12 to 0.15 when `generators` includes `radix`.
     - The generator defaults: `#FFFFFF` for light mode and `#111111` for dark mode, or `#0B0B0B` for dark mode when `generators` includes `radix`.
 
-## Action 5. Make Seeds
-- Make the seeds for each hue with `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/colors/makeSeeds.ts" --hue "<hue>" --light-seed-lightness "<light_seed_lightness>" --light-relative-chroma "<light_relative_chroma>" --dark-seed-lightness "<dark_seed_lightness>" --dark-relative-chroma "<dark_relative_chroma>" --light-background "<light_background>" --dark-background "<dark_background>"`.
-    - For the user's color, pass `--light-seed "<color>"` or `--dark-seed "<color>"` in place of `--hue` and that mode's seed lightness and relative chroma.
-- For each seed that fails:
-    - With a `suggestion`, select a new lightness, starting from it.
-    - With a `ceiling_relative_chroma`, lower its relative chroma to that value or below.
-    - Check again.
+## Action 6. Check Seeds
+- Run the Action 4 command for each hue again, with `--light-background "<light_background>" --dark-background "<dark_background>"` added.
+- For each seed that fails, select a new lightness, starting from its `suggestion`, and check again.
 - When a brand seed changes, select that mode's background again.
 - Use `color` from each seed in the output.
 
-## Action 6. Select Suggested Brand
+## Action 7. Select Suggested Brand
 - Select which brand seed is the suggested brand color for marketing:
     - When the user gave a color to use as a seed, select that seed.
     - Otherwise, select the seed that better represents the brand:
         - The light seed suits deep, saturated brands that mostly appear on white or light surfaces.
         - The dark seed suits bright brands, such as sky blue, lime, or yellow, that mostly appear on dark or photographic surfaces.
 
-## Action 7. Select Grays
+## Action 8. Select Grays
 - Run `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/colors/makeGrays.ts" --light-seed "<light_seed>" --dark-seed "<dark_seed>"` for the brand hue and each signal hue.
 - Use `light_gray` and `dark_gray` from each output as the grays for that hue, or the grays the user gives.
 
-## Action 8. Make Palettes
+## Action 9. Make Palettes
 - Create as many palettes as the user requests.
 - Make each palette with every generator in `generators`:
     - Give every generator the same inputs: the seeds, the light and dark backgrounds, and the grays.
@@ -115,11 +111,11 @@ description: Use for interactive design sessions with the user to come up with a
     - Pass `vibrant` as true.
 - Make each signal ramp with its palette's generator unless the user asks for a different one.
 
-## Action 9. Check Neutrals
+## Action 10. Check Neutrals
 - Confirm the neutral ramp has no steps that are too strongly tinted:
 - If they do, select new grays with a lower `--chroma-ratio` and make that palette again.
 
-## Action 10. Palette File
+## Action 11. Palette File
 - Add an entry to the **palette file** for each palette and generator, following this example.
 - Use the same `name` for every generator's entry of a palette.
 

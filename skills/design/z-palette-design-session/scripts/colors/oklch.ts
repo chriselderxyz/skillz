@@ -78,11 +78,6 @@ export function relativeChroma(hex: string): number {
   return most === 0 ? 0 : chroma / most;
 }
 
-// The HEX color at this lightness and hue, with this share of the most chroma sRGB holds there.
-export function seedColor(lightness: number, share: number, hue: number): string {
-  return toHex(lightness, share * maxChroma(lightness, hue), hue);
-}
-
 export function describe(hex: string) {
   const [lightness, chroma, hue] = toOklch(hex);
   const round = (value: number, digits: number) => Number(value.toFixed(digits));
@@ -105,26 +100,11 @@ const invokedDirectly =
 
 if (invokedDirectly) {
   const args = process.argv.slice(2);
-  const argument = (name: string) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined);
-  const color = argument("--color");
-  const number = (name: string, low: number, high: number) => {
-    const value = Number(argument(name));
+  const color = args.includes("--color") ? args[args.indexOf("--color") + 1] : undefined;
 
-    if (!Number.isFinite(value) || value < low || value > high) {
-      throw new Error(`${name} must be from ${low} to ${high}`);
-    }
-
-    return value;
-  };
-
-  if (color !== undefined && !/^#[\da-f]{6}$/i.test(color)) {
+  if (color === undefined || !/^#[\da-f]{6}$/i.test(color)) {
     throw new Error("--color must be a six-digit HEX color");
   }
 
-  // Measures --color, or builds the color at --lightness, --relative-chroma, and --hue.
-  const hex =
-    color?.toUpperCase() ??
-    seedColor(number("--lightness", 0, 1), number("--relative-chroma", 0, 1), number("--hue", 0, 360));
-
-  process.stdout.write(`${JSON.stringify(describe(hex), null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify(describe(color.toUpperCase()), null, 2)}\n`);
 }
