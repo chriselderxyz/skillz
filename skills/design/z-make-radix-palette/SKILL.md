@@ -28,7 +28,7 @@ description: Use to generate Radix-style light and dark brand and neutral color 
         - Default to `#FFFFFF`.
     - `dark_background`.
         - A six-digit HEX color.
-        - Default to `#111111`.
+        - Default to `#141414`.
 - Reject any input that is not a valid six-digit HEX color.
 
 ## Action 2. Node.js

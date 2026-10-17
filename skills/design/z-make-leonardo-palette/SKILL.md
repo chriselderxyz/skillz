@@ -35,7 +35,7 @@ description: Use to generate contrast-targeted light and dark brand and neutral 
         - Default to `#FFFFFF`.
     - `dark_background`.
         - A six-digit HEX color.
-        - Default to `#111111`.
+        - Default to `#141414`.
     - `vibrant`:
         - A boolean.
         - When true, each brand step gets the color strength of a Radix ramp for the seed's hue.
