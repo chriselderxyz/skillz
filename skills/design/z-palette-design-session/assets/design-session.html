@@ -275,7 +275,7 @@
 			const tokenRole = (token) => {
 				if (["input", "ring", "sidebar-ring", "chart-primary", "control", "control-foreground"].includes(token)) return "nonText";
 				if (["border", "sidebar-border"].includes(token)) return "border";
-				if (token === "foreground" || token.endsWith("-foreground") || ["destructive", "warning", "success", "link"].includes(token))
+				if (token === "foreground" || token.endsWith("-foreground") || ["destructive", "warning", "success"].includes(token))
 					return "text";
 				return "surface";
 			};
@@ -450,11 +450,11 @@
 								</div>
 							</div>
 							<div class="card settings" data-tok="card card-foreground border">
-								<div class="panel-head" data-tok="border card-foreground">Notifications <button class="btn btn-link" data-tok="link">Manage Preferences</button></div>
+								<div class="panel-head" data-tok="border card-foreground">Notifications</div>
 								<div class="settings-row" data-tok="card-foreground">
-									<span class="setting"><span class="switch is-on" data-tok="control control-foreground"><i></i></span>Email</span>
+									<span class="setting"><span class="switch is-on" data-tok="control"><i data-tok="control-foreground"></i></span>Email</span>
 									<span class="setting"><span class="switch" data-tok="input"><i></i></span>SMS</span>
-									<span class="setting"><span class="checkbox is-on" data-tok="control control-foreground">✓</span>Digest</span>
+									<span class="setting"><span class="checkbox is-on" data-tok="control"><b data-tok="control-foreground">✓</b></span>Digest</span>
 									<span class="setting"><span class="checkbox" data-tok="input"></span>Mentions</span>
 									<span class="setting"><span class="radio is-on" data-tok="control input"><i></i></span>Daily</span>
 									<span class="setting"><span class="radio" data-tok="input"></span>Weekly</span>
@@ -581,7 +581,8 @@
 							.map((token) => {
 								const light = modeRef(tokenMapping, token, "light");
 								const dark = modeRef(tokenMapping, token, "dark");
-								const text = light === dark ? light : `${light} <span>/</span> ${dark}`;
+								const { fallback } = tokenMapping.tokens[token];
+								const text = `${light === dark ? light : `${light} <span>/</span> ${dark}`}${fallback ? ` <span>or</span> ${fallback}` : ""}`;
 								return `<tr><td>${token}</td><td class="ref-pair">${text}</td></tr>`;
 							})
 							.join("");

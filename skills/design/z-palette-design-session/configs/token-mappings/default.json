@@ -307,23 +307,10 @@
         },
         "control-foreground": {
           "description": "Check marks and switch thumbs on `control`",
-          "ref": "black-or-white",
+          "ref": "seed-foreground",
+          "fallback": "black-or-white",
           "checks": [
             {"against": ["control"], "element": "non-text"}
-          ]
-        }
-      }
-    },
-    {
-      "name": "Links",
-      "tokens": {
-        "link": {
-          "description": "Brand-colored text links",
-          "ref": "B11",
-          "checks": [
-            {"against": ["background"], "element": "other-text"},
-            {"against": ["card"], "element": "other-text"},
-            {"against": ["popover"], "element": "other-text"}
           ]
         }
       }
