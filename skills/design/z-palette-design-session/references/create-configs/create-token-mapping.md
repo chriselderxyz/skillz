@@ -7,6 +7,9 @@
 - Muted and hover fills differ from the surface they sit on.
 - Labels on tinted fills use `N12`.
 - `primary` is `seed`.
+- When `primary_text_contrast` is false, `seed` fills only elements that carry their own text or icon.
+- Brand-colored text uses `B11`, or `seed` when `primary_text_contrast` is true.
+- Checked or on controls use `B8`, or `seed` when `primary_text_contrast` is true.
 - Surfaces use `selected-background` or neutral steps from `N2` up.
 - `accent` and `sidebar-accent` use neutral steps.
 - Surfaces, `primary`, and all text use solid steps.
@@ -14,20 +17,20 @@
 
 # Step Roles
 
-| Step | Role                                                                                    | Guaranteed Contrast                                                                                    |
-| ---- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| 1    | App background.                                                                         |                                                                                                        |
-| 2    | Subtle background: cards, sidebars, and popovers.                                       |                                                                                                        |
-| 3    | Component fill: muted and selected fills.                                               |                                                                                                        |
-| 4    | Component fill on hover.                                                                |                                                                                                        |
-| 5    | Component fill when pressed or active.                                                  |                                                                                                        |
-| 6    | Subtle borders and dividers.                                                            |                                                                                                        |
-| 7    | Borders on cards and components.                                                        |                                                                                                        |
-| 8    | Strong borders, focus rings, and chart marks. Can also use as a secondary button color. | Brand ramps: 3:1 and APCA Lc 45 on the background, steps 1–3, and neutral steps 1–3.                   |
-| 9    | Solid fill. The brand ramp's step 9 is the mode's seed. Primary color for buttons.      | The seed: 3:1 and Lc 45 on the background, and `seed-foreground` meets the `seed-text` minimums on it. |
-| 10   | Solid fill on hover.                                                                    |                                                                                                        |
-| 11   | Low-contrast text: muted text and secondary labels.                                     | 4.5:1 and Lc 60 on the background and steps 1–5. Brand ramps also on neutral steps 1–5.                |
-| 12   | High-contrast text: body text and headings.                                             | 7:1 and Lc 75 on the background and steps 1–5. Brand ramps also on neutral steps 1–5.                  |
+| Step | Role                                                                                                            | Guaranteed Contrast                                                                                                                                              |
+| ---- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | App background.                                                                                                 |                                                                                                                                                                  |
+| 2    | Subtle background: cards, sidebars, and popovers.                                                               |                                                                                                                                                                  |
+| 3    | Component fill: muted and selected fills.                                                                       |                                                                                                                                                                  |
+| 4    | Component fill on hover.                                                                                        |                                                                                                                                                                  |
+| 5    | Component fill when pressed or active.                                                                          |                                                                                                                                                                  |
+| 6    | Subtle borders and dividers.                                                                                    |                                                                                                                                                                  |
+| 7    | Borders on cards and components.                                                                                |                                                                                                                                                                  |
+| 8    | Strong borders, focus rings, chart marks, and checked or on controls. Can also use as a secondary button color. | Brand ramps: 3:1 and APCA Lc 45 on the background, steps 1–3, and neutral steps 1–3.                                                                             |
+| 9    | Solid fill. The brand ramp's step 9 is the mode's seed. Primary color for buttons.                              | The seed: `seed-foreground` meets the `seed-text` minimums on it. With `primary_text_contrast`, the seed also meets the `other-text` minimums on the background. |
+| 10   | Solid fill on hover.                                                                                            |                                                                                                                                                                  |
+| 11   | Low-contrast text: muted text and secondary labels.                                                             | 4.5:1 and Lc 60 on the background and steps 1–5. Brand ramps also on neutral steps 1–5.                                                                          |
+| 12   | High-contrast text: body text and headings.                                                                     | 7:1 and Lc 75 on the background and steps 1–5. Brand ramps also on neutral steps 1–5.                                                                            |
 
 # Refs
 

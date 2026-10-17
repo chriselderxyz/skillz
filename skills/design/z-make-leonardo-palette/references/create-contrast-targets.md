@@ -15,7 +15,7 @@
 | 5    | Component fill when pressed or active.                                  |
 | 6    | Subtle borders and dividers.                                            |
 | 7    | Borders on cards and components.                                        |
-| 8    | Strong borders, focus rings, and chart marks.                           |
+| 8    | Strong borders, focus rings, chart marks, and checked or on controls.   |
 | 9    | Solid fill. The brand ramp's step 9 becomes the seed.                   |
 | 10   | Solid fill on hover. The brand ramp's step 10 becomes the seed's hover. |
 | 11   | Low-contrast text: muted text and secondary labels.                     |

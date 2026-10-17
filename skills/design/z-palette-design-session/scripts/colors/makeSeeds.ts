@@ -6,7 +6,8 @@ import { describe, maxChroma, toHex, toOklch } from "./oklch.js";
 
 const skillDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-type Mode = "light" | "dark";
+// One seed for both modes, or a light seed and a dark seed.
+type Slot = "seed" | "light" | "dark";
 
 //==================================================
 // Inputs
@@ -40,29 +41,43 @@ const readNumber = (name: string, low: number, high: number) => {
 
   return value;
 };
+const flag = (slot: Slot) => (slot === "seed" ? "--seed" : `--${slot}-seed`);
 
-// The user's color, given as one mode's seed, sets the hue and the chroma both seeds share.
-const givenSeeds = { light: readHex("--light-seed"), dark: readHex("--dark-seed") };
-const givenSeed = givenSeeds.light ?? givenSeeds.dark;
+// Light and dark seed flags make two seeds. Otherwise there is one seed.
+const twoSeeds = ["light", "dark"].some((slot) => args.some((name) => name.startsWith(`--${slot}-seed`)));
+const slots: Slot[] = twoSeeds ? ["light", "dark"] : ["seed"];
 
-if (givenSeeds.light && givenSeeds.dark) {
+if (twoSeeds && args.some((name) => name.startsWith("--seed"))) {
+  throw new Error("Give --seed flags or light and dark seed flags, not both");
+}
+
+// The user's color, given as a seed, sets the hue and the chroma the seeds share.
+const givenSeeds = Object.fromEntries(slots.map((slot) => [slot, readHex(flag(slot))])) as Partial<Record<Slot, string>>;
+const givenSeed = Object.values(givenSeeds).find((seed) => seed !== undefined);
+
+if (Object.values(givenSeeds).filter((seed) => seed !== undefined).length > 1) {
   throw new Error("Give --light-seed or --dark-seed, not both");
 }
 
 const hue = givenSeed ? toOklch(givenSeed)[2] : readNumber("--hue", 0, 360);
 const relative = givenSeed ? null : readNumber("--relative-chroma", 0, 1);
-const modes: Mode[] = ["light", "dark"];
 const lightnesses = Object.fromEntries(
-  modes.map((mode) => {
-    const given = givenSeeds[mode];
+  slots.map((slot) => {
+    const given = givenSeeds[slot];
 
-    return [mode, given ? toOklch(given)[0] : readNumber(`--${mode}-seed-lightness`, 0, 1)];
+    return [slot, given ? toOklch(given)[0] : readNumber(`${flag(slot)}-lightness`, 0, 1)];
   }),
-) as Record<Mode, number>;
-const backgrounds = { light: readHex("--light-background"), dark: readHex("--dark-background") };
+) as Record<Slot, number>;
+
+// Two seeds are also checked against their mode's background.
+const backgrounds: Partial<Record<Slot, string>> = { light: readHex("--light-background"), dark: readHex("--dark-background") };
 
 if (Boolean(backgrounds.light) !== Boolean(backgrounds.dark)) {
   throw new Error("Give both --light-background and --dark-background, or neither");
+}
+
+if (!twoSeeds && backgrounds.light) {
+  throw new Error("--light-background and --dark-background apply to two seeds");
 }
 
 const thresholds = JSON.parse(await readFile(path.join(skillDirectory, "assets/contrast-thresholds.json"), "utf8"));
@@ -81,10 +96,14 @@ function darkSeedWeight(): number {
   return hue > 126 && hue < 140 ? (140 - hue) / 14 : 0;
 }
 
-// The chroma both seeds share at these seed lightnesses.
-function sharedChroma(seedLightnesses: Record<Mode, number>): number {
+// The chroma the seeds share at these seed lightnesses.
+function sharedChroma(seedLightnesses: Record<Slot, number>): number {
   if (relative === null) {
     return toOklch(givenSeed as string)[1];
+  }
+
+  if (!twoSeeds) {
+    return relative * maxChroma(seedLightnesses.seed, hue);
   }
 
   const fromLight = relative * maxChroma(seedLightnesses.light, hue);
@@ -93,16 +112,16 @@ function sharedChroma(seedLightnesses: Record<Mode, number>): number {
   return fromLight + (fromDark - fromLight) * darkSeedWeight();
 }
 
-// A mode's seed at this lightness, with the shared chroma or the most sRGB holds there, whichever is less.
-function seedAt(mode: Mode, lightness: number): string {
-  const chroma = sharedChroma({ ...lightnesses, [mode]: lightness });
+// A seed at this lightness, with the shared chroma or the most sRGB holds there, whichever is less.
+function seedAt(slot: Slot, lightness: number): string {
+  const chroma = sharedChroma({ ...lightnesses, [slot]: lightness });
 
   return toHex(lightness, Math.min(chroma, maxChroma(lightness, hue)), hue);
 }
 
 const seeds = Object.fromEntries(
-  modes.map((mode) => [mode, givenSeeds[mode] ?? seedAt(mode, lightnesses[mode])]),
-) as Record<Mode, string>;
+  slots.map((slot) => [slot, givenSeeds[slot] ?? seedAt(slot, lightnesses[slot])]),
+) as Record<Slot, string>;
 
 //==================================================
 // Checks
@@ -116,26 +135,22 @@ const meets = (element: string, ratio: number, lc: number) => {
   return (wcag === null || ratio >= wcag) && lc >= lcMinimum;
 };
 
-// A seed passes when it meets the non-text minimums against its mode's background, and its text,
-// white or black from seedText, meets the seed-text minimums on it.
-function measure(seed: string, background: string) {
-  const backgroundContrast = { wcag: contrast(seed, background), apca: apca(seed, background) };
+// A seed passes when its text, white or black from seedText, meets the seed-text minimums on it. With
+// a background, the seed as text also meets the other-text minimums on that background.
+function measure(seed: string, background: string | undefined) {
+  const backgroundContrast = background ? { wcag: contrast(seed, background), apca: apca(seed, background) } : null;
   const hex = seedText(seed);
   const text = { name: hex === "#FFFFFF" ? "white" : "black", wcag: contrast(hex, seed), apca: apca(hex, seed) };
+  const backgroundPasses = backgroundContrast === null || meets("other-text", backgroundContrast.wcag, backgroundContrast.apca);
 
-  return {
-    passes:
-      meets("non-text", backgroundContrast.wcag, backgroundContrast.apca) && meets("seed-text", text.wcag, text.apca),
-    backgroundContrast,
-    text,
-  };
+  return { passes: backgroundPasses && meets("seed-text", text.wcag, text.apca), backgroundContrast, text };
 }
 
-// The closest lightness to the seed's that passes, with the other seed's lightness unchanged.
-function suggest(mode: Mode, background: string): number | null {
+// The closest lightness to the seed's that passes, with any other seed's lightness unchanged.
+function suggest(slot: Slot): number | null {
   for (let offset = 0; offset < 1; offset += 0.005) {
-    for (const candidate of [lightnesses[mode] - offset, lightnesses[mode] + offset].map((value) => round(value, 3))) {
-      if (candidate > 0 && candidate < 1 && measure(seedAt(mode, candidate), background).passes) {
+    for (const candidate of [lightnesses[slot] - offset, lightnesses[slot] + offset].map((value) => round(value, 3))) {
+      if (candidate > 0 && candidate < 1 && measure(seedAt(slot, candidate), backgrounds[slot]).passes) {
         return candidate;
       }
     }
@@ -144,28 +159,29 @@ function suggest(mode: Mode, background: string): number | null {
   return null;
 }
 
-// Without backgrounds, a seed is reported unchecked.
-function report(mode: Mode) {
-  const seed = seeds[mode];
-  const background = backgrounds[mode];
-
-  if (background === undefined) {
-    return describe(seed);
-  }
-
-  const { passes, backgroundContrast, text } = measure(seed, background);
-  const suggestion = passes ? null : suggest(mode, background);
+function report(slot: Slot) {
+  const seed = seeds[slot];
+  const { passes, backgroundContrast, text } = measure(seed, backgrounds[slot]);
+  const suggestion = passes ? null : suggest(slot);
 
   return {
     ...describe(seed),
     passes,
-    background_contrast: { wcag: round(backgroundContrast.wcag), apca: round(backgroundContrast.apca) },
+    ...(backgroundContrast
+      ? { background_contrast: { wcag: round(backgroundContrast.wcag), apca: round(backgroundContrast.apca) } }
+      : {}),
     text: text.name,
     text_contrast: { wcag: round(text.wcag), apca: round(text.apca) },
-    ...(passes ? {} : { suggestion: suggestion === null ? null : describe(seedAt(mode, suggestion)) }),
+    ...(passes ? {} : { suggestion: suggestion === null ? null : describe(seedAt(slot, suggestion)) }),
   };
 }
 
 process.stdout.write(
-  `${JSON.stringify({ hue: round(hue), light_seed: report("light"), dark_seed: report("dark") }, null, 2)}\n`,
+  `${JSON.stringify(
+    twoSeeds
+      ? { hue: round(hue), light_seed: report("light"), dark_seed: report("dark") }
+      : { hue: round(hue), seed: report("seed") },
+    null,
+    2,
+  )}\n`,
 );

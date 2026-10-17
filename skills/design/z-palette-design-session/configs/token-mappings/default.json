@@ -21,11 +21,7 @@
         "primary": {
           "description": "High emphasis actions and brand surfaces",
           "ref": "seed",
-          "checks": [
-            {"against": ["background"], "element": "non-text"},
-            {"against": ["card"], "element": "non-text"},
-            {"against": ["popover"], "element": "non-text"}
-          ]
+          "checks": []
         },
         "primary-foreground": {
           "description": "Text color contrasting `primary`",
@@ -43,12 +39,7 @@
         "secondary": {
           "description": "Lower emphasis for lesser actions and supporting surfaces",
           "ref": "seed",
-          "checks": [
-            {"against": ["background"], "element": "non-text"},
-            {"against": ["card"], "element": "non-text"},
-            {"against": ["popover"], "element": "non-text"},
-            {"against": ["sidebar"], "element": "non-text"}
-          ]
+          "checks": []
         },
         "secondary-foreground": {
           "description": "Text color contrasting `secondary`",
@@ -138,9 +129,7 @@
         "sidebar-primary": {
           "description": "High emphasis actions in the sidebar",
           "ref": "seed",
-          "checks": [
-            {"against": ["sidebar"], "element": "non-text"}
-          ]
+          "checks": []
         },
         "sidebar-primary-foreground": {
           "description": "Text color contrasting `sidebar-primary`",
@@ -300,6 +289,41 @@
             {"against": ["background", "success-fill"], "element": "other-text"},
             {"against": ["card", "success-fill"], "element": "other-text"},
             {"against": ["popover", "success-fill"], "element": "other-text"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Controls",
+      "tokens": {
+        "control": {
+          "description": "Checked and on states of checkboxes, switches, radios, sliders, and progress bars",
+          "ref": "B8",
+          "checks": [
+            {"against": ["background"], "element": "non-text"},
+            {"against": ["card"], "element": "non-text"},
+            {"against": ["popover"], "element": "non-text"}
+          ]
+        },
+        "control-foreground": {
+          "description": "Check marks and switch thumbs on `control`",
+          "ref": "black-or-white",
+          "checks": [
+            {"against": ["control"], "element": "non-text"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Links",
+      "tokens": {
+        "link": {
+          "description": "Brand-colored text links",
+          "ref": "B11",
+          "checks": [
+            {"against": ["background"], "element": "other-text"},
+            {"against": ["card"], "element": "other-text"},
+            {"against": ["popover"], "element": "other-text"}
           ]
         }
       }
