@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { apca, contrast } from "../../assets/tokenResolution.js";
+import { apca, contrast, seedText } from "../../assets/tokenResolution.js";
 import { describe, maxChroma, toHex, toOklch } from "./oklch.js";
 
 const skillDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -108,9 +108,6 @@ const seeds = Object.fromEntries(
 // Checks
 //==================================================
 
-// Text on a seed is white, or dark text a little lighter than the light neutral ramp's step 12.
-const textColors = { white: "#FFFFFF", dark: toHex(0.26, 0, 0) };
-
 const round = (value: number, digits = 2) => Number(value.toFixed(digits));
 
 const meets = (element: string, ratio: number, lc: number) => {
@@ -119,17 +116,16 @@ const meets = (element: string, ratio: number, lc: number) => {
   return (wcag === null || ratio >= wcag) && lc >= lcMinimum;
 };
 
-// A seed passes when it meets the non-text minimums against its mode's background, and white or
-// dark text meets the seed-text minimums on it.
+// A seed passes when it meets the non-text minimums against its mode's background, and its text,
+// white or black from seedText, meets the seed-text minimums on it.
 function measure(seed: string, background: string) {
   const backgroundContrast = { wcag: contrast(seed, background), apca: apca(seed, background) };
-  const text = Object.entries(textColors)
-    .map(([name, hex]) => ({ name, wcag: contrast(hex, seed), apca: apca(hex, seed) }))
-    .filter((candidate) => meets("seed-text", candidate.wcag, candidate.apca))
-    .sort((a, b) => b.apca - a.apca)[0];
+  const hex = seedText(seed);
+  const text = { name: hex === "#FFFFFF" ? "white" : "black", wcag: contrast(hex, seed), apca: apca(hex, seed) };
 
   return {
-    passes: meets("non-text", backgroundContrast.wcag, backgroundContrast.apca) && text !== undefined,
+    passes:
+      meets("non-text", backgroundContrast.wcag, backgroundContrast.apca) && meets("seed-text", text.wcag, text.apca),
     backgroundContrast,
     text,
   };
@@ -164,8 +160,8 @@ function report(mode: Mode) {
     ...describe(seed),
     passes,
     background_contrast: { wcag: round(backgroundContrast.wcag), apca: round(backgroundContrast.apca) },
-    text: text?.name ?? null,
-    text_contrast: text ? { wcag: round(text.wcag), apca: round(text.apca) } : null,
+    text: text.name,
+    text_contrast: { wcag: round(text.wcag), apca: round(text.apca) },
     ...(passes ? {} : { suggestion: suggestion === null ? null : describe(seedAt(mode, suggestion)) }),
   };
 }

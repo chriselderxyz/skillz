@@ -173,7 +173,7 @@ function getStep9Colors(scale: ArrayOf12<Color>, accentBaseColor: Color): [Color
 
 function getButtonHoverColor(source: Color, scales: ArrayOf12<Color>[], textColor: Color) {
 	const [L, C, H] = source.coords;
-	// Local change: the hover darkens under white text and lightens under dark text.
+	// Local change: the hover darkens under white text and lightens under black text.
 	// Upstream darkens when L > 0.4.
 	const darken = textColor.to("oklch").coords[0] > 0.5;
 	const newL = darken ? L - 0.03 / (L + 0.1) : L + 0.03 / (L + 0.1);
@@ -378,12 +378,14 @@ function getScaleFromColor(
 	return scale;
 }
 
+// Local change: black in place of a dark tint of the background, and Lc measured with white as the
+// text on the background, the same choice as the design session's text on the seed. Upstream
+// measures the background as text on white.
 function getTextColor(background: Color) {
 	const white = new Color("oklch", [1, 0, 0]);
 
-	if (Math.abs(white.contrastAPCA(background)) < 40) {
-		const [, C, H] = background.coords;
-		return new Color("oklch", [0.25, Math.max(0.08 * C, 0.04), H]);
+	if (Math.abs(background.contrastAPCA(white)) < 40) {
+		return new Color("oklch", [0, 0, 0]);
 	}
 
 	return white;

@@ -14,20 +14,20 @@
 
 # Step Roles
 
-| Step | Role                                                                                    | Guaranteed Contrast                                                                                     |
-| ---- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| 1    | App background.                                                                         |                                                                                                         |
-| 2    | Subtle background: cards, sidebars, and popovers.                                       |                                                                                                         |
-| 3    | Component fill: muted and selected fills.                                               |                                                                                                         |
-| 4    | Component fill on hover.                                                                |                                                                                                         |
-| 5    | Component fill when pressed or active.                                                  |                                                                                                         |
-| 6    | Subtle borders and dividers.                                                            |                                                                                                         |
-| 7    | Borders on cards and components.                                                        |                                                                                                         |
-| 8    | Strong borders, focus rings, and chart marks. Can also use as a secondary button color. | Brand ramps: 3:1 and APCA Lc 45 on the background, steps 1–3, and neutral steps 1–3.                    |
-| 9    | Solid fill. The brand ramp's step 9 is the mode's seed. Primary color for buttons.      | The seed: 3:1 and Lc 45 on the background, and white or dark text meets the `seed-text` minimums on it. |
-| 10   | Solid fill on hover.                                                                    |                                                                                                         |
-| 11   | Low-contrast text: muted text and secondary labels.                                     | 4.5:1 and Lc 60 on the background and steps 1–5. Brand ramps also on neutral steps 1–5.                 |
-| 12   | High-contrast text: body text and headings.                                             | 7:1 and Lc 75 on the background and steps 1–5. Brand ramps also on neutral steps 1–5.                   |
+| Step | Role                                                                                    | Guaranteed Contrast                                                                                    |
+| ---- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 1    | App background.                                                                         |                                                                                                        |
+| 2    | Subtle background: cards, sidebars, and popovers.                                       |                                                                                                        |
+| 3    | Component fill: muted and selected fills.                                               |                                                                                                        |
+| 4    | Component fill on hover.                                                                |                                                                                                        |
+| 5    | Component fill when pressed or active.                                                  |                                                                                                        |
+| 6    | Subtle borders and dividers.                                                            |                                                                                                        |
+| 7    | Borders on cards and components.                                                        |                                                                                                        |
+| 8    | Strong borders, focus rings, and chart marks. Can also use as a secondary button color. | Brand ramps: 3:1 and APCA Lc 45 on the background, steps 1–3, and neutral steps 1–3.                   |
+| 9    | Solid fill. The brand ramp's step 9 is the mode's seed. Primary color for buttons.      | The seed: 3:1 and Lc 45 on the background, and `seed-foreground` meets the `seed-text` minimums on it. |
+| 10   | Solid fill on hover.                                                                    |                                                                                                        |
+| 11   | Low-contrast text: muted text and secondary labels.                                     | 4.5:1 and Lc 60 on the background and steps 1–5. Brand ramps also on neutral steps 1–5.                |
+| 12   | High-contrast text: body text and headings.                                             | 7:1 and Lc 75 on the background and steps 1–5. Brand ramps also on neutral steps 1–5.                  |
 
 # Refs
 
@@ -42,7 +42,7 @@
 | `white` / `black`                      | `#FFFFFF` / `#000000`.                                                                                                                                                   |
 | `selected-background`                  | The palette's background for the mode.                                                                                                                                   |
 | `seed`                                 | The brand seed for the mode.                                                                                                                                             |
-| `seed-foreground`                      | Text on the mode's seed: `#FFFFFF`, or light mode `N12`, whichever meets the `seed-text` minimums.                                                                       |
+| `seed-foreground`                      | Text on the mode's seed: `#FFFFFF`, unless white text falls below APCA Lc 40 on the seed, then `#000000`.                                                                |
 | `black-or-white`                       | `#000000` or `#FFFFFF`, whichever meets more of the `other-text` minimums on the token's fill, the token name without `-foreground`, with the higher APCA breaking ties. |
 | `{ "light": <ref>, "dark": <ref> }`    | A different ref for each mode.                                                                                                                                           |
 

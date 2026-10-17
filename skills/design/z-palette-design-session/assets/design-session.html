@@ -102,7 +102,7 @@
 			// @@TOKEN_RESOLUTION_END
 
 			// Text on each seed (seed-foreground): white, or light neutral step 12.
-			for (const palette of paletteData) palette.seedForeground = seedForegroundText(palette, contrastThresholds);
+			for (const palette of paletteData) palette.seedForeground = seedForegroundText(palette);
 
 			// Generators and palette names in data order. Each name has one entry per generator.
 			const generators = [...new Set(paletteData.map((palette) => palette.generator))];
@@ -621,7 +621,7 @@
 					return badge(
 						`${mode === "light" ? "Light" : "Dark"} Seed`,
 						seed,
-						` · ${text === "#FFFFFF" ? "White" : "N12"} Text (${contrast(seed, text).toFixed(2)} | Lc ${Math.round(apca(text, seed))})`,
+						` · ${text === "#FFFFFF" ? "White" : "Black"} Text (${contrast(seed, text).toFixed(2)} | Lc ${Math.round(apca(text, seed))})`,
 					);
 				})
 				.join("")}${grayBadges(palette)
