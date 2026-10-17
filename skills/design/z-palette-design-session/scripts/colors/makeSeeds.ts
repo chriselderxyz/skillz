@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { apca, contrast } from "../../assets/tokenResolution.js";
+import { apca, contrast, seedText } from "../../assets/tokenResolution.js";
 import { describe, maxChroma, toHex, toOklch } from "./oklch.js";
 
 const skillDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -127,9 +127,6 @@ const seeds = Object.fromEntries(
 // Checks
 //==================================================
 
-// Text on a seed is white, or dark text a little lighter than the light neutral ramp's step 12.
-const textColors = { white: "#FFFFFF", dark: toHex(0.26, 0, 0) };
-
 const round = (value: number, digits = 2) => Number(value.toFixed(digits));
 
 const meets = (element: string, ratio: number, lc: number) => {
@@ -138,17 +135,15 @@ const meets = (element: string, ratio: number, lc: number) => {
   return (wcag === null || ratio >= wcag) && lc >= lcMinimum;
 };
 
-// A seed passes when white or dark text meets the seed-text minimums on it. With a background, the
-// seed as text also meets the other-text minimums on that background.
+// A seed passes when its text, white or black from seedText, meets the seed-text minimums on it. With
+// a background, the seed as text also meets the other-text minimums on that background.
 function measure(seed: string, background: string | undefined) {
   const backgroundContrast = background ? { wcag: contrast(seed, background), apca: apca(seed, background) } : null;
-  const text = Object.entries(textColors)
-    .map(([name, hex]) => ({ name, wcag: contrast(hex, seed), apca: apca(hex, seed) }))
-    .filter((candidate) => meets("seed-text", candidate.wcag, candidate.apca))
-    .sort((a, b) => b.apca - a.apca)[0];
+  const hex = seedText(seed);
+  const text = { name: hex === "#FFFFFF" ? "white" : "black", wcag: contrast(hex, seed), apca: apca(hex, seed) };
   const backgroundPasses = backgroundContrast === null || meets("other-text", backgroundContrast.wcag, backgroundContrast.apca);
 
-  return { passes: backgroundPasses && text !== undefined, backgroundContrast, text };
+  return { passes: backgroundPasses && meets("seed-text", text.wcag, text.apca), backgroundContrast, text };
 }
 
 // The closest lightness to the seed's that passes, with any other seed's lightness unchanged.
@@ -175,8 +170,8 @@ function report(slot: Slot) {
     ...(backgroundContrast
       ? { background_contrast: { wcag: round(backgroundContrast.wcag), apca: round(backgroundContrast.apca) } }
       : {}),
-    text: text?.name ?? null,
-    text_contrast: text ? { wcag: round(text.wcag), apca: round(text.apca) } : null,
+    text: text.name,
+    text_contrast: { wcag: round(text.wcag), apca: round(text.apca) },
     ...(passes ? {} : { suggestion: suggestion === null ? null : describe(seedAt(slot, suggestion)) }),
   };
 }

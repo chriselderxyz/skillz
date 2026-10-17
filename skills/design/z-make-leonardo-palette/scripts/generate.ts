@@ -305,29 +305,13 @@ function blendAlpha(foreground: number, alpha: number, background: number) {
 // Brand Foreground
 //==================================================
 
-// Same text-on-fill choice as the Radix skill, measured on this mode's solid
-// brand fill (step 9). White when it clears an Accessible Perceptual Contrast
-// Algorithm lightness contrast of 40. Otherwise a dark tint of that fill.
+// Same text-on-fill choice as the Radix skill and the design session, measured on
+// this mode's solid brand fill (step 9). White, unless white text falls below an
+// Accessible Perceptual Contrast Algorithm lightness contrast of 40, then black.
 function brandForeground(fill: string): string {
-  const fillColor = new Color(fill).to("oklch");
-  const white = new Color("oklch", [1, 0, 0]);
+  const white = Math.abs(new Color(fill).contrastAPCA(new Color("#FFFFFF")));
 
-  if (Math.abs(white.contrastAPCA(fillColor)) < 40) {
-    const chroma = fillColor.coords[1];
-    const hue = Number.isNaN(fillColor.coords[2]) ? 0 : fillColor.coords[2];
-    let hex = new Color("oklch", [0.25, Math.max(0.08 * chroma, 0.04), hue])
-      .to("srgb")
-      .toString({ format: "hex" })
-      .toUpperCase();
-
-    if (hex.length === 4) {
-      hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
-    }
-
-    return hex;
-  }
-
-  return "#FFFFFF";
+  return white < 40 ? "#000000" : "#FFFFFF";
 }
 
 //==================================================
@@ -537,7 +521,7 @@ export async function generate({
   lightGray,
   darkGray,
   lightBackground = "#FFFFFF",
-  darkBackground = "#111111",
+  darkBackground = "#141414",
   vibrant = false,
   contrastTargets = defaultContrastTargets,
   outputDirectory = process.cwd(),

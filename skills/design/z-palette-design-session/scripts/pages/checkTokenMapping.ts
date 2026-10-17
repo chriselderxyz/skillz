@@ -46,7 +46,7 @@ const palettes = await loadPalettes(palettesPath);
 const round = (value: number) => Number(value.toFixed(2));
 
 const results = palettes.map((palette) => {
-  const seedForeground = seedForegroundText(palette, thresholds);
+  const seedForeground = seedForegroundText(palette);
   const withSeedForeground = { ...palette, seedForeground };
   const failures = [];
   let passed = 0;

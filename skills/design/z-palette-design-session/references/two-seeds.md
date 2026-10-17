@@ -4,7 +4,7 @@
 - For the brand hue and each signal hue, select:
     - A relative chroma, from 0 to 1, the seeds' chroma as a share of the most chroma sRGB holds.
     - A lightness for the light seed, a deep color that carries white text.
-    - A lightness for the dark seed, a light color that carries dark text.
+    - A lightness for the dark seed, a light color that carries black text.
 - When the user gives a color, use it as the light brand seed when it is deep, or the dark brand seed when it is light.
 
 ## Action 2. Make Seeds

@@ -236,7 +236,7 @@
 			};
 
 			// Text on the seed (seed-foreground): white, or light neutral step 12.
-			palette.seedForeground = seedForegroundText(palette, contrastThresholds);
+			palette.seedForeground = seedForegroundText(palette);
 
 			//==================================================
 			// Ramp Tables
@@ -663,7 +663,7 @@
 					return badge(
 						palette.seed.light === palette.seed.dark ? "Seed" : `${mode === "light" ? "Light" : "Dark"} Seed`,
 						seed,
-						` · ${text === "#FFFFFF" ? "White" : "N12"} Text (${contrast(seed, text).toFixed(2)} | Lc ${Math.round(apca(text, seed))})`,
+						` · ${text === "#FFFFFF" ? "White" : "Black"} Text (${contrast(seed, text).toFixed(2)} | Lc ${Math.round(apca(text, seed))})`,
 					);
 				})
 				.join("")}${grayBadges(palette)

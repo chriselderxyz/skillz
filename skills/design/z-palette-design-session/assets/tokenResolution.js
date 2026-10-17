@@ -63,21 +63,13 @@ const meets = (thresholds, element, ratio, lc) => {
 	return (wcag === null || ratio >= wcag) && lc >= lcMinimum;
 };
 
-// Text on each mode's brand seed: white, or light neutral step 12. Use whichever meets the
-// seed-text minimums on the seed. When both do, or neither does, use the higher APCA.
-export const seedForegroundText = (palette, thresholds) =>
-	Object.fromEntries(
-		["light", "dark"].map((mode) => {
-			const seed = palette.seed[mode];
-			const options = ["#FFFFFF", palette.ramps.lightNeutral[11]].map((text) => ({
-				text,
-				passes: meets(thresholds, "seed-text", contrast(text, seed), apca(text, seed)),
-				lc: apca(text, seed),
-			}));
-			const passing = options.filter((option) => option.passes);
-			return [mode, (passing.length > 0 ? passing : options).sort((a, b) => b.lc - a.lc)[0].text];
-		}),
-	);
+// Text on a brand seed: white, unless white text falls below APCA Lc 40 on the seed, then black.
+// The generator skills pick the text that sets their step 10 hover direction the same way.
+export const seedText = (seed) => (apca("#FFFFFF", seed) < 40 ? "#000000" : "#FFFFFF");
+
+// Text on each mode's brand seed.
+export const seedForegroundText = (palette) =>
+	Object.fromEntries(["light", "dark"].map((mode) => [mode, seedText(palette.seed[mode])]));
 
 //==================================================
 // Token Resolution

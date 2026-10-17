@@ -102,7 +102,7 @@
 			// @@TOKEN_RESOLUTION_END
 
 			// Text on each seed (seed-foreground): white, or light neutral step 12.
-			for (const palette of paletteData) palette.seedForeground = seedForegroundText(palette, contrastThresholds);
+			for (const palette of paletteData) palette.seedForeground = seedForegroundText(palette);
 
 			// Generators and palette names in data order. Each name has one entry per generator.
 			const generators = [...new Set(paletteData.map((palette) => palette.generator))];
@@ -262,14 +262,14 @@
 			// Token Table
 			//==================================================
 
-			// Contrast colour coding by token role. Each value is green at or above the first
-			// threshold, yellow at or above the second, red below. Pairing cells always use the
-			// text scale because they measure text on its surface.
+			// Contrast colour coding by token role. Each value is green at or above its threshold
+			// and black below it. Pairing cells always use the text scale because they measure
+			// text on its surface.
 			const contrastScales = {
-				text: { v2: [4.5, 3], v3: [75, 60], label: "Text" },
-				nonText: { v2: [3, 2], v3: [45, 30], label: "UI Marks (Input, Ring, Chart)" },
-				border: { v2: [1.5, 1.2], v3: [20, 10], label: "Borders" },
-				surface: { v2: [1.15, 1.03], v3: [10, 4], label: "Surfaces and Fills" },
+				text: { v2: 4.5, v3: 75 },
+				nonText: { v2: 3, v3: 45 },
+				border: { v2: 1.5, v3: 20 },
+				surface: { v2: 1.15, v3: 10 },
 			};
 
 			const tokenRole = (token) => {
@@ -289,7 +289,7 @@
 				pairOf[surface] = token;
 			}
 
-			const tone = (value, [good, ok]) => (value >= good ? "good" : value >= ok ? "ok" : "bad");
+			const tone = (value, threshold) => (value >= threshold ? "good" : "");
 
 			const contrastCell = (textHex, backgroundHex, role) => {
 				const scale = contrastScales[role];
@@ -304,12 +304,6 @@
 			const renderContrastLegend = () =>
 				`<div class="cx-legend">
 					<span class="cx-legend-title">Each Cell: WCAG 2 Ratio | APCA Lc</span>
-					${Object.values(contrastScales)
-						.map(
-							(scale) =>
-								`<span class="cx-legend-item"><b>${scale.label}</b> <span class="good">≥ ${scale.v2[0]} | ${scale.v3[0]}</span> <span class="ok">≥ ${scale.v2[1]} | ${scale.v3[1]}</span> <span class="bad">below</span></span>`,
-						)
-						.join("")}
 				</div>`;
 
 			const renderTokenTable = (palette) => {
@@ -356,10 +350,10 @@
 				return `
 					${renderContrastLegend()}
 					<div class="table-shell">
-						<table class="token-table">
+						<table class="token-table" style="min-width:1564px">
 							<colgroup>
 								<col style="width:164px" />
-								${'<col style="width:160px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" />'.repeat(2)}
+								${'<col style="width:220px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" /><col style="width:96px" />'.repeat(2)}
 							</colgroup>
 							<thead>
 								<tr><th rowspan="2" class="token-name-head">Token</th><th colspan="6" class="mode-head">Light</th><th colspan="6" class="mode-head">Dark</th></tr>
@@ -634,7 +628,7 @@
 					return badge(
 						palette.seed.light === palette.seed.dark ? "Seed" : `${mode === "light" ? "Light" : "Dark"} Seed`,
 						seed,
-						` · ${text === "#FFFFFF" ? "White" : "N12"} Text (${contrast(seed, text).toFixed(2)} | Lc ${Math.round(apca(text, seed))})`,
+						` · ${text === "#FFFFFF" ? "White" : "Black"} Text (${contrast(seed, text).toFixed(2)} | Lc ${Math.round(apca(text, seed))})`,
 					);
 				})
 				.join("")}${grayBadges(palette)

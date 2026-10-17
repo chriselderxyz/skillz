@@ -65,7 +65,7 @@ description: Use for interactive design sessions with the user to come up with a
     - Select a relative chroma, from 0 to 1, the seed's chroma as a share of the most chroma sRGB holds.
     - Select a lightness for the seed:
         - Most brands: a deep color that carries white text.
-        - Bright brands, such as sky blue, lime, or yellow: a light color that carries dark text.
+        - Bright brands, such as sky blue, lime, or yellow: a light color that carries black text.
     - Make the seed with `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/colors/makeSeeds.ts" --hue "<hue>" --relative-chroma "<relative_chroma>" --seed-lightness "<seed_lightness>"`.
         - For the user's color, pass `--seed "<color>"` in place of `--hue`, `--relative-chroma`, and `--seed-lightness`.
     - When the seed fails, select a new lightness, starting from its `suggestion`, and make it again.
@@ -84,7 +84,7 @@ description: Use for interactive design sessions with the user to come up with a
         - Lightness.
             - Light mode 0.98-0.995 (typically start at 0.995).
             - Dark mode: 0.15 to 0.25, or 0.12 to 0.15 when `generators` includes `radix`.
-    - The generator defaults: `#FFFFFF` for light mode and `#111111` for dark mode, or `#0B0B0B` for dark mode when `generators` includes `radix`.
+    - The generator defaults: `#FFFFFF` for light mode and `#141414` for dark mode.
 
 ## Action 5. Check Seeds
 - When `primary_text_contrast` is true, check the seeds following Phase 2 of `references/two-seeds.md`.

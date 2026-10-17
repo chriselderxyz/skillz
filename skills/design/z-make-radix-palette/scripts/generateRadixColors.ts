@@ -182,8 +182,11 @@ function getButtonHoverColor(source: Color, scales: ArrayOf12<Color>[], textColo
 	const awayFromPage = backgroundColor.coords[0] > L ? -1 : 1;
 	const awayFromText = textColor.to("oklch").coords[0] > 0.5 ? -1 : 1;
 	const hex = (color: Color) => color.clone().toGamut({ space: "srgb" }).to("srgb").toString({ format: "hex", collapse: false });
-	const keepsText = (color: Color) =>
-		contrastRatio(hex(textColor), hex(color)) >= 4.5 && Math.abs(color.contrastAPCA(textColor)) >= 75;
+	const keepsText = (color: Color) => {
+		const hoverHex = hex(color);
+
+		return contrastRatio(hex(textColor), hoverHex) >= 4.5 && Math.abs(new Color(hoverHex).contrastAPCA(textColor)) >= 75;
+	};
 
 	for (let twentieths = 20; twentieths >= 10; twentieths -= 1) {
 		const hover = shiftButtonColor(source, scales, (awayFromPage * step * twentieths) / 20);
@@ -400,12 +403,14 @@ function getScaleFromColor(
 	return scale;
 }
 
+// Local change: black in place of a dark tint of the background, and Lc measured with white as the
+// text on the background, the same choice as the design session's text on the seed. Upstream
+// measures the background as text on white.
 function getTextColor(background: Color) {
 	const white = new Color("oklch", [1, 0, 0]);
 
-	if (Math.abs(white.contrastAPCA(background)) < 40) {
-		const [, C, H] = background.coords;
-		return new Color("oklch", [0.25, Math.max(0.08 * C, 0.04), H]);
+	if (Math.abs(background.contrastAPCA(white)) < 40) {
+		return new Color("oklch", [0, 0, 0]);
 	}
 
 	return white;
