@@ -410,18 +410,33 @@ function applyVibrant(values: ContrastColorValue[], seed: string, mode: "light" 
 // Solid Steps
 //==================================================
 
-// Step 9 is the seed. Step 10 is its hover, moved by the same amount as Radix's step 10:
-// darker under white text, lighter under dark text.
-function applySolidSteps(values: ContrastColorValue[], seed: string): ContrastColorValue[] {
+// Step 9 is the seed. Step 10 is its hover: it moves away from the page background by up to Radix's
+// step 10 amount, as far as the seed's text keeps 4.5:1 and APCA Lc 75. With less than half that
+// room, it moves away from the text.
+function applySolidSteps(values: ContrastColorValue[], seed: string, background: string): ContrastColorValue[] {
   const [lightness, chroma, hue] = new Color(seed).to("oklch").coords;
-  const darken = brandForeground(seed) === "#FFFFFF";
-  const shift = 0.03 / (lightness + 0.1);
-  const hover = new Color("oklch", [
-    darken ? lightness - shift : lightness + shift,
-    darken ? chroma * 0.93 : chroma,
-    Number.isNaN(hue) ? 0 : hue,
-  ]).toGamut({ space: "srgb" });
-  const hoverHex = hover.to("srgb").toString({ format: "hex", collapse: false }).toUpperCase() as CssColor;
+  const text = brandForeground(seed);
+  const step = 0.03 / (lightness + 0.1);
+  const awayFromPage = new Color(background).to("oklch").coords[0] > lightness ? -1 : 1;
+  const awayFromText = text === "#FFFFFF" ? -1 : 1;
+  const shifted = (shift: number) =>
+    new Color("oklch", [lightness + shift, shift < 0 ? chroma * 0.93 : chroma, Number.isNaN(hue) ? 0 : hue])
+      .toGamut({ space: "srgb" })
+      .to("srgb")
+      .toString({ format: "hex", collapse: false })
+      .toUpperCase() as CssColor;
+  const keepsText = (hex: string) =>
+    contrastRatio(text, hex) >= 4.5 && Math.abs(new Color(hex).contrastAPCA(text)) >= 75;
+  let hoverHex = shifted(awayFromText * step);
+
+  for (let twentieths = 20; twentieths >= 10; twentieths -= 1) {
+    const candidate = shifted((awayFromPage * step * twentieths) / 20);
+
+    if (awayFromPage === awayFromText || keepsText(candidate)) {
+      hoverHex = candidate;
+      break;
+    }
+  }
 
   return values.map((value, index) => {
     if (index === 8) return { ...value, value: seed as CssColor };
@@ -672,6 +687,7 @@ export async function generate({
     applySolidSteps(
       vibrant ? applyVibrant(lightBrandOutput.values, normalizedColors.light_seed, "light") : lightBrandOutput.values,
       normalizedColors.light_seed,
+      resolvedLightBackground,
     ),
     resolvedLightBackground,
     "light",
@@ -681,6 +697,7 @@ export async function generate({
     applySolidSteps(
       vibrant ? applyVibrant(darkBrandOutput.values, normalizedColors.dark_seed, "dark") : darkBrandOutput.values,
       normalizedColors.dark_seed,
+      resolvedDarkBackground,
     ),
     resolvedDarkBackground,
     "dark",

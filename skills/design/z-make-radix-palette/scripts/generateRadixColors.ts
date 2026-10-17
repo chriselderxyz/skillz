@@ -4,6 +4,8 @@
 import * as RadixColors from "@radix-ui/colors";
 import BezierEasing from "bezier-easing";
 import Color from "colorjs.io";
+// Local change: WCAG 2 contrast for the step 10 hover.
+import { contrastRatio } from "./contrastRatio.js";
 
 type ArrayOf12<T> = [T, T, T, T, T, T, T, T, T, T, T, T];
 const arrayOf12 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
@@ -76,7 +78,7 @@ export const generateRadixColors = ({
 	const [accent9Color, accentContrastColor] = getStep9Colors(accentScaleColors, accentBaseColor);
 
 	accentScaleColors[8] = accent9Color;
-	accentScaleColors[9] = getButtonHoverColor(accent9Color, [accentScaleColors], accentContrastColor);
+	accentScaleColors[9] = getButtonHoverColor(accent9Color, [accentScaleColors], accentContrastColor, backgroundColor);
 
 	// Limit saturation of the text colors
 	accentScaleColors[10].coords[1] = Math.min(
@@ -171,13 +173,33 @@ function getStep9Colors(scale: ArrayOf12<Color>, accentBaseColor: Color): [Color
 	return [accentBaseColor, getTextColor(accentBaseColor)];
 }
 
-function getButtonHoverColor(source: Color, scales: ArrayOf12<Color>[], textColor: Color) {
-	const [L, C, H] = source.coords;
-	// Local change: the hover darkens under white text and lightens under dark text.
+function getButtonHoverColor(source: Color, scales: ArrayOf12<Color>[], textColor: Color, backgroundColor: Color) {
+	const L = source.coords[0];
+	// Local change: the hover moves away from the page background by up to upstream's amount, as far as
+	// its text keeps 4.5:1 and APCA Lc 75. With less than half that room, it moves away from its text.
 	// Upstream darkens when L > 0.4.
-	const darken = textColor.to("oklch").coords[0] > 0.5;
-	const newL = darken ? L - 0.03 / (L + 0.1) : L + 0.03 / (L + 0.1);
-	const newC = darken && !isNaN(H) ? C * 0.93 + 0 : C;
+	const step = 0.03 / (L + 0.1);
+	const awayFromPage = backgroundColor.coords[0] > L ? -1 : 1;
+	const awayFromText = textColor.to("oklch").coords[0] > 0.5 ? -1 : 1;
+	const hex = (color: Color) => color.clone().toGamut({ space: "srgb" }).to("srgb").toString({ format: "hex", collapse: false });
+	const keepsText = (color: Color) =>
+		contrastRatio(hex(textColor), hex(color)) >= 4.5 && Math.abs(color.contrastAPCA(textColor)) >= 75;
+
+	for (let twentieths = 20; twentieths >= 10; twentieths -= 1) {
+		const hover = shiftButtonColor(source, scales, (awayFromPage * step * twentieths) / 20);
+
+		if (awayFromPage === awayFromText || keepsText(hover)) {
+			return hover;
+		}
+	}
+
+	return shiftButtonColor(source, scales, awayFromText * step);
+}
+
+function shiftButtonColor(source: Color, scales: ArrayOf12<Color>[], shift: number) {
+	const [L, C, H] = source.coords;
+	const newL = L + shift;
+	const newC = shift < 0 && !isNaN(H) ? C * 0.93 + 0 : C;
 	const buttonHoverColor = new Color("oklch", [newL, newC, H]);
 
 	// Find closest in-scale color to donate the chroma and hue.

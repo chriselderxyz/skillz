@@ -2,6 +2,7 @@ import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import Color from "colorjs.io";
+import { contrastRatio } from "./contrastRatio.js";
 import {
   generateRadixColors,
   getAlphaColorP3,
@@ -154,22 +155,6 @@ const stepMinimums = [
   { index: 10, wcag: 4.5, apca: 60, surfaceSteps: 5, brandOnly: false },
   { index: 11, wcag: 7, apca: 75, surfaceSteps: 5, brandOnly: false },
 ];
-
-// WCAG 2 contrast ratio, from the relative luminance of each six-digit HEX color.
-function contrastRatio(a: string, b: string) {
-  const luminance = (hex: string) => {
-    const [red, green, blue] = [1, 3, 5].map((offset) => {
-      const channel = Number.parseInt(hex.slice(offset, offset + 2), 16) / 255;
-
-      return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-    });
-
-    return 0.2126 * (red as number) + 0.7152 * (green as number) + 0.0722 * (blue as number);
-  };
-  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-
-  return ((high as number) + 0.05) / ((low as number) + 0.05);
-}
 
 function meetsStepMinimum(hex: string, surfaces: string[], minimum: (typeof stepMinimums)[number]) {
   const step = new Color(hex);
