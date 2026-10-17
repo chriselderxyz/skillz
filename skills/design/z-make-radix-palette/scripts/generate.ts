@@ -248,7 +248,7 @@ export async function generate({
   lightGray,
   darkGray,
   lightBackground = "#FFFFFF",
-  darkBackground = "#111111",
+  darkBackground = "#141414",
   outputDirectory = process.cwd(),
 }: GenerateOptions): Promise<string> {
   const normalizedBrandColorName = brandColorName.toLowerCase();

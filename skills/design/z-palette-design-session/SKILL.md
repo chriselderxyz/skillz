@@ -78,7 +78,7 @@ description: Use for interactive design sessions with the user to come up with a
         - Lightness.
             - Light mode 0.98-0.995 (typically start at 0.995).
             - Dark mode: 0.15 to 0.25, or 0.12 to 0.15 when `generators` includes `radix`.
-    - The generator defaults: `#FFFFFF` for light mode and `#111111` for dark mode, or `#0B0B0B` for dark mode when `generators` includes `radix`.
+    - The generator defaults: `#FFFFFF` for light mode and `#141414` for dark mode.
 
 ## Action 6. Check Seeds
 - Run the Action 4 command for each hue again, with `--light-background "<light_background>" --dark-background "<dark_background>"` added.

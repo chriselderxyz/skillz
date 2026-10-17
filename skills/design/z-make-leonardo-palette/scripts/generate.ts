@@ -506,7 +506,7 @@ export async function generate({
   lightGray,
   darkGray,
   lightBackground = "#FFFFFF",
-  darkBackground = "#111111",
+  darkBackground = "#141414",
   vibrant = false,
   contrastTargets = defaultContrastTargets,
   outputDirectory = process.cwd(),
