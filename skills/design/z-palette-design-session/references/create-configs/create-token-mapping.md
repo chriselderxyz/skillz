@@ -55,6 +55,7 @@
 - `against` lists the tokens under the token, from the bottom up:
   - `["card", "muted"]` is `muted` on `card`.
 - `element` is a key in `assets/contrast-thresholds.json`.
+- `fallback` is a second ref the token uses when its `ref` misses one of its checks.
 
 # File
 

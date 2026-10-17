@@ -1649,15 +1649,6 @@ td {
 	margin-top: 10px;
 }
 
-.mock .btn-link {
-	height: auto;
-	padding: 0;
-	background: none;
-	color: var(--link);
-	text-decoration: underline;
-	text-underline-offset: 3px;
-}
-
 .settings-row {
 	display: flex;
 	flex-wrap: wrap;

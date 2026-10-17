@@ -142,26 +142,40 @@ const blackOrWhite = (fillHex, thresholds) => {
 	return options.sort((a, b) => b.met - a.met || b.lc - a.lc)[0].name;
 };
 
+// The opaque color a check's `against` tokens make: the first as resolved, then each further
+// token painted over the ones before it. lookup returns a token's { css, hex }.
+const checkGround = (against, lookup) => {
+	const [bottom, ...layers] = against;
+	return layers.reduce((below, layer) => overHex(lookup(layer).css, below), lookup(bottom).hex);
+};
+
 // Each token resolves to { ref, css, hex }. css is what the mockups paint (eight-digit
 // HEX for alpha steps); hex is the opaque color seen on the token's ground (groundOf).
 // "black-or-white" resolves against the token's fill (the same token name without
-// "-foreground"), as seen on that fill's ground.
+// "-foreground"), as seen on that fill's ground. A token with a fallback uses the fallback
+// ref when its ref misses one of the token's checks.
 export const resolveMapping = (palette, mapping, mode, thresholds) => {
 	const resolved = {};
 	const tokens = Object.keys(mapping.tokens);
+	const passesChecks = (css, checks) =>
+		checks.every(({ against, element }) => {
+			const ground = checkGround(against, resolve);
+			const color = overHex(css, ground);
+			return meets(thresholds, element, contrast(color, ground), apca(color, ground));
+		});
 	const resolve = (token) => {
 		if (resolved[token]) return resolved[token];
 		const ground = groundOf(token, tokens);
 		const groundHex = ground ? resolve(ground).hex : palette.backgrounds[mode].color;
-		let ref = modeRef(mapping, token, mode);
-		let css;
-		if (ref === "black-or-white") {
-			ref = blackOrWhite(resolve(token.replace(/-foreground$/, "")).hex, thresholds);
-			css = literalRefs[ref];
-		} else {
-			css = stepHex(palette, ref, mode);
-		}
-		resolved[token] = { ref, css, hex: overHex(css, groundHex) };
+		const pick = (ref) => {
+			if (ref !== "black-or-white") return { ref, css: stepHex(palette, ref, mode) };
+			const name = blackOrWhite(resolve(token.replace(/-foreground$/, "")).hex, thresholds);
+			return { ref: name, css: literalRefs[name] };
+		};
+		const { fallback, checks } = mapping.tokens[token];
+		let choice = pick(modeRef(mapping, token, mode));
+		if (fallback && !passesChecks(choice.css, checks)) choice = pick(fallback);
+		resolved[token] = { ...choice, hex: overHex(choice.css, groundHex) };
 		return resolved[token];
 	};
 	for (const token of tokens) resolve(token);
@@ -174,15 +188,13 @@ const resolveCss = (palette, mapping, mode, thresholds) =>
 		Object.entries(resolveMapping(palette, mapping, mode, thresholds)).map(([token, { css }]) => [token, css]),
 	);
 
-// resolved: resolveMapping output. Each check paints the token over the tokens in `against`:
-// the first as resolved, then each further token painted over the ones before it.
+// resolved: resolveMapping output. Each check paints the token over its checkGround.
 export const runChecks = (resolved, mapping, thresholds) =>
 	Object.fromEntries(
 		Object.entries(mapping.tokens).map(([token, { checks }]) => [
 			token,
 			checks.map(({ against, element }) => {
-				const [bottom, ...layers] = against;
-				const ground = layers.reduce((below, layer) => overHex(resolved[layer].css, below), resolved[bottom].hex);
+				const ground = checkGround(against, (token) => resolved[token]);
 				const color = overHex(resolved[token].css, ground);
 				const ratio = contrast(color, ground);
 				const lc = apca(color, ground);
