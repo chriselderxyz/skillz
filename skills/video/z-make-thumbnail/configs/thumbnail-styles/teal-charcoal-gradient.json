@@ -1,9 +1,0 @@
-{
-  "style": "gradient",
-  "background_colors": ["#193843", "#2C2C2C"],
-  "gradient_type": "linear",
-  "gradient_angle": 90,
-  "gradient_stops": [30, 100],
-  "foreground_colors": ["#5CD6B4", "#FFFFFF"],
-  "outline_color": "#2C2C2C"
-}

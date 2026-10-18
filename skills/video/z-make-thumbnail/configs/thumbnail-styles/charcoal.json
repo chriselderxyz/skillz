@@ -1,8 +1,0 @@
-{
-  "style": "solid",
-  "background_colors": ["#2C2C2C"],
-  "foreground_colors": ["#FFFFFF", "#11FFBA"],
-  "outline_color": "#2C2C2C",
-  "text_box_background": "#11FFBA",
-  "text_box_foreground": "#006147"
-}
