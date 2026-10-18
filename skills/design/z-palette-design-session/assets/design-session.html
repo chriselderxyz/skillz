@@ -138,9 +138,58 @@
 			//==================================================
 
 			// Each contrast cell shows "WCAG 2 ratio | APCA Lc". Steps are measured as text on the
-			// mode background and on brand step 2; black and white are measured as text on the step.
+			// mode background, on steps 3 and 5 of their ramp, and, for brand and signal ramps, on
+			// neutral step 5.
 			const formatPair = (ratio, lc) =>
 				`<span class="cx-v2">${ratio.toFixed(2)}</span><span class="cx-sep">|</span><span class="cx-v3">${Math.round(lc)}</span>`;
+
+			// Each step's purpose: a name, and an optional note.
+			const stepPurposes = [
+				["Background or Raised Background"],
+				["Raised Background"],
+				["Soft Component Fill", "Ex. Ghost Button. Must still hit 3:1 with the border."],
+				["Soft Component Fill", "Hovered"],
+				["Soft Component Fill", "Pressed or Selected"],
+				["Subtle Border"],
+				["Border"],
+				["Contrast Compliant Border and Control Fill"],
+				["Solid Fill", "Brand"],
+				["Solid Fill", "Hovered"],
+				["Contrast Compliant Text"],
+				["Enhanced Contrast Text"],
+			];
+
+			// The README's guarantees by step number: [WCAG 2, APCA, what they hold against]. seed is the
+			// ramp's seeds, or null for the neutral ramp. Brand and signal ramps also meet their minimums
+			// on neutral steps, and their step 9 is the seed. Two seeds also meet text minimums on the
+			// background.
+			const stepGuarantees = (seed) => {
+				const range = (steps) => `<span class="step-range">steps ${steps}</span>`;
+				const surfaces = (steps) =>
+					seed ? `the background, ${range(steps)}, and neutral ${range(steps)}` : `the background and ${range(steps)}`;
+				const twoSeeds = seed && seed.light !== seed.dark;
+				return {
+					8: seed ? [["3:1", "Lc 45", `Against ${surfaces("1–3")}`]] : [],
+					9: seed
+						? [
+								["4.5:1", "Lc 75", "Against its white or black text"],
+								...(twoSeeds ? [["4.5:1", "Lc 60", "Against the background"]] : []),
+							]
+						: [],
+					10: seed ? [["4.5:1", "Lc 75", "Against step 9's white or black text"]] : [],
+					11: [["4.5:1", "Lc 60", `Against ${surfaces("1–5")}`]],
+					12: [["7:1", "Lc 75", `Against ${surfaces("1–5")}`]],
+				};
+			};
+
+			const purposeCell = ([name, note]) => `<td class="step-purpose">${name}${note ? `<small>${note}</small>` : ""}</td>`;
+			const guaranteeCell = (guarantees = []) =>
+				`<td class="step-guarantees">${guarantees
+					.map(
+						([wcag, lc, against]) =>
+							`<div class="guarantee"><span class="guarantee-minimums"><span>${wcag}</span><span>${lc}</span></span><small>${against}</small></div>`,
+					)
+					.join("")}</td>`;
 
 			// A swatch badge: label, color, and optional detail.
 			const badge = (label, color, detail = "") =>
@@ -164,7 +213,7 @@
 							` · Chroma ${palette.grayChroma[mode]}`,
 						]);
 
-			const renderRampTable = ({ title, anchor, badges, columns, tableClass, kind = "solid" }) => {
+			const renderRampTable = ({ title, anchor, badges, seed, columns, tableClass, kind = "solid" }) => {
 				const rgb = (hex) => {
 					let value = hex.slice(1);
 					if (value.length === 3 || value.length === 4) value = [...value].map((char) => char + char).join("");
@@ -199,18 +248,24 @@
 					return "#111111";
 				};
 				const showContrast = kind !== "wide";
+				// Each measure returns the surface the step is measured on as text.
 				const measures = [
-					["Vs. Background", (hex, column) => [contrast(hex, column.background), apca(hex, column.background)]],
-					["Vs. Brand Step 2", (hex, column) => [contrast(hex, column.brandStep2), apca(hex, column.brandStep2)]],
-					["Vs. Black", (hex) => [contrast(hex, "#000000"), apca("#000000", hex)]],
-					["Vs. White", (hex) => [contrast(hex, "#FFFFFF"), apca("#FFFFFF", hex)]],
+					["Vs. Background", (column) => column.background],
+					["Vs. Step 3", (column) => column.values[2]],
+					["Vs. Step 5", (column) => column.values[4]],
+					...(seed ? [["Vs. Neutral Step 5", (column) => column.neutralValues[4]]] : []),
 				];
+				const measureCell = (hex, surface, column) => {
+					const ground = compositeHex(surface, column.background);
+					return `<td class="contrast">${formatPair(contrast(hex, ground), apca(hex, ground))}</td>`;
+				};
+				const guarantees = stepGuarantees(seed);
 				const headers = columns
 					.map(
 						(column) => `
 							<th class="color-column">${column.label}</th>
 							${column.alphaValues ? `<th class="color-column">${column.label} Alpha</th>` : ""}
-							${showContrast ? measures.map(([label]) => `<th class="contrast-column">${label}<br /><small>v2 | v3</small></th>`).join("") : ""}
+							${showContrast ? measures.map(([label]) => `<th class="contrast-column">${label}<br /><small>WCAG 2 | APCA</small></th>`).join("") : ""}
 						`,
 					)
 					.join("");
@@ -228,11 +283,11 @@
 							return `
 								<td class="${swatchClass}" style="background:linear-gradient(${color}, ${color}), ${column.background};color:${textColor}">${color}</td>
 								${column.alphaValues ? alphaSwatch(column.alphaValues[index], column) : ""}
-								${showContrast ? measures.map(([, measure]) => `<td class="contrast">${formatPair(...measure(measured, column))}</td>`).join("") : ""}
+								${showContrast ? measures.map(([, surface]) => measureCell(measured, surface(column), column)).join("") : ""}
 							`;
 						})
 						.join("");
-					return `<tr><td class="step">${index + 1}</td>${renderedCells}</tr>`;
+					return `<tr><td class="step">${index + 1}</td>${purposeCell(stepPurposes[index])}${guaranteeCell(guarantees[index + 1])}${renderedCells}</tr>`;
 				}).join("");
 
 				return `
@@ -241,7 +296,7 @@
 						<div class="seed-list ramp-table-badges">${badges.map(([label, color, detail]) => badge(label, color, detail)).join("")}</div>
 						<div class="table-shell">
 							<table class="${tableClass}">
-								<thead><tr><th>Step</th>${headers}</tr></thead>
+								<thead><tr><th>Step</th><th class="purpose-column">Purpose</th><th class="guarantee-column">Contrast Guarantees</th>${headers}</tr></thead>
 								<tbody>${rows}</tbody>
 							</table>
 						</div>
@@ -255,7 +310,7 @@
 					values: values[mode],
 					alphaValues: alphaValues?.[mode],
 					background: backgrounds[mode].color,
-					brandStep2: palette.ramps[`${mode}Brand`][1],
+					neutralValues: palette.ramps[`${mode}Neutral`],
 				}));
 
 			//==================================================
@@ -638,17 +693,20 @@
 
 			const renderPalette = () => {
 				const palette = currentPalette();
-				const rampTables = (title, anchor, badges, backgrounds, solid, alpha) =>
+				// seed is the ramp's seeds, or null for the neutral ramp.
+				const rampTables = (title, anchor, seed, badges, backgrounds, solid, alpha) =>
 					renderRampTable({
 						title,
 						anchor,
 						badges,
+						seed,
 						tableClass: "ramp-table",
 						columns: rampColumns(solid, palette, backgrounds, alpha),
 					});
 				const brandTable = rampTables(
 					"Brand Ramp",
 					"brand",
+					palette.seed,
 					[
 						["Suggested Brand", palette.seed[palette.suggestedBrand]],
 						...seedBadges(palette.seed),
@@ -661,6 +719,7 @@
 				const neutralTable = rampTables(
 					"Neutral Ramp",
 					"neutral",
+					null,
 					[...grayBadges(palette), ...backgroundBadges(palette.backgrounds)],
 					palette.backgrounds,
 					{ light: palette.ramps.lightNeutral, dark: palette.ramps.darkNeutral },
@@ -671,6 +730,7 @@
 						rampTables(
 							`${signal.name} Ramp`,
 							signal.key,
+							signal.seed,
 							[...seedBadges(signal.seed), ...backgroundBadges(signal.backgrounds)],
 							signal.backgrounds,
 							signal.ramps,
