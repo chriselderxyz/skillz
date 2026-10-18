@@ -90,14 +90,14 @@ description: Use for interactive design sessions with the user to come up with a
 - When `primary_text_contrast` is true, check the seeds following Phase 2 of `references/two-seeds.md`.
 
 ## Action 6. Select Grays
-- Run `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/colors/makeGrays.ts" --light-seed "<light_seed>" --dark-seed "<dark_seed>"` with each hue's **light seed** and **dark seed**.
-- Use `light_gray` and `dark_gray` from each output as the grays for that hue, or the grays the user gives.
+- Run `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/colors/makeGrays.ts" --light-seed "<light_seed>" --dark-seed "<dark_seed>"` with the brand hue's **light seed** and **dark seed**.
+- Use `light_gray` and `dark_gray` from the output as the palette's grays, or the grays the user gives.
 
 ## Action 7. Make Palettes
 - Create as many palettes as the user requests.
 - Make each palette with every generator in `generators`:
     - Give every generator the same inputs: the seeds, the light and dark backgrounds, and the grays.
-    - Pass each ramp's **light seed** as `light_seed`, its **dark seed** as `dark_seed`, and its grays as `light_gray` and `dark_gray`.
+    - Pass each ramp's **light seed** as `light_seed`, its **dark seed** as `dark_seed`, and the palette's grays as `light_gray` and `dark_gray`.
 - Use a subagent to run each generator skill.
 - For `radix`:
     - Use the `/z-make-radix-palette` skill.

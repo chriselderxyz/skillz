@@ -148,8 +148,9 @@ function withLongHex(colors: ReturnType<typeof generateRadixColors>) {
 //==================================================
 
 // Step 11 meets 4.5:1 and APCA Lc 60, and step 12 meets 7:1 and Lc 75, on the background and on
-// steps 1–5 of their ramp. Brand step 8 meets 3:1 and Lc 45 on the background and on steps 1–2.
-// Brand steps also meet their minimums on the same neutral steps.
+// steps 1–5 of their ramp. Brand step 8 meets 3:1 and Lc 45 on the background and on steps 1–3.
+// Brand steps also meet their minimums on the same neutral steps. Each step's alpha, wide gamut, and
+// wide gamut alpha versions meet them against the same versions of those steps.
 const stepMinimums = [
   { index: 7, wcag: 3, apca: 45, surfaceSteps: 3, brandOnly: true },
   { index: 10, wcag: 4.5, apca: 60, surfaceSteps: 5, brandOnly: false },
@@ -166,14 +167,65 @@ function meetsStepMinimum(hex: string, surfaces: string[], minimum: (typeof step
   );
 }
 
+// WCAG 2 contrast from each color's luminance, and APCA from Display P3 screen luminance with APCA's
+// Display P3 coefficients, for colors outside sRGB.
+function meetsWideGamutMinimum(step: Color, surfaces: Color[], minimum: (typeof stepMinimums)[number]) {
+  const screenLuminance = (color: Color) => {
+    const [red, green, blue] = color.to("p3").coords.map((channel) => Math.max(0, channel as number) ** 2.4);
+
+    return 0.228982959480578 * (red as number) + 0.691749262585238 * (green as number) + 0.0792677779341829 * (blue as number);
+  };
+
+  return surfaces.every((surface) => {
+    const [high, low] = [step.luminance, surface.luminance].sort((a, b) => b - a);
+
+    return (
+      ((high as number) + 0.05) / ((low as number) + 0.05) >= minimum.wcag &&
+      apcaLightness(screenLuminance(step), screenLuminance(surface)) >= minimum.apca
+    );
+  });
+}
+
+// APCA lightness contrast, as a positive Lc, from the screen luminance of the text and background.
+function apcaLightness(textLuminance: number, backgroundLuminance: number) {
+  const clamp = (luminance: number) => (luminance > 0.022 ? luminance : luminance + (0.022 - luminance) ** 1.414);
+  const text = clamp(textLuminance);
+  const background = clamp(backgroundLuminance);
+
+  if (Math.abs(background - text) < 0.0005) {
+    return 0;
+  }
+
+  const contrast = background > text ? (background ** 0.56 - text ** 0.57) * 1.14 : (text ** 0.62 - background ** 0.65) * 1.14;
+
+  return contrast < 0.1 ? 0 : (contrast - 0.027) * 100;
+}
+
+// An alpha color painted over an opaque background, in the alpha color's own space.
+function paintOver(css: string, background: string) {
+  const color = new Color(css);
+  const space = color.space.id === "p3" ? "p3" : "srgb";
+  const alpha = Number(color.alpha);
+  const ground = new Color(background).to(space).coords;
+  const coords = color
+    .to(space)
+    .coords.map((channel, index) => (channel as number) * alpha + (ground[index] as number) * (1 - alpha));
+
+  return new Color(space, coords as [number, number, number]);
+}
+
+const paintedHex = (css: string, background: string) =>
+  toLongHex(paintOver(css, background).to("srgb").toString({ format: "hex" }));
+
 // Moves each step that falls short darker in light mode, or lighter in dark mode, keeping its hue
-// and chroma, then rebuilds its alpha and wide gamut values.
+// and chroma, until it and its rebuilt alpha, wide gamut, and wide gamut alpha values all meet it.
 function applyStepMinimums(colors: ReturnType<typeof withLongHex>, appearance: "light" | "dark") {
   const scales = [
     ["accentScale", "accentScaleAlpha", "accentScaleWideGamut", "accentScaleAlphaWideGamut"],
     ["grayScale", "grayScaleAlpha", "grayScaleWideGamut", "grayScaleAlphaWideGamut"],
   ] as const;
   const result = { ...colors };
+  const { background } = colors;
 
   for (const [solidKey, alphaKey, wideGamutKey, wideGamutAlphaKey] of scales) {
     const solid = [...result[solidKey]];
@@ -187,28 +239,52 @@ function applyStepMinimums(colors: ReturnType<typeof withLongHex>, appearance: "
         continue;
       }
 
-      const surfaces = [
-        colors.background,
-        ...solid.slice(0, minimum.surfaceSteps),
-        ...(brand ? colors.grayScale.slice(0, minimum.surfaceSteps) : []),
-      ] as string[];
+      // Steps 1 to surfaceSteps of the ramp and, for a brand ramp, of the neutral ramp, in each version.
+      const surfaceSteps = (ramp: readonly string[], neutral: readonly string[]) => [
+        ...ramp.slice(0, minimum.surfaceSteps),
+        ...(brand ? neutral.slice(0, minimum.surfaceSteps) : []),
+      ];
+      const surfaces = [background, ...surfaceSteps(solid, colors.grayScale)];
+      const alphaSurfaces = [
+        background,
+        ...surfaceSteps(alpha, colors.grayScaleAlpha).map((css) => paintedHex(css, background)),
+      ];
+      const wideGamutSurfaces = [background, ...surfaceSteps(wideGamut, colors.grayScaleWideGamut)].map(
+        (css) => new Color(css),
+      );
+      const wideGamutAlphaSurfaces = [
+        new Color(background),
+        ...surfaceSteps(wideGamutAlpha, colors.grayScaleAlphaWideGamut).map((css) => paintOver(css, background)),
+      ];
+      const meetsAll = (hex: string, alphaCss: string, wideGamutCss: string, wideGamutAlphaCss: string) =>
+        meetsStepMinimum(hex, surfaces, minimum) &&
+        meetsStepMinimum(paintedHex(alphaCss, background), alphaSurfaces, minimum) &&
+        meetsWideGamutMinimum(new Color(wideGamutCss), wideGamutSurfaces, minimum) &&
+        meetsWideGamutMinimum(paintOver(wideGamutAlphaCss, background), wideGamutAlphaSurfaces, minimum);
       let hex = solid[minimum.index] as string;
 
-      if (meetsStepMinimum(hex, surfaces, minimum)) {
+      if (
+        meetsAll(
+          hex,
+          alpha[minimum.index] as string,
+          wideGamut[minimum.index] as string,
+          wideGamutAlpha[minimum.index] as string,
+        )
+      ) {
         continue;
       }
 
       const step = new Color(hex).to("oklch");
+      const rebuilt = () =>
+        [getAlphaColorSrgb(hex, background), toOklchString(step), getAlphaColorP3(hex, background)] as const;
 
-      while (!meetsStepMinimum(hex, surfaces, minimum) && step.coords[0] > 0 && step.coords[0] < 1) {
+      while (!meetsAll(hex, ...rebuilt()) && step.coords[0] > 0 && step.coords[0] < 1) {
         step.coords[0] += appearance === "light" ? -0.001 : 0.001;
         hex = toLongHex(step.to("srgb").toString({ format: "hex" }));
       }
 
       solid[minimum.index] = hex;
-      alpha[minimum.index] = getAlphaColorSrgb(hex, colors.background);
-      wideGamut[minimum.index] = toOklchString(step);
-      wideGamutAlpha[minimum.index] = getAlphaColorP3(hex, colors.background);
+      [alpha[minimum.index], wideGamut[minimum.index], wideGamutAlpha[minimum.index]] = rebuilt();
     }
 
     Object.assign(result, {
