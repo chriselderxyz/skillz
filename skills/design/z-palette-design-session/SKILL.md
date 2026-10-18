@@ -160,5 +160,9 @@ description: Use for interactive design sessions with the user to come up with a
 - Write a short summary that names the selected palette, its generator, the **token mapping**, and the palette's `seed_foreground` contrast from the latest `checkTokenMapping.ts` output.
 - Run `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/pages/buildPage.ts" --page export --palettes palettes.json --palette "<palette name>" --generator "<generator>" --token-mapping "<token_mapping_path>" --summary "<summary>" --output export.html`.
 
-## Action 2. Deliver
+## Action 2. Build the Contrast Matrix
+- Run `"<skill_dir>/node_modules/.bin/tsx" "<skill_dir>/scripts/pages/buildContrastMatrix.ts" --palettes palettes.json --palette "<palette name>" --generator "<generator>" --output contrast-matrix.md`.
+
+## Action 3. Deliver
 - Tell the user to review `export.html`.
+- Tell the user `contrast-matrix.md` has the WCAG 2 and APCA contrast of every color pair.

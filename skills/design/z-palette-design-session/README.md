@@ -46,6 +46,7 @@ npx skills add chriselderxyz/skillz --skill z-palette-design-session --skill z-m
 - Agent generates all the palettes you asked for
 - Results are put in `design-session.html` (use this to iterate).
 - Final selection is exported to `export.html`
+- `contrast-matrix.md` has a WCAG 2 table and an APCA table with the contrast of every color pair in the final selection
 
 # Hot Tips
 
