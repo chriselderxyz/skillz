@@ -183,7 +183,7 @@ function formatRamp(
 
 // Same overlay solve as the Radix skill. Each solid step becomes a transparent
 // black or white that composites back to that step on the mode background.
-function alphaRamp(steps: RampStep[], background: string): string[] {
+function alphaRamp(steps: Pick<RampStep, "color">[], background: string): string[] {
   return steps.map((step) => {
     const targetRgb = new Color(step.color).to("srgb").coords;
     const backgroundRgb = new Color(background).to("srgb").coords;
@@ -434,8 +434,9 @@ function applySolidSteps(values: ContrastColorValue[], seed: string, background:
 //==================================================
 
 // Step 11 meets 4.5:1 and APCA Lc 60, and step 12 meets 7:1 and Lc 75, on the background and on
-// steps 1–5 of their ramp. Brand step 8 meets 3:1 and Lc 45 on the background and on steps 1–2.
-// Brand steps also meet their minimums on the same neutral steps.
+// steps 1–5 of their ramp. Brand step 8 meets 3:1 and Lc 45 on the background and on steps 1–3.
+// Brand steps also meet their minimums on the same neutral steps. Each step's alpha version meets
+// them against the alpha versions of those steps.
 const stepMinimums = [
   { index: 7, wcag: 3, apca: 45, surfaceSteps: 3, brandOnly: true },
   { index: 10, wcag: 4.5, apca: 60, surfaceSteps: 5, brandOnly: false },
@@ -469,7 +470,8 @@ function meetsStepMinimum(hex: string, surfaces: string[], minimum: (typeof step
 }
 
 // Moves each step that falls short darker in light mode, or lighter in dark mode, keeping its hue
-// and chroma. neutralValues is the neutral ramp for a brand ramp, or null for the neutral ramp.
+// and chroma, until it and its alpha version meet it. neutralValues is the neutral ramp for a brand
+// ramp, or null for the neutral ramp.
 function applyStepMinimums(
   values: ContrastColorValue[],
   background: string,
@@ -477,6 +479,16 @@ function applyStepMinimums(
   neutralValues: ContrastColorValue[] | null,
 ): ContrastColorValue[] {
   const toHex = (color: Color) => color.to("srgb").toString({ format: "hex", collapse: false }).toUpperCase();
+  // A solid step's alpha version painted on the background.
+  const paintedAlpha = (hex: string) => {
+    const alpha = new Color(alphaRamp([{ color: hex }], background)[0] as string);
+    const ground = new Color(background).to("srgb").coords;
+    const coords = alpha
+      .to("srgb")
+      .coords.map((channel, index) => (channel as number) * Number(alpha.alpha) + (ground[index] as number) * (1 - Number(alpha.alpha)));
+
+    return toHex(new Color("srgb", coords as [number, number, number]));
+  };
   const adjusted = [...values];
 
   for (const minimum of stepMinimums) {
@@ -484,21 +496,22 @@ function applyStepMinimums(
       continue;
     }
 
-    const surfaces = [
-      background,
-      ...[...values.slice(0, minimum.surfaceSteps), ...(neutralValues ?? []).slice(0, minimum.surfaceSteps)].map(
-        (value) => toHex(new Color(value.value)),
-      ),
-    ];
+    const surfaceSteps = [...values.slice(0, minimum.surfaceSteps), ...(neutralValues ?? []).slice(0, minimum.surfaceSteps)].map(
+      (value) => toHex(new Color(value.value)),
+    );
+    const surfaces = [background, ...surfaceSteps];
+    const alphaSurfaces = [background, ...surfaceSteps.map(paintedAlpha)];
+    const meetsAll = (hex: string) =>
+      meetsStepMinimum(hex, surfaces, minimum) && meetsStepMinimum(paintedAlpha(hex), alphaSurfaces, minimum);
     const value = adjusted[minimum.index] as ContrastColorValue;
     const step = new Color(value.value).to("oklch");
     let hex = toHex(step);
 
-    if (meetsStepMinimum(hex, surfaces, minimum)) {
+    if (meetsAll(hex)) {
       continue;
     }
 
-    while (!meetsStepMinimum(hex, surfaces, minimum) && step.coords[0] > 0 && step.coords[0] < 1) {
+    while (!meetsAll(hex) && step.coords[0] > 0 && step.coords[0] < 1) {
       step.coords[0] += mode === "light" ? -0.001 : 0.001;
       hex = toHex(step);
     }
