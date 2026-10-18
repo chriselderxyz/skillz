@@ -85,7 +85,7 @@ These minimums hold in both modes, for the brand, neutral, and signal ramps from
 
 | Color                                            | Against                                                      | WCAG 2        | APCA          |
 | ------------------------------------------------ | ------------------------------------------------------------ | ------------- | ------------- |
-| `primary` (when `primary_text_contrast is true)` | The background of its mode                                   | 4.5:1         | Lc 60         |
+| `primary` (when `primary_text_contrast` is true) | The background of its mode                                   | 4.5:1         | Lc 60         |
 | Text on a seed, white or black                   | The seed and its hover (step 10)                             | 4.5:1         | Lc 75         |
 | Brand and signal step 8                          | The background, steps 1–3 of its ramp, and neutral steps 1–3 | 3:1           | Lc 45         |
 | Step 11                                          | The background and steps 1–5 of its ramp                     | 4.5:1         | Lc 60         |
@@ -93,6 +93,22 @@ These minimums hold in both modes, for the brand, neutral, and signal ramps from
 | Brand and signal steps 11 and 12                 | Neutral steps 1–5                                            | Same as above | Same as above |
 
 Token mapping checks use the minimums in `assets/contrast-thresholds.json`, and the design session reports any that fail.
+
+# Output Definitions
+
+Token mappings and the pages refer to colors by these keys. A ramp step is its ramp's letter and the step number.
+
+| Key                       | Meaning                                                             | Example                         |
+| ------------------------- | ------------------------------------------------------------------- | ------------------------------- |
+| `selected-background`     | The palette's background for the mode                               |                                 |
+| `seed`                    | The brand seed for the mode, the same color as `B9`                 |                                 |
+| `seed-foreground`         | Text on the seed: white, or black when white falls below APCA Lc 40 |                                 |
+| `B`                       | Brand ramp                                                          | `B1` → Brand ramp step 1        |
+| `N`                       | Neutral ramp                                                        | `N12` → Neutral ramp step 12    |
+| `D`                       | Destructive ramp                                                    | `D9` → Destructive ramp step 9  |
+| `W`                       | Warning ramp                                                        | `W11` → Warning ramp step 11    |
+| `S`                       | Success ramp                                                        | `S6` → Success ramp step 6      |
+| `A` after the ramp letter | The ramp's alpha version                                            | `BA3` → Brand alpha ramp step 3 |
 
 # Generator Changes
 

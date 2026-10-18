@@ -353,7 +353,20 @@ th.color-column {
 }
 
 th.contrast-column {
-	width: 104px;
+	width: 96px;
+}
+
+th.purpose-column {
+	width: 152px;
+}
+
+th.guarantee-column {
+	width: 212px;
+}
+
+th.purpose-column,
+th.guarantee-column {
+	text-align: left;
 }
 
 th small {
@@ -411,6 +424,51 @@ td {
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	font-size: 0.75rem;
 	font-weight: 650;
+}
+
+.step-purpose,
+.step-guarantees {
+	padding: 9px 12px;
+	font-size: 0.74rem;
+	line-height: 1.35;
+}
+
+.step-purpose {
+	font-weight: 680;
+}
+
+.step-purpose small,
+.guarantee small {
+	display: block;
+	margin-top: 2px;
+	color: var(--muted-foreground);
+	font-size: 0.68rem;
+	font-weight: 500;
+}
+
+.step-range {
+	white-space: nowrap;
+}
+
+.guarantee + .guarantee {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px dashed var(--soft-line);
+}
+
+.guarantee-minimums {
+	display: flex;
+	gap: 4px;
+}
+
+.guarantee-minimums span {
+	padding: 1px 7px;
+	border-radius: 999px;
+	background: #f0efea;
+	color: var(--page-foreground);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.68rem;
+	font-weight: 760;
 }
 
 .examples {
@@ -700,6 +758,11 @@ td {
 	padding: 8px 5px;
 	font-size: 0.6rem;
 	letter-spacing: 0.02em;
+}
+
+.ramp-table thead th.purpose-column,
+.ramp-table thead th.guarantee-column {
+	padding-left: 12px;
 }
 
 .token-table .token-fill {
